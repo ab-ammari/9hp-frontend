@@ -1,0 +1,126 @@
+<ng-container [ngSwitch]="this.target.info.obj_table">
+  <ng-container *ngSwitchCase="'contenant'">
+    <app-new-contenant-form (onContenantCreated)="this.onObjectCreated($event)"
+                            (onCancelBtnClicked)="this.cancelClicked()">
+      <app-new-link-form [(note)]="this.customField.note"></app-new-link-form>
+    </app-new-contenant-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'document_photo'">
+    <app-new-photo-form (onPhotoCreated)="this.onObjectCreated($event)"
+                        (onCancelBtnClicked)="this.cancelClicked()"
+                        [sectorUuid]="this.sectorUuid">
+      <app-new-link-form [(note)]="this.customField.note"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-photo-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'document_minute'">
+    <app-new-minute-form (onMinuteCreated)="this.onObjectCreated($event)"
+                         (onCancelBtnClicked)="this.cancelClicked()"
+                         [sectorUuid]="this.sectorUuid">
+      <app-new-link-form [(note)]="this.customField.note"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-minute-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'echantillon_mobilier'">
+    <app-new-mobilier-form (onMobilierCreated)="this.onObjectCreated($event)"
+                           [usUuid]="this.usUuid"
+                           (onCancelBtnClicked)="this.cancelClicked()">
+      <app-new-link-form [(note)]="this.customField.note"></app-new-link-form>
+    </app-new-mobilier-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'echantillon_prelevement'">
+    <app-new-prelevement-form (onPrelevementCreated)="this.onObjectCreated($event)"
+                              (onCancelBtnClicked)="this.cancelClicked()"
+                              [usUuid]="this.usUuid"
+    >
+      <app-new-link-form [(note)]="this.customField.note"></app-new-link-form>
+    </app-new-prelevement-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'ensemble'">
+    <app-new-ensemble-form (onEnsembleCreated)="this.onObjectCreated($event)"
+                           (onCancelBtnClicked)="this.cancelClicked()">
+      <app-new-link-form [(note)]="this.customField.note"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-ensemble-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'fait'">
+    <app-new-fait-form (onFaitCreated)="this.onObjectCreated($event)"
+                       (onCancelBtnClicked)="this.cancelClicked()"
+                       [sectorUuid]="this.sectorUuid">
+      <app-new-link-form [(note)]="customField.note"
+                         [disableNote]="false"
+                         [(typeReleve)]="customField.type_releve"
+                         [(echelleReleve)]="customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-fait-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'section_sondage'">
+    <app-new-sondage-form (onSondageCreated)="this.onObjectCreated($event)"
+                          (onCancelBtnClicked)="this.cancelClicked()"
+                          [sectorUuid]="this.sectorUuid"
+                          [isLink]="true"
+                          [hideRadioSelector]="true"
+                          [disableRadioSelector]="true"
+                          [isLinkSondage]="true"
+    >
+      <app-new-link-form [(note)]="this.customField.note"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [(profile)]="customField.profile"
+                         [(largeur)]="customField.largeur"
+                         [(hauteur)]="customField.hauteur"
+                         [(z_supp)]="customField.z_supp"
+                         [(z_inf)]="customField.z_inf"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+                         [isFaitSectionRelation]="this.isFaitSectionRelation()"
+      ></app-new-link-form>
+    </app-new-sondage-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'section_coupe'">
+    <app-new-sondage-form (onSondageCreated)="this.onObjectCreated($event)"
+                          (onCancelBtnClicked)="this.cancelClicked()"
+                          [sectorUuid]="this.sectorUuid"
+                          [isLink]="true"
+                          [hideRadioSelector]="true"
+                          [disableRadioSelector]="true"
+                          [isLinkSondage]="false">
+      <app-new-link-form [(note)]="this.customField.note"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-sondage-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'topo'">
+    <app-new-topo-form (onTopoCreated)="this.onObjectCreated($event)"
+                       (onCancelBtnClicked)="this.cancelClicked()"
+                       [sectorUuid]="sectorUuid"
+                       [faitUuid]="this.faitUuid"
+    >
+      <app-new-link-form [(note)]="this.customField.note"></app-new-link-form>
+    </app-new-topo-form>
+  </ng-container>
+  <ng-container *ngSwitchCase="'us'">
+    <app-new-us-form (onUsCreated)="this.onObjectCreated($event)"
+                     (onCancelBtnClicked)="this.cancelClicked()"
+                     [faitUuid]="this.faitUuid"
+                     [sectorUuid]="this.sectorUuid">
+      <app-new-link-form [(note)]="this.customField.note"
+                         [disableNote]="false"
+                         [(typeReleve)]="this.customField.type_releve"
+                         [(echelleReleve)]="this.customField.echelle_releve"
+                         [isMinuteRelation]="this.isMinuteRelation()"
+      ></app-new-link-form>
+    </app-new-us-form>
+  </ng-container>
+</ng-container>

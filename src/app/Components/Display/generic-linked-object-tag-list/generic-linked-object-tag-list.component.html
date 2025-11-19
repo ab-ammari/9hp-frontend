@@ -1,0 +1,9 @@
+<ion-row class="flex-nowrap">
+  <ion-col size="auto" *ngFor="let target of target_list">
+    <app-castor-tag-display
+      *ngIf="target?.item"
+      [object]="target.item"
+      [infoBulle]="true"
+    ></app-castor-tag-display>
+  </ion-col>
+</ion-row>

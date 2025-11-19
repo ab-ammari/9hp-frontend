@@ -1,0 +1,80 @@
+<ion-item [button]="true" [id]="this.id" [color]="this.item.error ? 'danger' : this.item.draft ? 'warning' : ''">
+  <ion-icon
+    [slot]="'start'"
+    [name]="this.item.error ? 'warning-outline' : this.item.draft ? 'cloud-offline-outline' : 'cloud-done-outline'"></ion-icon>
+  <ion-icon
+    [slot]="'start'"
+    [name]="this.item.live ? 'create-outline' : 'trash-outline'"
+  ></ion-icon>
+  <ion-label>
+    le {{this.item.created | date: 'short'}} par  {{this.item.author_uuid | apiUser}}
+  </ion-label>
+  <ion-buttons [slot]="'end'" *ngIf="item.error || item.draft">
+    <ion-button (click)="discardItem($event)">
+      discard
+    </ion-button>
+  </ion-buttons>
+</ion-item>
+<ion-item [button]="true" [color]=" 'danger'" *ngIf="item.error" [id]="id+'ERROR'">
+  <ion-label [slot]="'start'">ERROR</ion-label>
+  <ion-label>Voir les details du problème</ion-label>
+</ion-item>
+<ion-item *ngIf="this.item.draft && this.previousValidVersion">
+  <ion-icon
+    [slot]="'start'"
+    [name]="this.previousValidVersion.error ? 'warning-outline' : this.previousValidVersion.draft ? 'cloud-offline-outline' : 'cloud-done-outline'"></ion-icon>
+  <ion-icon
+    [slot]="'start'"
+    [name]="this.previousValidVersion.live ? 'create-outline' : 'trash-outline'"
+  ></ion-icon>
+  <ion-label>
+    Dernière version valide le {{this.previousValidVersion.created | date: 'short'}}
+    par  {{this.previousValidVersion.author_uuid | apiUser}}
+  </ion-label>
+</ion-item>
+
+<ion-popover [trigger]="id" [size]="'cover'">
+  <ng-template>
+    <ng-container *ngIf="item.versions?.length > 0; else noVersions">
+      <ion-item *ngFor="let version of item.versions">
+        <ion-icon
+          [slot]="'start'"
+          [name]="'cloud-done-outline'"></ion-icon>
+        <ion-icon
+          [slot]="'start'"
+          [name]="version.live ? 'create-outline' : 'trash-outline'"
+        ></ion-icon>
+        <ion-label>
+          le {{version.created | date: 'short'}}
+          par  {{version.author?.user_first_name}} {{ version.author?.user_last_name}}
+        </ion-label>
+      </ion-item>
+    </ng-container>
+
+  </ng-template>
+</ion-popover>
+<ion-popover [trigger]="id+'ERROR'" [size]="'cover'">
+  <ng-template>
+    <ion-row *ngIf="item?.error?.length > 0">
+      <ion-col [size]="'auto'" *ngFor="let err of item.error">
+        <pre>
+          <ng-container *ngIf="err['error']['error']; else unknownError ">
+            {{err['error']['error']['message'] | json}}
+          </ng-container>
+          <ng-template #unknownError>
+            {{err | json}}
+          </ng-template>
+
+        </pre>
+        <br>
+      </ion-col>
+    </ion-row>
+  </ng-template>
+</ion-popover>
+
+
+<ng-template #noVersions>
+  <ion-item>
+    <ion-label>No history</ion-label>
+  </ion-item>
+</ng-template>

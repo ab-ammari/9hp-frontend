@@ -1,0 +1,3 @@
+[submodule "shared"]
+    path = shared
+    url = https://gitlab.com/9heuresprecises/9hp-shared.git

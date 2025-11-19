@@ -1,0 +1,164 @@
+<div class="background-form-color" *ngIf="fait">
+
+  <ion-accordion-group>
+
+    <ion-accordion>
+      <ion-item slot="header">
+        <ion-label [ngClass]="{'form-not-valid' : this.generalityNotValid()}">Généralités</ion-label>
+      </ion-item>
+
+      <div slot="content">
+        <!-- Generality fait form -->
+        <app-castor-type-selector
+          [title]="'Identification'"
+          [(value)]="fait.fait_identification_uuid"
+          (valueChange)="onChangeForm()"
+          [category]="ApiTypeCategory.FAIT_IDENTIFICATION"
+        ></app-castor-type-selector>
+        <app-generality-form
+          [hideFaitSelector]="true"
+          [(stat)]="this.fait.fait_stat_uuid"
+          [object]="this.fait"
+          (statChange)="onChangeForm()"
+          [(manualMethode)]="this.fait.fait_methode_manual"
+          (manualMethodeChange)="onChangeForm()"
+          [(mechanicalMethode)]="this.fait.fait_methode_mechanical"
+          (mechanicalMethodeChange)="onChangeForm()"
+          [(selectedSectorUuid)]="this.fait.secteur_uuid"
+          (selectedSectorUuidChange)="onChangeForm()"
+          [(precision)]="this.fait.fait_precision"
+          (precisionChange)="onChangeForm()"
+          [createdDate]="this.fait.created"
+          [updatedDate]="(this.fait.versions?.length > 0) ? this.fait.versions[this.fait.versions.length -1].created : null">
+        </app-generality-form>
+      </div>
+    </ion-accordion>
+    <ion-accordion>
+      <ion-item slot="header">
+        <ion-label [ngClass]="{'form-not-valid' : !this.fait?.fait_description}">Description</ion-label>
+      </ion-item>
+
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12">
+          <ion-item lines="full">
+            <ion-label position="floating">Description</ion-label>
+            <ion-textarea [autoGrow]="true"
+                          [(ngModel)]="this.fait.fait_description"
+                          (ngModelChange)="onChangeForm()" type="text"></ion-textarea>
+          </ion-item>
+        </ion-col>
+     <!--<ion-col size="12">
+          <ion-item lines="none">
+            <ion-label>Calage de poteau</ion-label>
+            <ion-checkbox slot="end"
+                          [(ngModel)]="this.fait.fait_calage_poteau"
+                          (ngModelChange)="onChangeForm()"></ion-checkbox>
+          </ion-item>
+        </ion-col>-->
+      </ion-row>
+    </ion-accordion>
+    <ion-accordion>
+      <ion-item slot="header">
+        <ion-label [ngClass]="{'form-not-valid' : this.mesureNotValid()}">Formes et mesures</ion-label>
+      </ion-item>
+
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12" size-md="6">
+          <!-- Fait form plan selection -->
+          <app-form-plan-selector [(selectedFormPlan)]="this.fait.fait_form_plan" (selectedFormPlanChange)="onChangeForm()">
+          </app-form-plan-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+          <!-- Fait form profile selection -->
+          <app-form-profile-selector [(selectedFormProfile)]="this.fait.fait_form_profile" (selectedFormProfileChange)="onChangeForm()">
+          </app-form-profile-selector>
+        </ion-col>
+
+        <ion-col size="12">
+          <!-- Dimensions -->
+          <app-dimensions-form
+            [hideDiameter]="this.fait.fait_form_plan !== FaitFormPlanEnum.CIRCULAR"
+            [hideLength]="this.fait.fait_form_plan === FaitFormPlanEnum.CIRCULAR"
+            [hideWidth]="this.fait.fait_form_plan === FaitFormPlanEnum.CIRCULAR"
+            [hideArea]="true"
+            [hidePendage]="true"
+            [hideVolume]="true"
+            [hideDepth]="true"
+            [(diameter)]="this.fait.fait_dim_diameter"
+            (diameterChange)="onChangeForm()"
+            [(width)]="this.fait.fait_dim_largeur"
+            (widthChange)="onChangeForm()"
+            [(height)]="this.fait.fait_dim_hauteur"
+            (heightChange)="onChangeForm()"
+            [(length)]="this.fait.fait_dim_longueur"
+            (lengthChange)="onChangeForm()"
+            [(toggleReelDiameterBool)]="this.fait.fait_dim_reel_diameter"
+            (toggleReelDiameterBoolChange)="onChangeForm()"
+            [(toggleReelHeightBool)]="this.fait.fait_dim_reel_hauteur"
+            (toggleReelHeightBoolChange)="onChangeForm()"
+            [(toggleReelLengthBool)]="this.fait.fait_dim_reel_long"
+            (toggleReelLengthBoolChange)="onChangeForm()"
+            [(toggleReelWidthBool)]="this.fait.fait_dim_reel_larg"
+            (toggleReelWidthBoolChange)="onChangeForm()"
+            [showHeightBtnCalculator]="!!(this.fait?.fait_absolute_z_sup && this.fait?.fait_absolute_z_inf)"
+            (btnHeightCalculatorCallBack)="this.calcFaitHeight()"
+            [isHeightCalculated]="this.isHeightCalculated()"
+          ></app-dimensions-form>
+        </ion-col>
+        <ion-col size="12">
+          <!-- Altitude -->
+          <app-altitude-form
+            [hideZAxe]="true"
+            [(zBorn)]="this.fait.fait_z_borne"
+            (zBornChange)="onChangeForm()"
+            [(lectureBorn)]="this.fait.fait_z_lecture"
+            (lectureBornChange)="onChangeForm()"
+            [(zLunette)]="this.fait.fait_z_lunette"
+            (zLunetteChange)="onChangeForm()"
+            [(zsupp)]="this.fait.fait_z_sup"
+            (zsuppChange)="onChangeForm()"
+            [(zinf)]="this.fait.fait_z_inf"
+            (zinfChange)="onChangeForm()"
+            [(absoluteZAxe)]="this.fait.fait_absolute_z_axe"
+            [(absoluteZSupp)]="this.fait.fait_absolute_z_sup"
+            [(absoluteZInf)]="this.fait.fait_absolute_z_inf"
+            [showZSuppCalculatorIcon]="!!(this.fait?.fait_absolute_z_inf && this.fait?.fait_dim_hauteur)"
+            (btnZSuppCalcCallback)="this.calcFaitZSup()"
+            [showZInfCalculatorIcon]="!!(this.fait?.fait_absolute_z_sup && this.fait?.fait_dim_hauteur)"
+            (btnZInfCalcCallback)="this.calcFaitZInf()"
+            [isZInfCalculated]="this.isHeightCalculated()"
+            [isZSupCalculated]="this.isHeightCalculated()"
+          >
+          </app-altitude-form>
+        </ion-col>
+      </ion-row>
+    </ion-accordion>
+    <!-- Stratigraphie -->
+    <ion-accordion>
+      <ion-item slot="header">
+        <ion-label [ngClass]="{'form-not-valid' : !this.stratigraphieFormValid}">Stratigraphie</ion-label>
+      </ion-item>
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12">
+          <app-stratigraphie-form
+            [fait]="this.fait"
+            [(formValid)]="this.stratigraphieFormValid"
+            (unSavedFormChange)="onChangeForm()"
+          ></app-stratigraphie-form>
+        </ion-col>
+      </ion-row>
+    </ion-accordion>
+  </ion-accordion-group>
+  <ion-row>
+    <ion-col size="12">
+      <ion-item lines="none">
+        <ion-label>Validation</ion-label>
+        <ion-checkbox slot="end" [(ngModel)]="this.fait.fait_validation" (ngModelChange)="onChangeForm()"></ion-checkbox>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+</div>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.validFait()"
+  [cancelBackMode]="true"></app-valid-cancel-grouped-btn>-->

@@ -1,0 +1,118 @@
+<ion-row>
+  <ion-col size="12">
+    <h4>Dimensions</h4>
+  </ion-col>
+</ion-row>
+<ion-row>
+
+  <ion-col size="12" size-md="6">
+    <ion-row>
+      <ion-col size="12" *ngIf="!this.hideDiameter">
+        <ion-row>
+          <ion-col>
+            <app-dimension-input [(dimension)]="this.diameter"
+                                 (dimensionChange)="this.diameterChange.emit($event)"
+                                 [mode]="'classic'"
+                                 [titleLabel]="'Diamètre'">
+            </app-dimension-input>
+          </ion-col>
+          <ion-col size="auto">
+            <ion-button (click)="this.toggleReelDiameter()"
+                        fill="clear">{{ this.toggleReelDiameterBool ? 'Réelle' : 'Observée'}}</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hideLength">
+        <ion-row>
+          <ion-col>
+            <app-dimension-input [(dimension)]="this.length"
+                                 (dimensionChange)="this.lengthValueChange($event)"
+                                 [mode]="'classic'"
+                                 [showBtnGetFaitMeasure]="this.showBtnGetFaitLength"
+                                 (btnGetFaitMeasureCallback)="this.btnGetFaitLengthCallback.emit($event)"
+                                 [titleLabel]="'Longeur'">
+            </app-dimension-input>
+          </ion-col>
+          <ion-col size="auto" *ngIf="!this.hideReelLengthBool">
+            <ion-button (click)="this.toggleReelLength()"
+                        fill="clear">{{ this.toggleReelLengthBool ? 'Réelle' : 'Observée'}}</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hideWidth">
+        <ion-row>
+          <ion-col>
+            <app-dimension-input [(dimension)]="this.width"
+                                 (dimensionChange)="this.widthValueChange($event)"
+                                 [mode]="'classic'"
+                                 [showBtnGetFaitMeasure]="this.showBtnGetFaitWidth"
+                                 (btnGetFaitMeasureCallback)="this.btnGetFaitWidthCallback.emit($event)"
+                                 [titleLabel]="'Largeur'">
+            </app-dimension-input>
+          </ion-col>
+          <ion-col size="auto" *ngIf="!this.hideReelWidthBool">
+            <ion-button (click)="this.toggleReelWidth()"
+                        fill="clear">{{ this.toggleReelWidthBool ? 'Réelle' : 'Observée'}}</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hideHeight">
+        <ion-row>
+          <ion-col>
+            <app-dimension-input [(dimension)]="this.height"
+                                 (dimensionChange)="this.heightChange.emit($event)"
+                                 [mode]="'classic'"
+                                 [showBtnGetFaitMeasure]="this.showBtnGetFaitHeight"
+                                 (btnGetFaitMeasureCallback)="this.btnGetFaitHeightCallback.emit($event)"
+                                 [showIconCalculator]="this.showHeightBtnCalculator"
+                                 (btnCalculatorCallBack)="this.btnHeightCalculatorCallBack.emit($event)"
+                                 [inputClass]="this.isHeightCalculated ? '' : 'input-red-text'"
+                                 [titleLabel]="'Hauteur'">
+            </app-dimension-input>
+          </ion-col>
+          <ion-col size="auto">
+            <ion-button (click)="this.toggleReelHeight()"
+                        fill="clear">{{ this.toggleReelHeightBool ? 'Réelle' : 'Observée'}}</ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hideDepth">
+        <ion-row>
+          <ion-col>
+            <app-dimension-input [(dimension)]="this.depth"
+                                 (dimensionChange)="this.depthValueChange($event)"
+                                 [mode]="'classic'"
+                                 [titleLabel]="'Profondeur'">
+            </app-dimension-input>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+
+  <ion-col size="12" size-md="6">
+    <ion-row>
+      <ion-col size="12" *ngIf="!this.hideArea">
+        <app-dimension-input [(dimension)]="this.area"
+                             (dimensionChange)="this.areaChange.emit($event)"
+                             [mode]="'area'"
+                             [titleLabel]="'Superficie'">
+        </app-dimension-input>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hideVolume">
+        <app-dimension-input [(dimension)]="this.volume"
+                             (dimensionChange)="this.volumeChange.emit($event)"
+                             [mode]="'volume'"
+                             [titleLabel]="'Volume'">
+        </app-dimension-input>
+      </ion-col>
+      <ion-col size="12" *ngIf="!this.hidePendage">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Pendage</ion-label>
+          <ion-input type="text" [(ngModel)]="this.pendage"
+                     (ngModelChange)="this.pendageChange.emit($event)"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+</ion-row>

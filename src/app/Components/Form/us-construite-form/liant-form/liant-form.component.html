@@ -1,0 +1,237 @@
+<ion-accordion value="liant">
+  <ion-item slot="header">
+    <ion-label>Liant</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <ion-row>
+        <ion-col size="12">
+          <app-castor-type-selector
+            [title]="'Liant type'"
+            [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_TYPE"
+            [(value)]="this.us.us_liant_type"
+            [enableClearValue]="true"
+            [editable]="true"
+          />
+        </ion-col>
+        <ng-container *ngIf="this.isDisplayLiantFields()">
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Liant couleur matrice'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_COULEUR_MATRICE"
+              [(value)]="this.us.us_liant_couleur_matrice"
+              [enableClearValue]="true"
+              [editable]="true"
+            />
+          </ion-col>
+          <!--Nodule liant -->
+          <ion-col size="12">
+            <mat-card class="card-list hide-scrollbar pt-0">
+              <table class="table table-borderless table-responsive">
+                <!-- HEADER -->
+                <thead class="fixed-table-header">
+                <tr>
+                  <th scope="col">Liant Nodules Type</th>
+                  <th scope="col">Liant Nodules quantités</th>
+                  <th scope="col">Liant Nodules dimensions</th>
+                  <th scope="col"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- ROWS -->
+                <ng-container *ngIf="this.us?.us_liant_nodules?.length > 0">
+                  <tr *ngFor="let nodules of this.us?.us_liant_nodules; let index = index"
+                      [style]="{'text-decoration': (nodules.live ? '' : 'line-through')}">
+                    <td>
+                      <app-castor-type-selector
+                        [prefix]="false"
+                        [editable]="false"
+                        [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_TYPE"
+                        [(value)]="nodules.us_liant_nodule_type"
+                      ></app-castor-type-selector>
+                    </td>
+                    <td>
+                      <app-castor-type-selector
+                        [prefix]="false"
+                        [editable]="false"
+                        [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_QUANTITES"
+                        [(value)]="nodules.us_liant_nodule_quantites"
+                      ></app-castor-type-selector>
+                    </td>
+                    <td>
+                      <app-castor-type-selector
+                        [prefix]="false"
+                        [editable]="false"
+                        [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_DIMENSIONS"
+                        [(value)]="nodules.us_liant_nodule_dimensions"
+                      ></app-castor-type-selector>
+                    </td>
+                    <td class="text-end">
+                      <ion-button [disabled]="!nodules.live" [fill]="'clear'" (click)="this.deleteLiantNodule(nodules, index)">
+                        <ion-icon [slot]="'icon-only'" name="close"></ion-icon>
+                      </ion-button>
+                    </td>
+                  </tr>
+                </ng-container>
+                <!-- ADDING NEW ROW -->
+                <tr>
+                  <td>
+                    <app-castor-type-selector
+                      [prefix]="false"
+                      [editable]="true"
+                      [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_TYPE"
+                      [(value)]="liantNoduleTypeToAdd"
+                    ></app-castor-type-selector>
+                  </td>
+                  <td>
+                    <app-castor-type-selector
+                      title="Quantités"
+                      [prefix]="false"
+                      [editable]="false"
+                      [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_QUANTITES"
+                      [(value)]="liantNoduleQuantiteToAdd"
+                    ></app-castor-type-selector>
+                  </td>
+                  <td>
+                    <app-castor-type-selector
+                      title="Dimensions"
+                      [prefix]="false"
+                      [editable]="false"
+                      [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_NODULES_DIMENSIONS"
+                      [(value)]="liantNoduleDimensionsToAdd"
+                    ></app-castor-type-selector>
+                  </td>
+                  <td class="text-end">
+                    <ion-button [fill]="'clear'" [size]="'small'" [disabled]="!isLiantNoduleValid()" (click)="this.addLiantNodule()">
+                      <mat-icon svgIcon="castorAddIcon"  style="width: 25px; height: 25px"></mat-icon>
+                    </ion-button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </mat-card>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Liant resistance'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_RESISTANCE"
+              [(value)]="this.us.us_liant_resistance"
+              [enableClearValue]="true"
+              [editable]="false"
+            />
+          </ion-col>
+          <!-- Liant charge-->
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Liant facies'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_FACIES"
+              [(value)]="this.us.us_liant_facies"
+              [enableClearValue]="true"
+              [editable]="true"
+            />
+          </ion-col>
+          <!-- Liant inclusions-->
+          <ion-col size="12">
+
+            <ng-container *ngFor="let checkbox of this.chargeCheckbox">
+              <ion-item lines="full">
+                <ion-checkbox slot="start" [(ngModel)]="checkbox.value" (ngModelChange)="this.updateUsOnCheckboxChange()"/>
+                <ion-label class="px-2">{{checkbox.checkBoxLabel}}</ion-label>
+                <br>
+              </ion-item>
+            </ng-container>
+          </ion-col>
+          <ion-col size="12">
+            <mat-card class="card-list hide-scrollbar pt-0">
+              <table class="table table-borderless table-responsive">
+                <!-- HEADER -->
+                <thead class="fixed-table-header">
+                <tr>
+                  <th scope="col">Liant Inclusion Nature</th>
+                  <th scope="col">Liant Inclusion Fréquence</th>
+                  <th scope="col"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- ROWS -->
+                <ng-container *ngIf="this.us?.us_liant_inclusions?.length > 0">
+                  <tr *ngFor="let inclusion of this.us?.us_liant_inclusions; let index = index"
+                      [style]="{'text-decoration': (inclusion.live ? '' : 'line-through')}">
+                    <td>
+                      <app-castor-type-selector
+                        [prefix]="false"
+                        [editable]="false"
+                        [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_INCLUSIONS_NATURE"
+                        [(value)]="inclusion.us_liant_inclusions_nature"
+                      ></app-castor-type-selector>
+                    </td>
+                    <td>
+                      <app-castor-type-selector
+                        [prefix]="false"
+                        [editable]="false"
+                        [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_INCLUSIONS_FREQUENCE"
+                        [(value)]="inclusion.us_liant_inclusions_frequence"
+                      ></app-castor-type-selector>
+                    </td>
+                    <td class="text-end">
+                      <ion-button [disabled]="!inclusion.live" [fill]="'clear'" (click)="this.deleteLiantInclusion(inclusion, index)">
+                        <ion-icon [slot]="'icon-only'" name="close"></ion-icon>
+                      </ion-button>
+                    </td>
+                  </tr>
+                </ng-container>
+                <!-- ADDING NEW ROW -->
+                <tr>
+                  <td>
+                    <app-castor-type-selector
+                      title="Nature"
+                      [prefix]="false"
+                      [editable]="true"
+                      [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_INCLUSIONS_NATURE"
+                      [(value)]="liantInclusionNatureToAdd"
+                    ></app-castor-type-selector>
+                  </td>
+                  <td>
+                    <app-castor-type-selector
+                      title="Fréquence"
+                      [prefix]="false"
+                      [editable]="false"
+                      [category]="ApiTypeCategory.US_CONSTRUITE_LIANT_INCLUSIONS_FREQUENCE"
+                      [(value)]="liantInclusionFrequenceToAdd"
+                    ></app-castor-type-selector>
+                  </td>
+                  <td class="text-end">
+                    <ion-button [fill]="'clear'" [size]="'small'" [disabled]="!isLiantInclusionValid()" (click)="this.addLiantInclusion()">
+                      <mat-icon svgIcon="castorAddIcon"  style="width: 25px; height: 25px"></mat-icon>
+                    </ion-button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </mat-card>
+          </ion-col>
+          <!-- Liant planées -->
+          <ion-col size="12" size-md="6">
+            <ion-item lines="full" class="align-items-center">
+              <ion-input
+                label="Nombre"
+                type="number"
+                [(ngModel)]="this.us.us_liant_plannees_nombre"
+              />
+            </ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item lines="full">
+              <ion-textarea
+                placeholder="Plannées description"
+                [autoGrow]="true"
+                [(ngModel)]="this.us.us_liant_planees_descriptions"
+                type="text"/>
+            </ion-item>
+          </ion-col>
+        </ng-container>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

@@ -1,0 +1,16 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Contenu</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let contenant of this.contenants">
+    <th scope="row">{{contenant.item.tag}}</th>
+    <td>{{contenant.item?.contenant_superieur_uuid }}</td>
+    <td>{{contenant.item?.contenant_remarques}}</td>
+  </tr>
+  </tbody>
+</table>

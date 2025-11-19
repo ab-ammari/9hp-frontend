@@ -1,0 +1,29 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouveau Contenant</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [title]="'Type contenant'"
+        [showTitle]="true"
+        [category]="ApiTypeCategory.CONTENANT_TYPE"
+        [(value)]="this.contenantType"
+      ></app-castor-type-selector>
+    </ion-col>
+  </ion-row>
+
+  <ng-content></ng-content>
+
+  <app-valid-cancel-grouped-btn
+    (validCallBackBtn)="this.createNewContenant()"
+    (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)"
+    ></app-valid-cancel-grouped-btn>
+
+</ion-grid>
+
+<ng-template #noSector>
+  <h3 class="text-center">Créer un secteur pour pouvoir ajouter un contenant</h3><br/>
+</ng-template>

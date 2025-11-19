@@ -1,0 +1,30 @@
+<div id="container" *ngIf="this.w.data().objects.isReady">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.echantillon.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getMobilierColors(this.selectedMobilier)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.echantillon.selected?.item else noSelectedMobilier"
+                        [object]="this.w.data().objects.echantillon.selected"
+      >
+
+        <app-mobilier-form [echantillon]="this.w.data().objects.echantillon.selected.item"
+
+                           ></app-mobilier-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedMobilier>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun mobilier selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

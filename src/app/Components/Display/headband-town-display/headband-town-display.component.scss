@@ -1,0 +1,28 @@
+.row-background {
+  background: linear-gradient(90deg, #1B2A3A -0.01%, #475B75 100.14%);
+  color: white;
+}
+
+.online-dot {
+  background: #76B99C;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+
+.offline-dot {
+  background: #E7411B;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+}
+
+.project-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lock-icon {
+  font-size: 1.2rem;
+}

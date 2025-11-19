@@ -1,0 +1,30 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.us.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getUSColors(this.w.data().objects.us.selected.item)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links
+        *ngIf="this.w.data().objects.us.selected?.item else noSelectedUs"
+        [object]="this.w.data().objects.us.selected"
+      >
+
+        <app-us-form [us]="this.w.data().objects.us.selected.item"></app-us-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedUs>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucune us selectionnée</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>
+

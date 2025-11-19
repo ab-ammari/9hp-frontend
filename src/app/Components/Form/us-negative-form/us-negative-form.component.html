@@ -1,0 +1,67 @@
+<ion-accordion>
+  <ion-item slot="header">
+    <ion-label>US Negative</ion-label>
+  </ion-item>
+  <ion-row slot="content">
+    <ion-col size="12">
+      <ion-row>
+        <ion-col size="12">
+          <app-castor-type-selector
+            [title]="'Plan'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.FAIT_FORME_PLAN"
+            [(value)]="this.us.negative_plan"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12">
+          <ion-card>
+            <ion-card-content>
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="12">
+                    <ion-row class="justify-content-between">
+                      <ion-col size="4" size-md="2" style="justify-items: center" *ngFor="let image of imagePlanTypeArray">
+                        <p class="text-center image-label">{{image.name}}</p>
+                        <ion-img [src]="image.path" (click)="onClickImagePlanType(image.id)" class="clickable-image max-size-image"></ion-img>
+                      </ion-col>
+                    </ion-row>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="12">
+          <app-castor-type-selector
+            [title]="'Profil'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.FAIT_FORME_PROFIL"
+            [(value)]="this.us.negative_profil"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12">
+          <ion-card>
+            <ion-card-content>
+              <ion-grid>
+                <ion-row>
+                  <ion-col size="12">
+                    <ion-row class="justify-content-between">
+                      <ion-col size="4" size-md="2" style="justify-items: center" *ngFor="let image of imageProfileTypeArray">
+                        <p class="text-center image-label">{{image.name}}</p>
+                        <ion-img [src]="image.path" (click)="onClickImageProfileType(image.id)" class="clickable-image max-size-image"></ion-img>
+                      </ion-col>
+                    </ion-row>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

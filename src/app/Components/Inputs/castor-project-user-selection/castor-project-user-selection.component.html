@@ -1,0 +1,14 @@
+<ion-item lines="full">
+  <ion-label position="floating" class="label-placeholder">Responsable</ion-label>
+  <ion-select
+    [interface]="'popover'"
+    [(ngModel)]="user"
+    (ngModelChange)="userChange.emit($event)">
+    <ion-select-option
+      *ngFor="let item of this.w.data().projet?.selected?.item?.users"
+      [value]="item"
+    >
+      {{item.user_first_name}} {{item.user_last_name}}
+    </ion-select-option>
+  </ion-select>
+</ion-item>

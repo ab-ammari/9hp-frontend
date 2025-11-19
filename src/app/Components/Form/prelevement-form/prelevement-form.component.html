@@ -1,0 +1,112 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Contexte</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="4">
+        <ion-list>
+          <app-castor-object-selector
+            [list]="this.w.data().objects.us.all.list"
+            [(selection)]="this.us"
+            [placeholder]="'US'"
+          >
+          </app-castor-object-selector>
+        </ion-list>
+      </ion-col>
+      <ion-col size="4">
+        <ion-list>
+          <ion-item>
+            <ion-label>
+              <app-castor-tag-display
+                [object]="fait?.item"
+              ></app-castor-tag-display>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+
+      </ion-col>
+      <ion-col size="4">
+        <ion-list>
+          <app-castor-object-selector
+            [(selection)]="this.sondage"
+            (selectionChange)="onChangeForm()"
+            [list]="this.w.data().objects.section.all.list"
+            [placeholder]="'Sondage'"
+            [filter]="sondage_filter"
+          ></app-castor-object-selector>
+        </ion-list>
+
+      </ion-col>
+
+    </ion-row>
+  </ion-accordion>
+
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <ion-row>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Nature'"
+              [showTitle]="true"
+              [category]="ApiTypeCategory.PRELEVEMENT_NATURE"
+              [(value)]="this.prelevement.type_nature_uuid"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Quantité'"
+              [category]="ApiTypeCategory.PRELEVEMENT_QUANTITE"
+              [(value)]="this.prelevement.prelevement_quantite"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Analyse'"
+              [category]="ApiTypeCategory.PRELEVEMENT_ANALYSE"
+              [(value)]="this.prelevement.prelevement_analyse"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Etat'"
+              [category]="ApiTypeCategory.PRELEVEMENT_ETAT"
+              [(value)]="this.prelevement.prelevement_etat"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating">Remarques</ion-label>
+              <ion-textarea type="text" [autoGrow]="true"
+                            [(ngModel)]="this.prelevement.echantillon_description"
+                            (ngModelChange)="onChangeForm()"></ion-textarea>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <!--Divider-->
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <!--Fiche-->
+      <ion-col size="12" size-md="6">
+        <app-fiche-form
+          [object]="prelevement"
+        >
+        </app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.validPrelevement()"
+  [cancelBackMode]="true"></app-valid-cancel-grouped-btn>-->

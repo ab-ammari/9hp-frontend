@@ -1,0 +1,18 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Type</th>
+    <th scope="col">Remarques</th>
+    <th scope="col">Z</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let topo of this.topos">
+    <th scope="row">{{topo.item.tag}}</th>
+    <td>{{ topo.item?.topo_type_uuid }}</td>
+    <td>{{ topo.item?.topo_note }}</td>
+    <td>{{ topo.item?.topo_loc_z }}</td>
+  </tr>
+  </tbody>
+</table>

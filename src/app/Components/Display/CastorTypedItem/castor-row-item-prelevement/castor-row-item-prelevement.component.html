@@ -1,0 +1,11 @@
+<ion-row *ngIf="this.prelevement" class="h-100">
+  <ion-col size="auto" class="my-auto tag-label" [ngStyle]="{'background-color' : '#76B99C'}">
+    <app-castor-tag-display [object]="this.prelevement"></app-castor-tag-display>
+  </ion-col>
+  <ion-col *ngIf="this.prelevement?.echantillon_label">
+    <ion-label>Label  : {{ this.prelevement.echantillon_label }} </ion-label>
+  </ion-col>
+  <ion-col *ngIf="this.prelevement?.us_uuid">
+    <ion-label>Us uuid : {{ this.prelevement?.us_uuid ?? '-'}}</ion-label>
+  </ion-col>
+</ion-row>

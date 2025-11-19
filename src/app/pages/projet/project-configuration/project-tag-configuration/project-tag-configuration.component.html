@@ -1,0 +1,202 @@
+<ion-card>
+  <ion-card-title>Tags</ion-card-title>
+  <ion-card-header
+    *ngIf="!this.w.hasAnyOfPending([DataActions.PROJET_UPDATE_CONFIG, DataActions.RETRIEVE_PROJETS]); else loading">
+    <ion-button
+      (click)="saveTags()">Enregistrer</ion-button>
+  </ion-card-header>
+  <ion-card-content>
+    <ion-accordion-group *ngIf="config?.tags">
+      <ion-accordion *ngFor="let tag of config.tags" [value]="tag.table_name">
+
+
+        <ion-item slot="header" color="light">
+          <ion-label [slot]="'start'">
+            {{tag.tag_config_prefix}}
+          </ion-label>
+          <ion-label> {{tag.table_name_display}}</ion-label>
+          <ion-note [slot]="'end'" >
+            {{getEnumLabel(tag.tag_system)}}
+          </ion-note>
+        </ion-item>
+        <div slot="content">
+          {{tag.table_name}}
+          <app-castor-tag-input
+            *ngIf="tag.table_name === ApiDbTable.us
+             || tag.table_name === ApiDbTable.ensemble
+             || tag.table_name === ApiDbTable.topo
+             || tag.table_name === ApiDbTable.echantillon_mobilier
+             || tag.table_name === ApiDbTable.echantillon_prelevement
+             || tag.table_name === ApiDbTable.section_sondage
+             || tag.table_name === ApiDbTable.section_coupe
+             || tag.table_name === ApiDbTable.document_minute
+             || tag.table_name === ApiDbTable.document_photo
+             || tag.table_name === ApiDbTable.fait"
+            [title]="'Système'"
+            [description]="'Type d\'incrément à utiliser'"
+          >
+            <ion-select [(ngModel)]="tag.tag_system" [interface]="'popover'">
+              <ng-container [ngSwitch]="tag.table_name">
+                <ng-container *ngSwitchCase="ApiDbTable.us">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  TagSystem.FAIT,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.fait">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.PSEUDO_SYSLAT,
+                  TagSystem.SECTEUR
+                  ]">
+                  <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.ensemble">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.PSEUDO_SYSLAT
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.topo">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  TagSystem.FAIT
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.echantillon_mobilier">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  TagSystem.MOBILIER_US,
+                  TagSystem.MOBILIER_MATERIAU,
+                  TagSystem.MOBILIER_MATERIAU_US,
+                  TagSystem.MOBILIER_US_MATERIAU
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.echantillon_prelevement">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  TagSystem.PRELEVEMENT_US,
+                  TagSystem.PRELEVEMENT_NATURE,
+                  TagSystem.PRELEVEMENT_NATURE_US,
+                  TagSystem.PRELEVEMENT_US_NATURE,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.section_sondage">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.section_coupe">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.document_minute">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngSwitchCase="ApiDbTable.document_photo">
+                  <ng-container *ngFor="let sys of [
+                  TagSystem.CONTINUE,
+                  TagSystem.SECTEUR,
+                  ]">
+                    <ion-select-option [value]="sys">{{getEnumLabel(sys)}}</ion-select-option>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+
+            </ion-select>
+          </app-castor-tag-input>
+          <app-castor-tag-input *ngIf="tag.table_name === ApiDbTable.ensemble"
+            [title]="'Saisie manuelle'"
+            [description]="'Autoriser la saisie manuelle du tag'"
+          >
+            <ion-checkbox  [checked]="tag.tag_custom" (ionChange)="tag.tag_custom = !tag.tag_custom"></ion-checkbox>
+          </app-castor-tag-input>
+          <app-castor-tag-input
+            [title]="'Prefix'"
+            [description]="'exemple FAIT => FT'"
+          >
+            <ion-input class="ion-text-right"
+                       [maxlength]="3"
+                       (ngModelChange)="tag.tag_config_prefix = $event.toLocaleUpperCase()"
+                       [ngModel]="tag.tag_config_prefix"></ion-input>
+          </app-castor-tag-input>
+          <app-castor-tag-input
+            [title]="'Separateur 1'"
+            [description]="'exemple * dans US*0001'"
+          >
+            <ion-input class="ion-text-right" [maxlength]="1"
+                       [(ngModel)]="tag.tag_config_separator1"></ion-input>
+          </app-castor-tag-input>
+          <app-castor-tag-input
+            [title]="'Separateur 2'"
+            [description]="'exemple + dans US*5+0001'"
+          >
+            <ion-input class="ion-text-right" [maxlength]="1"
+                       [(ngModel)]="tag.tag_config_separator2"></ion-input>
+          </app-castor-tag-input>
+          <app-castor-tag-input
+            [title]="'Rembourage'"
+            [description]="'Nombre de digit a remplir'"
+          >
+            <ion-select [(ngModel)]="tag.tag_config_digit" [interface]="'popover'">
+              <ion-select-option [value]="0">0</ion-select-option>
+              <ion-select-option [value]="1">1</ion-select-option>
+              <ion-select-option [value]="2">2</ion-select-option>
+              <ion-select-option [value]="3">3</ion-select-option>
+              <ion-select-option [value]="4">4</ion-select-option>
+              <ion-select-option [value]="5">5</ion-select-option>
+              <ion-select-option [value]="6">6</ion-select-option>
+            </ion-select>
+          </app-castor-tag-input>
+          <app-castor-tag-input
+            [title]="'Démarrage'"
+            [description]="'Séquence de démarrage pour l\'incrément'"
+          >
+            <ion-input class="ion-text-right" [maxlength]="tag.tag_config_digit"
+                       [(ngModel)]="tag.tag_config_start_sequence"></ion-input>
+          </app-castor-tag-input>
+
+          <app-castor-tag-input
+            [title]="'Date'"
+            [description]="'Ajouter la section date au tag'"
+          >
+            <ion-checkbox slot="end" [checked]="tag.tag_show_date" (ionChange)="tag.tag_show_date = !tag.tag_show_date"></ion-checkbox>
+          </app-castor-tag-input>
+
+
+        </div>
+      </ion-accordion>
+    </ion-accordion-group>
+  </ion-card-content>
+</ion-card>
+
+<ng-template #loading>
+  <ion-progress-bar [type]="'indeterminate'"></ion-progress-bar>
+</ng-template>

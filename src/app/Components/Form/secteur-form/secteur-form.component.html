@@ -1,0 +1,76 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Généralités</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <ion-row>
+          <ion-col size="12">
+            <ion-item>
+              <ion-note [slot]="'start'">Type</ion-note>
+              <app-castor-type-display
+                [display_prefix]="false"
+                [type]="this.secteur.secteur_type"
+              ></app-castor-type-display>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-project-user-selection
+              [(user)]="this.responsable"
+              (userChange)="this.onChangeForm()"
+            ></app-castor-project-user-selection>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating">Remarques</ion-label>
+              <ion-textarea type="text" [autoGrow]="true"
+                            [(ngModel)]="this.secteur.secteur_notes"
+                            (ngModelChange)="onChangeForm()"></ion-textarea>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <!--Fiche-->
+        <app-fiche-form
+          [object]="secteur"
+        ></app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Mesures</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <app-dimensions-form
+          [hideDiameter]="true"
+          [hidePendage]="true"
+          [hideHeight]="true"
+          [hideReelLengthBool]="true"
+          [hideReelWidthBool]="true"
+          [(length)]="this.secteur.secteur_dim_longeur"
+          (lengthChange)="onChangeForm()"
+          [(width)]="this.secteur.secteur_dim_largeur"
+          (widthChange)="onChangeForm()"
+          [(depth)]="this.secteur.secteur_dim_profondeur"
+          (depthChange)="onChangeForm()"
+          [(area)]="this.secteur.secteur_dim_surface"
+          (areaChange)="onChangeForm()"
+          [(volume)]="this.secteur.secteur_dim_volume"
+          (volumeChange)="onChangeForm()"
+        ></app-dimensions-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.onSave()"
+  [disableValidBtn]="!this.responsable"
+  [cancelBackMode]="true"></app-valid-cancel-grouped-btn>-->

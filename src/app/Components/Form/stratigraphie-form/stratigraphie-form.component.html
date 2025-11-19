@@ -1,0 +1,212 @@
+<!-- Adding strati form -->
+<ion-button [fill]="'clear'" (click)="this.forceRefreshUI()">
+  <ion-icon name="refresh-outline"></ion-icon>
+</ion-button>
+<ion-button [fill]="'clear'" (click)="this.openVisualization()" *ngIf="false">
+  <mat-icon svgIcon="eye"  style="width: 35px; height: 35px"></mat-icon>
+  eye
+</ion-button>
+<ion-row>
+  <ion-col size="12" size-md="4">
+    <!-- Title / Add -->
+    <ion-row class="justify-content-between">
+      <ion-col size="auto">
+        <h4>Us antérieure à :</h4>
+      </ion-col>
+      <ion-col size="auto" class="my-auto">
+        <ion-button [fill]="'clear'" (click)="this.openLayerModal('anterieur')">
+          <mat-icon svgIcon="castorAddIcon"  style="width: 35px; height: 35px"></mat-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+    <!-- Anterieur us list -->
+    <ion-row>
+      <ion-col size="12">
+        <app-stratigraphie-list-display
+          #AnterieurList
+          [stratiRelationType]="'anterieur'"
+          [relationStratiListInput]="this.arrayUsAnterieur">
+        </app-stratigraphie-list-display>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+
+  <ion-col size="12" size-md="4">
+    <!-- Title / Add -->
+    <ion-row class="justify-content-between">
+      <ion-col size="auto">
+        <h4>Us contemporaine de :</h4>
+      </ion-col>
+      <ion-col size="auto" class="my-auto">
+        <ion-button [fill]="'clear'" (click)="this.openLayerModal('contemporain')">
+          <mat-icon svgIcon="castorAddIcon"  style="width: 35px; height: 35px"></mat-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+    <!-- Contemporain us list -->
+    <ion-row>
+      <ion-col size="12">
+        <app-stratigraphie-list-display
+          #ContemporainList
+          [stratiRelationType]="'contemporain'"
+          [us_ref]="this.us"
+          [fait_ref]="this.fait"
+          [relationStratiListInput]="this.arrayUscontemporain">
+        </app-stratigraphie-list-display>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+
+  <ion-col size="12" size-md="4">
+    <!-- Title / Add -->
+    <ion-row class="justify-content-between">
+      <ion-col size="auto">
+        <h4>Us postérieure à :</h4>
+      </ion-col>
+      <ion-col size="auto" class="my-auto">
+        <ion-button [fill]="'clear'" (click)="this.openLayerModal('posterieur')">
+          <mat-icon svgIcon="castorAddIcon"  style="width: 35px; height: 35px"></mat-icon>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+    <!-- Posterieur us list -->
+    <ion-row>
+      <ion-col size="12">
+        <app-stratigraphie-list-display
+          #PosterieurList
+          [stratiRelationType]="'posterieur'"
+          [relationStratiListInput]="this.arrayUsposterieur">
+        </app-stratigraphie-list-display>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+</ion-row>
+
+<!-- Datation / Remarque form -->
+<ion-row *ngIf="this.us">
+  <ion-col size="12" size-md="6">
+    <ion-row  >
+      <ion-col size="12">
+        <h4>Datations : </h4>
+      </ion-col>
+      <ion-col size="12">
+        <app-castor-type-selector
+          [(value)]="this.us.us_strati_datation_mobilier_uuid"
+          (valueChange)="onChangeForm()"
+          [prefix]="false"
+          [title]="'Datation'"
+          [showTitle]="true"
+          [category]="ApiTypeCategory.DATATION_MOBILIER"
+        ></app-castor-type-selector>
+      </ion-col>
+      <ion-col size="12">
+        <app-castor-type-selector
+          [(value)]="this.us.us_phasage_uuid"
+          (valueChange)="onChangeForm()"
+          [prefix]="false"
+          [title]="'Phasage'"
+          [showTitle]="true"
+          [category]="ApiTypeCategory.US_PHASAGE"
+        ></app-castor-type-selector>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Archéométrie</ion-label>
+          <ion-input type="text" [(ngModel)]="this.us.us_strati_archeometrie"
+                     (ngModelChange)="onChangeForm()"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+  <ion-col size="12" size-md="6">
+    <ion-item lines="full">
+      <ion-label position="floating" class="label-placeholder">Remarques</ion-label>
+      <ion-textarea rows="10" type="text" [autoGrow]="true"
+                    [(ngModel)]="this.us.us_strati_note"
+                    (ngModelChange)="onChangeForm()"></ion-textarea>
+    </ion-item>
+  </ion-col>
+</ion-row>
+
+<!-- Add layer modal -->
+<ion-modal class="layer-modal" #addUsLayerModal (willDismiss)="this.onWillDismiss($event)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Ajouter une couche</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()">Annuler</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12">
+            <ng-container [ngSwitch]="this.layerType">
+              <ng-container *ngSwitchCase="'anterieur'">
+                <app-castor-type-selector
+                  [title]="'Type de relation'"
+                  [category]="ApiTypeCategory.STRATIGRAPHIE_ANTERIEURE_TYPE"
+                  [(value)]="this.typeStratiUuid"
+                ></app-castor-type-selector>
+              </ng-container>
+              <ng-container *ngSwitchCase="'contemporain'">
+                <app-castor-type-selector
+                  [title]="'Type de relation'"
+                  [category]="ApiTypeCategory.STRATIGRAPHIE_CONTEMPORAINE_TYPE"
+                  [(value)]="this.typeStratiUuid"
+                ></app-castor-type-selector>
+              </ng-container>
+              <ng-container *ngSwitchCase="'posterieur'">
+                <app-castor-type-selector
+                  [title]="'Type de relation'"
+                  [category]="ApiTypeCategory.STRATIGRAPHIE_POSTERIEURE_TYPE"
+                  [(value)]="this.typeStratiUuid"
+                ></app-castor-type-selector>
+              </ng-container>
+            </ng-container>
+          </ion-col>
+          <ion-col size="12" *ngIf=" this.typeStratiUuid && this.w.data().objects.isReady">
+
+              <app-fait-selector
+                *ngIf="this.w.data().objects.fait.all?.list?.length > 0 else emptyList"
+                [faitArray]="this.fait_selection_list"
+                [secteur_uuid]="this.us?.secteur_uuid || this.fait?.secteur_uuid"
+                (selectedFaitChange)="this.updateSelectionList({fait_uuid: $event?.uuid})"
+                [(selectedFait)]="this.selectedFait"
+                [(enabled)]="this.faitSelectorEnabled"
+                [disableSuffix]="!this.usSelectorEnabled"
+                [DisplaySuffix]="true"
+              ></app-fait-selector>
+
+              <app-us-selector
+                *ngIf="this.us_selection_list?.length > 0 else emptyList"
+                [(selectedUs)]="this.selectedUs"
+                (selectedUsChange)="this.updateSelectionList({us_uuid: $event?.uuid})"
+                [usArray]="this.us_selection_list"
+                [(enabled)]="this.usSelectorEnabled"
+                [disableSuffix]="!this.faitSelectorEnabled"
+                [DisplaySuffix]="true"
+              ></app-us-selector>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar>
+        <ion-button style="width: 100%" [expand]="'full'"
+                    [disabled]="!this.typeStratiUuid || (!this.selectedUs && !this.selectedFait)"
+                    (click)="this.validLayer()" slot="secondary">Valider</ion-button>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>
+
+<ng-template #emptyList>
+  <ion-row class="justify-content-center">
+    <ion-col size="auto">
+      <p>Liste vide</p>
+    </ion-col>
+  </ion-row>
+</ng-template>

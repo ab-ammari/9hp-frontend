@@ -1,0 +1,25 @@
+export class Unite2 {
+  constructor(
+    public numero: number,
+    public numprov: string,
+    public secteur: number,
+    public fait: number,
+    public ensembles: number[],
+    public genre: string,
+    public identification: string,
+    public mobilier: string,
+    public datation: string,
+    public email: string,
+    public parcelle: string,
+    public etat: string,
+    public methode: string,
+    public fiche: string,
+    public longueur: number,
+    public largeur: number,
+    public hauteur: number,
+    public pendage: number,
+    public zsup: number,
+    public zinf: number,
+    public description: string,
+  ) {}
+}

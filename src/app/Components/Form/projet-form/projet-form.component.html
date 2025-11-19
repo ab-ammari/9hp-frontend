@@ -1,0 +1,77 @@
+<form class="w-100" [formGroup]="projetForm">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Nom du projet</ion-label>
+          <ion-input type="text" id="name" formControlName="name"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Commune</ion-label>
+          <ion-input type="text" id="commune" formControlName="commune"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Année</ion-label>
+          <ion-input type="text" id="annee" formControlName="annee"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Lieu dit</ion-label>
+          <ion-input type="text" id="lieu_dit" name="lieu_dit" formControlName="lieu_dit"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <mat-form-field class="w-100" appearance="fill">
+          <mat-label>Type</mat-label>
+          <mat-select name="type" id="type" formControlName="type">
+            <ng-container *ngFor="let type of this.typeSelectionArray">
+              <mat-option [value]="type">
+                {{type}}
+              </mat-option>
+            </ng-container>
+          </mat-select>
+        </mat-form-field>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Opérateur</ion-label>
+          <ion-input type="text" id="operateur" formControlName="operateur"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label>Verrouillage du projet</ion-label>
+          <ion-toggle slot="end" formControlName="write_lock_enabled"></ion-toggle>
+        </ion-item>
+      </ion-col>
+
+    </ion-row>
+  </ion-grid>
+
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <ng-container *ngIf="this.w.data().status.online; else offline">
+        <ion-button (click)="onSaveProjet()"
+                    *ngIf="!this.w.hasAnyOfPending([DataActions.SYNC_OBJECT, DataActions.RETRIEVE_PROJETS]); else loading"
+                    [disabled]="projetForm.invalid"
+                    [fill]="'clear'">
+          <mat-icon svgIcon="castorValidIcon" class="material-icon-custom-size"></mat-icon>
+        </ion-button>
+      </ng-container>
+    </ion-col>
+  </ion-row>
+</form>
+
+
+<ng-template #loading>
+  <ion-progress-bar [type]="'indeterminate'"></ion-progress-bar>
+</ng-template>
+
+<ng-template #offline>
+  <ion-title>Hors ligne</ion-title>
+</ng-template>

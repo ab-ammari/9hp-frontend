@@ -1,0 +1,32 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.contenant.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getContenantColors(this.w.data().objects.contenant.selected.item, utils)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.contenant.selected?.item else noSelectedContenant"
+                        #castor_links
+                        [object]="this.w.data().objects.contenant.selected"
+      >
+
+        <app-contenant-form
+          *ngIf="castor_links.isDetailsSelection"
+          [contenant]="this.w.data().objects.contenant.selected.item"
+        ></app-contenant-form>
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+
+<ng-template #noSelectedContenant>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun contenant selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,21 @@
+<ion-list>
+  <app-castor-object-selector
+    [disabled]="!this.enabled"
+    [list]="this.faitArray"
+    [(selection)]="this.selectedFait"
+    [filter]="this.faitFilter"
+    (selectionChange)="this.selectedFaitChange.emit($event)"
+    [placeholder]="'Fait'"
+  >
+
+    <ion-button [fill]="'clear'"  *ngIf="DisplaySuffix" matSuffix aria-label="Enable"
+                click-stop-propagation
+                [disabled]="disableSuffix"
+                (click)="toggleEnabled($event)">
+      <ion-icon name="checkbox-outline" *ngIf="!this.enabled"></ion-icon>
+      <ion-icon name="square-outline" *ngIf="this.enabled"></ion-icon>
+    </ion-button>
+
+  </app-castor-object-selector>
+</ion-list>
+

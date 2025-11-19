@@ -1,0 +1,37 @@
+<table class="table table-striped" *ngIf="relations[0].fait.info.ref_table === isReference">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Type</th>
+    <th scope="col">Remarques</th>
+    <th scope="col">Z</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let rel of relations">
+    <th scope="row">
+      <app-castor-tag-display [object]="rel.topo.item"></app-castor-tag-display>
+    </th>
+    <td>{{ rel.topo?.item?.topo_type_uuid }}</td>
+    <td>{{ rel.topo?.item?.topo_note }}</td>
+    <td>{{ rel.topo?.item?.topo_loc_z }}</td>
+  </tr>
+  </tbody>
+</table>
+
+<table class="table table-striped" *ngIf="relations[0].topo.info.ref_table === isReference">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Identification</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let rel of relations">
+    <th scope="row"><app-castor-tag-display [object]="rel.fait.item"></app-castor-tag-display></th>
+    <td>{{ rel.fait?.item?.fait_identification_uuid }}</td>
+    <td>{{ rel.fait?.item?.fait_description }}</td>
+  </tr>
+  </tbody>
+</table>

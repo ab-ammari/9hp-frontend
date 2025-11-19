@@ -1,0 +1,18 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Type</th>
+    <th *ngIf="this.documents[0]?.info?.obj_table === ApiDbTable.document_minute" scope="col">Echelle</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let doc of this.documents">
+    <th scope="row">{{doc.item.tag}}</th>
+    <td>{{doc.item?.document_type }}</td>
+    <td *ngIf="doc.info?.obj_table === ApiDbTable.document_minute">{{doc.item['minute_echelle'] }}</td>
+    <td>{{doc.item?.document_remarques}}</td>
+  </tr>
+  </tbody>
+</table>

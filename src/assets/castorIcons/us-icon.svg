@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="392.4 381.5999 33.8 30.7" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style type="text/css">
+	.st0{font-family:'MyriadPro-Regular';}
+	.st1{font-size:12px;}
+	.st2{fill:#FFFFFF;stroke:#475B75;stroke-width:2;stroke-miterlimit:10;}
+	.st3{fill:#475B75;stroke:#FFFFFF;stroke-width:2;stroke-miterlimit:10;}
+	.st4{fill:#FFFFFF;}
+	.st5{fill:none;stroke:#475B75;stroke-width:2;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:6.226,4.1507;}
+	.st6{fill:#475B75;}
+	.st7{fill:none;stroke:#475B75;stroke-width:2;stroke-miterlimit:10;}
+	.st8{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+</style>
+  </defs>
+  <g id="XMLID_7_" transform="matrix(0.9999999999999999, 0, 0, 0.9999999999999999, 0, 0)">
+    <g>
+      <path class="st4" d="M426.1,396.9c0,0,0,0.1,0,0.1l-3.7,6.8c-5.7-0.1-9.4-4.7-14.3-7c-5-2.3-14.6-1.9-14.6-1.9l7.3-13.2 c0,0,0.1-0.1,0.1-0.1h16.8c0,0,0.1,0,0.1,0.1L426.1,396.9z"/>
+      <path class="st6" d="M422.4,403.8l-4.6,8.4c0,0-0.1,0.1-0.1,0.1h-16.8c0,0-0.1,0-0.1-0.1l-8.4-15.2c0,0,0-0.1,0-0.1l1.1-2 c0,0,9.6-0.4,14.6,1.9C413,399.1,416.7,403.7,422.4,403.8z"/>
+    </g>
+    <g>
+      <path class="st7" d="M422.4,403.8l-4.6,8.4c0,0-0.1,0.1-0.1,0.1h-16.8c0,0-0.1,0-0.1-0.1l-8.4-15.2c0,0,0-0.1,0-0.1l1.1-2 l7.3-13.2c0,0,0.1-0.1,0.1-0.1h16.8c0,0,0.1,0,0.1,0.1l8.4,15.2c0,0,0,0.1,0,0.1L422.4,403.8z"/>
+    </g>
+  </g>
+</svg>

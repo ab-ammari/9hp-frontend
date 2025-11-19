@@ -1,0 +1,44 @@
+<div id="container">
+  <header>
+    <!-- Title header -->
+    <ion-row class="ion-justify-content-between list-header-toolbar">
+      <ion-col size="auto">
+        <h3 class="my-2">PHOTOS ({{ this.w.data().objects?.document?.all?.childList(ApiDbTable.document_photo)?.length ?? '0' }})</h3>
+      </ion-col>
+      <ion-col size="auto">
+        <ion-row>
+          <ion-col >
+            <ion-button [fill]="'clear'" (click)="this.toggleView()">
+              <ion-icon name="grid-outline" *ngIf="this.view"></ion-icon>
+              <ion-icon name="list-outline" *ngIf="!this.view"></ion-icon>
+            </ion-button>
+          </ion-col>
+          <ion-col>
+            <ion-button [fill]="'clear'" (click)="this.goToCreatePhoto()">
+              <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </header>
+  <main>
+    <section>
+      <app-castor-items-list  *ngIf="this.w.data().objects.document.all?.list?.length > 0 else noPhoto"
+                              [list]="this.w.data().objects.document.all.list"
+                              [document_view]="this.view"
+                              [filterChild]="ApiDbTable.document_photo"
+                              (detailsCallBack)="this.goToPhotoDetails($event)"
+                              (btnDeleteCallback)="this.markAsDelete($event)">
+      </app-castor-items-list>
+    </section>
+  </main>
+</div>
+
+<ng-template #noPhoto>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Ce projet ne contient pas de photos</h3><br />
+    </ion-col>
+  </ion-row>
+</ng-template>

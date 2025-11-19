@@ -1,0 +1,19 @@
+<ion-row *ngIf="object">
+  <ion-col size="12">
+    <h4>Fiche</h4>
+  </ion-col>
+  <ion-col size="12">
+    <app-date-display [dateTimeTitleLabel]="'Creation'"
+                      [date]="this.createdDate"></app-date-display>
+  </ion-col>
+  <ion-col size="12" *ngIf="this.object.versions?.length > 0">
+    <app-date-display [dateTimeTitleLabel]="'Dernière Modif'"
+                      [date]="this.object?.created"></app-date-display>
+  </ion-col>
+  <ion-col size="12">
+    <ion-item>
+      <ion-label [slot]="'start'">Auteur</ion-label>
+      <ion-label [slot]="'end'">{{this.object.author_uuid | apiUser}}</ion-label>
+    </ion-item>
+  </ion-col>
+</ion-row>

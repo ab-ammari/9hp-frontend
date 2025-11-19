@@ -1,0 +1,19 @@
+<div
+  *ngIf="!this.isProtected"
+  [matTooltipPosition]="'above'"
+  [matTooltip]="
+  (this.onlineOnly && !this.isOnline ? 'Vous êtes hors ligne. \n' : '')
+  + (this.writeOnly && !canWrite ? 'Vous n\'avez pas les droits suffisant \n' : '')
+  + (this.ownerOnly && this.project.owner_uuid !== this.w.data().user.user_uuid ? 'Vous n\'avez pas les droits suffisant  \n' : '')
+  + (this.configuredOnly && !isConfigured ? 'Le projet n\'est pas configuré  \n' : '')
+  + (this.preConfiguredOnly && isConfigured ? 'Le projet est déjà configuré \n' : '')
+  + (this.customProtection ? this.customProtection : '')
+"
+  matTooltipClass="my-tooltip"
+  [style]="{cursor: this.isProtected? 'not-allowed' : 'auto'}">
+  <div [class]="{ 'protect': this.isProtected}">
+    <ng-content></ng-content>
+  </div>
+</div>
+
+

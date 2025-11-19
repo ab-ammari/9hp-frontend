@@ -1,0 +1,43 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouvel ensemble</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+  <ion-row class="ion-justify-content-center" *ngIf="this.isCustomTagSystem" >
+    <ion-col size="12" size-md="6">
+      <ion-item>
+        <ion-input [(ngModel)]="this.custom_tag" [placeholder]="'Saisie manuelle du tag'"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [(value)]="uniqueId"
+        [title]="'Identification'"
+        [showTitle]="true"
+        [prefix]="true"
+        [category]="ApiTypeCategory.ENSEMBLE_IDENTIFICATION"
+      ></app-castor-type-selector>
+    </ion-col>
+  </ion-row>
+  <ion-row class="ion-justify-content-center" *ngIf="this.isTagSystemSector">
+    <ion-col size="12" size-md="6">
+      <ion-list>
+        <app-castor-object-selector
+          [list]="this.w.data().objects.secteur.all.list"
+          [(selection)]="this.selected_secteur"
+          [placeholder]="'Secteur'"
+        ></app-castor-object-selector>
+      </ion-list>
+    </ion-col>
+  </ion-row>
+
+  <ng-content></ng-content>
+
+  <app-valid-cancel-grouped-btn
+    (validCallBackBtn)="this.createNewEnsemble()"
+    (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)">
+  </app-valid-cancel-grouped-btn>
+
+</ion-grid>

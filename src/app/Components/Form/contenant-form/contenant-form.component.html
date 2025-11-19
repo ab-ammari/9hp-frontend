@@ -1,0 +1,62 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <app-castor-type-selector
+            [title]="'Type contenant'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.CONTENANT_TYPE"
+            [(value)]="this.contenant.type_contenant_uuid"
+            (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Poids total</ion-label>
+              <ion-input type="number" [(ngModel)]="this.contenant.contenant_total_weight"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>
+        <!--  <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Position</ion-label>
+              <ion-input type="text" [(ngModel)]="this.contenant.contenant_position"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>-->
+         <!-- <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Etat</ion-label>
+              <ion-input type="text" [(ngModel)]="this.contenant.contenant_stat"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>-->
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Remarques</ion-label>
+              <ion-textarea type="text" [autoGrow]="true"
+                            [(ngModel)]="this.contenant.contenant_remarques"
+                            (ngModelChange)="onChangeForm()"></ion-textarea>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <!--DIVIDER-->
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <!--FICHE-->
+      <ion-col size="12" size-md="6">
+        <app-fiche-form
+          [object]="contenant"
+        ></app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+

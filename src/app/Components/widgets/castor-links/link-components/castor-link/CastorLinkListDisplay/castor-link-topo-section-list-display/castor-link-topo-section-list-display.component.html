@@ -1,0 +1,7 @@
+<ng-container *ngIf="relations[0]?.topo?.info?.ref_table === isReference">
+  <app-castor-link-section-table-display [sections]="this.arraySections"></app-castor-link-section-table-display>
+</ng-container>
+
+<ng-container *ngIf="relations[0]?.section?.info?.ref_table === isReference">
+  <app-castor-link-topo-table-display [topos]="this.arrayTopos"></app-castor-link-topo-table-display>
+</ng-container>

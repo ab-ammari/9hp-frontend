@@ -1,0 +1,23 @@
+<div id="container">
+  <header>
+    <ion-header class="toolbar-style">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-buttons slot="start">
+            <ion-back-button defaultHref="home/projects"></ion-back-button>
+          </ion-buttons>
+        </ion-buttons>
+        <ion-title class="text-center">
+          Editer un projet
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+  </header>
+  <main>
+    <section>
+      <div class="container">
+        <app-projet-form [projectToModify]="this.w.data()?.projet?.selected?.item"></app-projet-form>
+      </div>
+    </section>
+  </main>
+</div>

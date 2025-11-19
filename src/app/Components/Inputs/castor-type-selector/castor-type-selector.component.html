@@ -1,0 +1,94 @@
+<ion-list>
+  <ion-item [id]="modal_id">
+    <ng-container *ngIf="selection; else noSelection">
+      <ion-note slot="helper">{{title}}</ion-note>
+      <!-- Text type selected -->
+      <ng-container *ngIf="!imageMode; else imageSelection">
+        <ion-note *ngIf="prefix" [slot]="'start'">{{selection.type_prefix}}</ion-note>
+        <ion-label [ngStyle]="this.labelStyle">
+          <h5 *ngIf="this.showTitle && this.title" class="m-0">{{title}}</h5>
+          {{selection.type_label}}
+        </ion-label>
+      </ng-container>
+      <!-- Image type selected mode -->
+      <ng-template #imageSelection>
+        <img style="height: 60px; width: 60px" [src]="getImageForType(this.selection.type_uuid)">
+      </ng-template>
+      <ion-icon *ngIf="this.enableClearValue"
+                style="cursor:pointer;"
+                name="close-outline" slot="end"
+                click-stop-propagation
+                (click)="this.clearValue()"></ion-icon>
+    </ng-container>
+    <ng-template #noSelection>
+      <ion-note *ngIf="prefix" [slot]="'start'">---</ion-note>
+      <ion-label [ngStyle]="this.labelStyle">{{title}}</ion-label>
+    </ng-template>
+  </ion-item>
+</ion-list>
+<ion-modal class="type-selector-modal" #modal [trigger]="modal_id">
+  <ng-template>
+    <ng-container *ngIf="!createNewInterface; else create_new_interface">
+      <ion-header *ngIf="!imageMode">
+        <ion-item>
+          <ion-input [(ngModel)]="list_filter" [placeholder]="'Filtre'"></ion-input>
+        </ion-item>
+      </ion-header>
+      <ion-content>
+        <ng-container *ngFor="let type of type_list">
+          <ion-item [button]="true"
+                    (click)="selectType(type)"
+                    *ngIf="!list_filter || type.type_label.includes(list_filter) || type.type_prefix.includes(list_filter)">
+            <!-- Text type mode -->
+            <ng-container *ngIf="!imageMode; else image_type">
+              <ion-note *ngIf="prefix" [slot]="'start'">{{type.type_prefix}}</ion-note>
+              <ion-label>{{type.type_label}}</ion-label>
+            </ng-container>
+          </ion-item>
+          <!-- Image type mode -->
+          <ng-template #image_type >
+            <ion-label>{{type.type_label}}</ion-label>
+            <img style="height: 60px; width: 60px" [src]="getImageForType(type.type_uuid)" alt="">
+          </ng-template>
+        </ng-container>
+      </ion-content>
+      <ion-footer *ngIf="this.editable">
+        <ion-grid>
+          <ion-row class="justify-content-center">
+            <ion-col size="auto">
+              <ion-button [fill]="'clear'" (click)="createNewInterface = true">
+                <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!--<ion-item *ngIf="this.editable" [button]="true" (click)="createNewInterface = true">Nouveau</ion-item>-->
+      </ion-footer>
+    </ng-container>
+    <ng-template #create_new_interface>
+      <ion-header>
+        <ion-grid>
+          <ion-row>
+            <ion-col>
+              <h3 class="m-0 text-center">Enter un nouveau type</h3>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </ion-header>
+      <ion-content>
+        <ion-item class="p-2">
+          <ion-input #newPrefix [ngStyle]="{'display': prefix ? 'block' : 'none'}" [placeholder]="'prefix'"
+                     maxlength="3"></ion-input>
+          <ion-input #newValue [placeholder]="'Votre type'" [required]="true"></ion-input>
+        </ion-item>
+      </ion-content>
+      <ion-footer>
+        <app-valid-cancel-grouped-btn
+          [disableValidBtn]="!(newValue.value)"
+          (validCallBackBtn)="createNewType(prefix ? newPrefix.value.toString() : '', newValue.value.toString())"
+          (cancelCallbackBtn)="createNewInterface = false"></app-valid-cancel-grouped-btn>
+      </ion-footer>
+    </ng-template>
+  </ng-template>
+</ion-modal>

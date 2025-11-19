@@ -1,0 +1,31 @@
+<ion-grid>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12">
+      <app-castor-type-selector
+        [title]="'Type de relevé'"
+        [category]="ApiTypeCategory.LINK_MINUTE_TYPE"
+        [(value)]="this.typeReleve"
+      ></app-castor-type-selector>
+    </ion-col>
+    <ion-col size="12">
+      <app-castor-type-selector
+        [title]="'Echelle du relevé'"
+        [category]="ApiTypeCategory.LINK_MINUTE_SCALE"
+        [(value)]="this.echelleReleve"
+      ></app-castor-type-selector>
+    </ion-col>
+ <!--   <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Note</ion-label>
+        <ion-input type="text" [(ngModel)]="this.note"></ion-input>
+      </ion-item>
+    </ion-col>-->
+    <ion-col size="auto">
+      <ion-button
+        [disabled]="this.disable"
+        (click)="this.valid()">
+        Valider
+      </ion-button>
+    </ion-col>
+  </ion-row>
+</ion-grid>

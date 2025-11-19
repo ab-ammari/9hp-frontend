@@ -1,0 +1,27 @@
+<table class="table table-striped table-borderless" *ngIf="this.prelevementList?.length > 0 else noPrelevementLink">
+  <thead class="fixed-table-header">
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Fait</th>
+    <th scope="col">US</th>
+    <th scope="col">Nature</th>
+    <th scope="col">Quantité</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let prelevement of this.prelevementList">
+    <th scope="row">{{ prelevement?.tag }}</th>
+    <td>{{prelevement?.us_uuid}}</td>
+    <td>{{prelevement?.type_nature_uuid}}</td>
+    <td>{{prelevement?.prelevement_quantite}}</td>
+  </tr>
+  </tbody>
+</table>
+
+<ng-template #noPrelevementLink>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Aucun lien de Prélévement</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

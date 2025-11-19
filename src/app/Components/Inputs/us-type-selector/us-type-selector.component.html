@@ -1,0 +1,11 @@
+<mat-form-field class="w-100" appearance="fill">
+  <mat-label>{{this.selectorLabel}}</mat-label>
+  <mat-select [(ngModel)]="this.selectedUsType"
+              (ngModelChange)="this.selectedUsTypeChange.emit($event)" name="usType">
+    <ng-container *ngFor="let usTypeSelect of this.usTypeSelection">
+      <mat-option [value]="usTypeSelect.value">
+        {{usTypeSelect.viewValue}}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+</mat-form-field>

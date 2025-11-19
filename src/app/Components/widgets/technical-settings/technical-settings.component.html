@@ -1,0 +1,121 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Paramètres Techniques</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <!-- Section Validation Stratigraphique -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="git-network-outline"></ion-icon>
+        Validation Stratigraphique
+      </ion-card-title>
+      <ion-card-subtitle>
+        Contrôle de la validation des relations stratigraphiques
+      </ion-card-subtitle>
+    </ion-card-header>
+    
+    <ion-card-content>
+      
+      <!-- Toggle 1: Activer validation -->
+      <ion-item>
+        <ion-label>
+          <h3>Activer la validation</h3>
+          <p>Détecte les paradoxes dans les relations stratigraphiques</p>
+        </ion-label>
+        <ion-toggle 
+          [(ngModel)]="enableStratiValidation" 
+          (ionChange)="toggleStratiValidation()">
+        </ion-toggle>
+      </ion-item>
+      
+      <ion-note color="warning" class="ion-padding" *ngIf="!enableStratiValidation">
+        <ion-icon name="warning-outline"></ion-icon>
+        La validation est désactivée. Les paradoxes ne seront pas détectés.
+      </ion-note>
+      
+      <!-- Toggle 2: Validation automatique -->
+      <ion-item *ngIf="enableStratiValidation">
+        <ion-label>
+          <h3>Validation automatique</h3>
+          <p>Valide automatiquement au chargement des listes</p>
+        </ion-label>
+        <ion-toggle 
+          [(ngModel)]="autoStratiValidation" 
+          (ionChange)="toggleAutoStratiValidation()">
+        </ion-toggle>
+      </ion-item>
+      
+      <ion-note color="primary" class="ion-padding" *ngIf="enableStratiValidation && !autoStratiValidation">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Utilisez le bouton "Valider" dans les listes pour valider manuellement.
+      </ion-note>
+      
+      <ion-note color="success" class="ion-padding" *ngIf="enableStratiValidation && autoStratiValidation">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        La validation se lance automatiquement. Recommandé pour les petits projets (&lt; 50 relations).
+      </ion-note>
+      
+      <hr style="margin: 16px 0;">
+      
+      <!-- Toggle 3: Icône stratigraphie -->
+      <ion-item>
+        <ion-label>
+          <h3>Afficher icône stratigraphie</h3>
+          <p>Affiche une icône sur les US ayant des relations stratigraphiques</p>
+        </ion-label>
+        <ion-toggle 
+          [(ngModel)]="showStratiIcon" 
+          (ionChange)="toggleStratiIcon()">
+        </ion-toggle>
+      </ion-item>
+      
+    </ion-card-content>
+  </ion-card>
+  
+  <!-- Section Future: Autres paramètres -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="construct-outline"></ion-icon>
+        Autres Paramètres
+      </ion-card-title>
+      <ion-card-subtitle>
+        Fonctionnalités à venir
+      </ion-card-subtitle>
+    </ion-card-header>
+    
+    <ion-card-content>
+      <ion-note color="medium">
+        <ion-icon name="time-outline"></ion-icon>
+        D'autres options techniques seront ajoutées ici prochainement.
+      </ion-note>
+    </ion-card-content>
+  </ion-card>
+  
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="resetToDefaults()" color="warning">
+        <ion-icon slot="start" name="refresh-outline"></ion-icon>
+        Réinitialiser
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" color="primary" fill="solid">
+        <ion-icon slot="start" name="checkmark-outline"></ion-icon>
+        Fermer
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

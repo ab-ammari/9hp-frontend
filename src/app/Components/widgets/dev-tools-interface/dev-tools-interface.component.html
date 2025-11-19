@@ -1,0 +1,148 @@
+
+<ion-grid >
+  <ion-row>
+    <ion-col size="auto">
+      <ion-item>
+        <ion-label position="floating">custom api url</ion-label>
+        <ion-input
+          type="url"
+          inputmode="url"
+          [placeholder]="DEV.tools.api_url"
+          [(ngModel)]="this.customUrl"
+        ></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col>
+      <ion-button [fill]="'solid'" (click)="save()">apply</ion-button>
+      <ion-button [fill]="'clear'" (click)="this.reset()">reset</ion-button>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Database
+        </ion-label>
+        <ion-button [fill]="'clear'" (click)="this.resetDB()">Reset</ion-button>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Export IndexedDB
+        </ion-label>
+        <ion-button [fill]="'clear'" (click)="this.exportDatabase()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Export DB
+        </ion-button>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Import IndexedDB (⚠️ Écrase tout)
+        </ion-label>
+        <ion-button [fill]="'clear'" color="warning" (click)="this.importDatabase()">
+          <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+          Import DB
+        </ion-button>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Types as JSON
+        </ion-label>
+        <ion-button [fill]="'clear'" (click)="this.exportTypes()">export</ion-button>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+         Types
+        </ion-label>
+        <ion-button [fill]="'clear'" (click)="this.updateTypes()">Force update</ion-button>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+         Sync increment
+        </ion-label>
+        <ion-input [type]="'number'" [(ngModel)]="this.syncService.syncIncrement"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Afficher icône stratigraphie (US)
+        </ion-label>
+        <ion-toggle [(ngModel)]="showStratiIcon" (ionChange)="toggleStratiIcon()"></ion-toggle>
+      </ion-item>
+    </ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Activer validation stratigraphique
+        </ion-label>
+        <ion-toggle [(ngModel)]="enableStratiValidation" (ionChange)="toggleStratiValidation()"></ion-toggle>
+      </ion-item>
+      <ion-note color="warning" *ngIf="!enableStratiValidation">
+        ⚠️ La validation stratigraphique est désactivée. Les paradoxes ne seront pas détectés.
+      </ion-note>
+    </ion-col>
+  </ion-row>
+  <ion-row *ngIf="enableStratiValidation">
+    <ion-col size="12">
+      <hr>
+    </ion-col>
+    <ion-col>
+      <ion-item>
+        <ion-label>
+          Validation automatique (au chargement)
+        </ion-label>
+        <ion-toggle [(ngModel)]="autoStratiValidation" (ionChange)="toggleAutoStratiValidation()"></ion-toggle>
+      </ion-item>
+      <ion-note color="primary" *ngIf="!autoStratiValidation">
+        💡 Utilisez le bouton "Valider" dans les listes pour valider manuellement
+      </ion-note>
+    </ion-col>
+  </ion-row>
+</ion-grid>
+
+

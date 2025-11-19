@@ -1,0 +1,17 @@
+<ion-accordion value="remplois">
+  <ion-item slot="header">
+    <ion-label>Remplois</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <ion-row>
+        <ion-col size="12">
+          <ion-item lines="full">
+            <ion-textarea [autoGrow]="true" [(ngModel)]="this.us.us_remplois" type="text"></ion-textarea>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

@@ -1,0 +1,31 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.document.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getMinuteColors(this.selectedMinute)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.document.selected?.item else noSelectedMinute"
+                        [object]="this.w.data().objects.document.selected"
+      >
+
+        <app-minute-form [document]="this.w.data().objects.document.selected.item"
+
+                         ></app-minute-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+
+<ng-template #noSelectedMinute>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucune minute selectionnée</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

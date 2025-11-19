@@ -1,0 +1,11 @@
+<ng-container *ngIf="relations[0].document.info.ref_table === isReference">
+
+  <app-castor-link-document-table-display [documents]="this.arrayDoc"></app-castor-link-document-table-display>
+
+</ng-container>
+
+<ng-container *ngIf="relations[0].echantillon.info.ref_table === isReference">
+
+  <app-castor-link-echantillon-table-display [echantillons]="this.arrayEchantillon"></app-castor-link-echantillon-table-display>
+
+</ng-container>

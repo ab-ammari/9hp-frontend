@@ -1,0 +1,33 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.fait.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getFaitColors(this.w.data().objects.fait.selected.item)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links
+        [object]="this.w.data().objects.fait.selected"
+        #linksComponent
+        *ngIf="this.w.data().objects.fait.selected?.item else noSelectedFait"
+      >
+
+        <app-fait-form
+          [fait]="this.w.data().objects.fait.selected?.item"
+          *ngIf="linksComponent.isDetailsSelection"
+        ></app-fait-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedFait>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun secteur selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

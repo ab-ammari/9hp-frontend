@@ -1,0 +1,49 @@
+<div id="container">
+  <header>
+    <!-- Title header -->
+    <ion-row class="ion-justify-content-between list-header-toolbar">
+      <ion-col size="auto">
+        <h3 class="my-2">SECTEURS ({{ this.w.data().objects.secteur.all?.list?.length ?? '0' }})</h3>
+      </ion-col>
+  <!--    <ion-col >
+        <ion-item>
+          <ion-input
+            [disabled]="true"
+            [placeholder]="'recherche'"
+            type="text"
+            [(ngModel)]="global_search"
+          ></ion-input>
+        </ion-item>
+      </ion-col>-->
+      <ion-col size="auto">
+        <ion-row>
+          <ion-col>
+            <ion-button [fill]="'clear'" (click)="this.goToCreateSector()">
+              <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+            </ion-button>
+          </ion-col>
+
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </header>
+  <main>
+    <section>
+      <app-castor-items-list *ngIf="this.w.data().objects.secteur.all?.list?.length > 0 else noSector"
+                             [list]="this.w.data().objects.secteur.all.list"
+                             [global_search]="global_search"
+                             (detailsCallBack)="this.goToSectorDetails($event)"
+                             (btnDeleteCallback)="this.markAsDelete($event)">
+      </app-castor-items-list>
+
+    </section>
+  </main>
+</div>
+
+<ng-template #noSector>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Ce projet ne contient pas de secteur</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

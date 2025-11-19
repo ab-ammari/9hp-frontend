@@ -1,0 +1,31 @@
+<!--<app-secteur-form></app-secteur-form>-->
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouveau secteur</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [(selectedType)]="this.secteurType"
+      [category]="ApiTypeCategory.SECTEUR_IDENTIFICATION"
+        [title]="'Type de secteur'"
+      ></app-castor-type-selector>
+    </ion-col>
+  </ion-row>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <app-castor-project-user-selection
+        [(user)]="this.responsable"
+      ></app-castor-project-user-selection>
+    </ion-col>
+  </ion-row>
+
+
+  <app-valid-cancel-grouped-btn
+    [disableValidBtn]="!this.responsable?.user_uuid"
+    (validCallBackBtn)="this.createNewSecteur()"
+    [cancelBackMode]="true"></app-valid-cancel-grouped-btn>
+
+</ion-grid>

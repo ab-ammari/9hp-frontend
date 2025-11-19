@@ -1,0 +1,66 @@
+<ion-row class="ion-justify-content-center flex-column align-items-center">
+  <ng-container *ngIf="this.isMinuteRelation">
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [title]="'Type de relevé'"
+        [category]="ApiTypeCategory.LINK_MINUTE_TYPE"
+        [(value)]="this.typeReleve"
+        (valueChange)="this.typeReleveChange.emit($event)"
+      ></app-castor-type-selector>
+    </ion-col>
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [title]="'Echelle du relevé'"
+        [category]="ApiTypeCategory.LINK_MINUTE_SCALE"
+        [(value)]="this.echelleReleve"
+        (valueChange)="this.echelleReleveChange.emit($event)"
+      ></app-castor-type-selector>
+    </ion-col>
+  </ng-container>
+  <ng-container *ngIf="this.isFaitSectionRelation">
+    <ion-col size="12" size-md="6">
+      <app-castor-type-selector
+        [title]="'Profil'"
+        [category]="ApiTypeCategory.FAIT_FORME_PROFIL"
+        [dismissParentPopover]="false"
+        [(value)]="this.profile"
+        (valueChange)="this.profileChange.emit($event)"
+      ></app-castor-type-selector>
+    </ion-col>
+    <ion-col size="12" size-md="6">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Largeur (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.largeur"
+                   (ngModelChange)="this.largeurChange.emit($event)"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12" size-md="6">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Hauteur (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.hauteur"
+                   (ngModelChange)="this.hauteurChange.emit($event)"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12" size-md="6">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Z supp (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.z_supp"
+                   (ngModelChange)="this.z_suppChange.emit($event)"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12" size-md="6">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Z inf (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.z_inf"
+                   (ngModelChange)="this.z_infChange.emit($event)"></ion-input>
+      </ion-item>
+    </ion-col>
+  </ng-container>
+<!--  <ion-col size="12" size-md="6" *ngIf="this.disableNote">
+    <ion-item lines="full">
+      <ion-label position="floating" class="label-placeholder">Note</ion-label>
+      <ion-input type="text" [(ngModel)]="this.note"
+                 (ngModelChange)="this.noteChange.emit($event)"></ion-input>
+    </ion-item>
+  </ion-col>-->
+</ion-row>

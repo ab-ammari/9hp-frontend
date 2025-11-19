@@ -1,0 +1,128 @@
+
+<ion-content>
+
+  <ion-card >
+    <ion-header>
+      <ion-card-title class="text-center">
+        Synchronisation
+      </ion-card-title>
+    </ion-header>
+    <ion-content>
+      <ion-grid>
+        <ion-row >
+          <ion-col>
+            <ion-list>
+              <ion-item-group>
+              <ion-item-divider>
+                <ion-title>
+                  Reçus :
+                </ion-title>
+                <ion-label [slot]="'end'">
+                  <ng-container *ngIf="w.data().archive.loading">
+                    <ng-container *ngIf="this.w.data().archive.loading">
+                      searching<ion-spinner name="dots"></ion-spinner>
+                    </ng-container>
+                  </ng-container>
+                  <ng-container *ngIf="!w.data().archive.loading">
+                    {{this.totalCount}} / {{this.w.data().objectsToFetch.length}}
+                    <ng-container *ngIf="this.w.data().objectsToFetch.length && this.totalCount">
+                      {{(((this.totalCount - this.w.data().objectsToFetch.length) / this.totalCount) * 100)-1}} % ({{this.totalCount}})
+                    </ng-container>
+                    <ng-container *ngIf="!this.w.data().objectsToFetch.length">
+                      100%
+                    </ng-container>
+                  </ng-container>
+
+                </ion-label>
+              </ion-item-divider>
+              <ion-progress-bar  *ngIf="this.w.data().objectsToFetch.length" [type]="'indeterminate'"></ion-progress-bar>
+              <ion-item>
+                <ion-label>
+                  Total :
+                </ion-label>
+                <ion-label [slot]="'end'">
+                  {{this.totalCount}}
+                </ion-label>
+              </ion-item>
+
+              </ion-item-group>
+              <ion-item-group>
+
+              <ion-item-divider>
+                <ion-title>
+                  Envoies :
+                </ion-title>
+                <ion-label [slot]="'end'">
+                  <ng-container *ngIf="!this.w.data().archive.loading">
+                    {{this.w.data().archive.initialTotal ? ((100 / this.w.data().archive.initialTotal) * (this.w.data().archive.validated)) : '---'}}%
+                  </ng-container>
+                  <ng-container *ngIf="this.w.data().archive.loading">
+                    searching<ion-spinner name="dots"></ion-spinner>
+                  </ng-container>
+                </ion-label>
+              </ion-item-divider>
+              <ion-progress-bar [type]="'indeterminate'" *ngIf="this.w.data().archive.pending > 0"></ion-progress-bar>
+
+
+                <ion-item>
+                <ion-label>Count</ion-label>
+                <ion-label [slot]="'end'">
+                  {{ this.w.data().archive.initialTotal }}
+                </ion-label>
+              </ion-item>
+              <ion-item>
+                <ion-label>Success</ion-label>
+                <ion-label [slot]="'end'">
+                  {{ this.w.data().archive.validated }}
+                </ion-label>
+              </ion-item>
+              <ion-item>
+                <ion-label>Pending</ion-label>
+                <ion-label [slot]="'end'">
+                  {{ this.w.data().archive.pending }}
+                </ion-label>
+              </ion-item>
+              <ion-item>
+                <ion-label>Locked</ion-label>
+                <ion-label [slot]="'end'">
+                  {{ this.w.data().archive.locked }}
+                </ion-label>
+              </ion-item>
+              <ion-item>
+                <ion-label>Error</ion-label>
+                <ion-label [slot]="'end'">
+                  {{ this.w.data().archive.errored }}
+                </ion-label>
+              </ion-item>
+
+
+                <ion-item [button]="this.w.data().archive.lockedTables" [detail]="this.w.data().archive.lockedTables" id="locked-tables-popover">
+                  <ion-label>Locked Tables</ion-label>
+                  <ion-label [slot]="'end'">{{this.w.data().archive.lockedTables}}</ion-label>
+                </ion-item>
+                <ion-popover trigger="locked-tables-popover" [dismissOnSelect]="true" [side]="'top'" [alignment]="'end'">
+                  <ng-template>
+                    <ion-content>
+                      <ion-list>
+                        <ion-item *ngFor="let table of w.data().archive.lockedTableList">
+                          <ion-label>{{table}}</ion-label>
+                        </ion-item>
+                      </ion-list>
+                    </ion-content>
+                  </ng-template>
+                </ion-popover>
+              </ion-item-group>
+            </ion-list>
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+
+    </ion-content>
+
+
+  </ion-card>
+
+
+
+</ion-content>

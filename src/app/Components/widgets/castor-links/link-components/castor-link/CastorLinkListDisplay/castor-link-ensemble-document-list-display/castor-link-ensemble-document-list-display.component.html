@@ -1,0 +1,43 @@
+<ng-container *ngIf="relations[0]?.ensemble?.info?.ref_table === isReference">
+
+  <app-castor-link-document-table-display [documents]="this.arrayDoc"></app-castor-link-document-table-display>
+
+</ng-container>
+
+<ng-container *ngIf="relations[0].document?.info?.ref_table === isReference">
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th scope="col">Tag</th>
+
+      <ng-container *ngIf="relations[0]?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <th scope="col">Type</th>
+        <th scope="col">Echelle</th>
+        <th scope="col">Remarques</th>
+      </ng-container>
+
+      <ng-container *ngIf="relations[0]?.document?.info?.obj_table === ApiDbTable.document_photo">
+        <th scope="col">Identification</th>
+        <th scope="col">Remarques</th>
+      </ng-container>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let rel of relations">
+
+      <th scope="row">{{rel.ensemble.item.tag}}</th>
+      <ng-container *ngIf="rel?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <td>{{rel?.document?.item?.document_type }}</td>
+        <td>{{rel?.document?.item['minute_echelle'] }}</td>
+        <td>{{rel?.document?.item?.document_remarques}}</td>
+      </ng-container>
+      <ng-container *ngIf="rel?.document?.info?.obj_table === ApiDbTable.document_photo">
+        <td>{{rel?.ensemble?.item?.ensemble_identification_uuid }}</td>
+        <td>{{rel?.ensemble?.item?.ensemble_description }}</td>
+      </ng-container>
+
+    </tr>
+    </tbody>
+  </table>
+
+</ng-container>

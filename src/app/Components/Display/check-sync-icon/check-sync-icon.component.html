@@ -1,0 +1,8 @@
+
+<ng-container *ngIf="this.test === true; else OrElse">
+  <ion-icon slot="end" name="checkmark"></ion-icon>
+</ng-container>
+
+<ng-template #OrElse>
+  <ion-icon slot="end" name="sync"></ion-icon>
+</ng-template>

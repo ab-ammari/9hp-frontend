@@ -1,0 +1,26 @@
+<ion-row *ngIf="this.fait" class="h-100">
+  <ion-col size="auto" class="my-auto tag-label" [ngStyle]="{'background-color' : this.labelBackgroundColor ?? '#E7411B'}">
+    <app-castor-tag-display [object]="this.fait"></app-castor-tag-display>
+  </ion-col>
+  <ion-col>
+    <ion-row class="no-col-padding">
+      <ion-col size="12" *ngIf="this.fait?.fait_identification_uuid">
+        <ion-label class="fw-bold">{{ this.fait?.fait_identification_uuid }}</ion-label>
+      </ion-col>
+      <ion-col size="12">
+        <ion-row>
+          <ion-col style="padding-right: 0.5rem" *ngIf="this.tagSector">
+            <p class="small m-0">{{ this.tagSector }}</p>
+          </ion-col>
+          <ion-col *ngIf="this.ensembleTag?.length > 0">
+            <ion-row>
+              <ion-col size="auto" *ngFor="let tag of this.ensembleTag">
+                <p class="small m-0">{{tag}}</p>
+              </ion-col>
+            </ion-row>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+</ion-row>

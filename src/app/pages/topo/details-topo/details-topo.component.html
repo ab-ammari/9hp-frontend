@@ -1,0 +1,32 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.topo.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getTopoColors(this.w.data().objects.topo.selected.item)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.topo.selected?.item else noSelectedTopo"
+                        [object]="this.w.data().objects.topo.selected"
+      >
+
+        <app-topo-form [topo]="this.w.data().objects.topo.selected.item"
+
+                       ></app-topo-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+
+
+<ng-template #noSelectedTopo>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun topo selectionnée</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

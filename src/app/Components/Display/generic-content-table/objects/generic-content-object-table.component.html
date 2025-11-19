@@ -1,0 +1,216 @@
+<div class="table-container" *ngIf="content && content.headers && content.headers.length > 0;else noContent">
+  <table class="table table-hover table-striped table-sm table-td-max-width table-header">
+    <thead class="fixed-table-header">
+    <tr>
+      <td *ngIf="this.w.data().showAdmin" style="width: 0px">
+        <ion-button disabled="true" [fill]="'clear'">
+          <ion-icon name="key-outline"  style="background-color: transparent"></ion-icon>
+        </ion-button>
+      </td>
+      <td *ngFor="let head of content.headers" style="vertical-align: middle">
+        <ion-item >
+          <ion-label
+            [position]="(head?.specialDisplay === 'synthese'
+          || head?.specialDisplay === 'contenu' || head?.format === 'LINK_LIST') ? '' : 'floating'"
+          >
+            {{ head.label }}
+          </ion-label>
+          <ion-input [fill]="(head?.specialDisplay === 'synthese'
+          || head?.specialDisplay === 'contenu' || head?.format === 'LINK_LIST') ? 'none' : 'outline'"
+            *ngIf="!(head?.specialDisplay === 'synthese'
+          || head?.specialDisplay === 'contenu' || head?.format === 'LINK_LIST')"
+            [type]="'text'"
+            [clearInput]="true"
+            [(ngModel)]="head.filter"
+            (ngModelChange)="this.filterSubject.next(null);"
+          ></ion-input>
+        </ion-item>
+
+      </td>
+      <td>
+        <ion-item>
+          <ion-button [slot]="'end'" [fill]="'clear'" (click)="restFilters()">
+            <ion-icon  name="reload-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </td>
+    </tr>
+    </thead>
+  </table>
+
+  <cdk-virtual-scroll-viewport
+    itemSize="54.797"
+    minBufferPx="400"
+    maxBufferPx="400"
+  >
+  <table class="table table-hover table-striped table-sm table-td-max-width">
+     <tbody>
+      <tr app-generic-content-object-table-row
+          *cdkVirtualFor="let item of filtered_items;trackBy: trackByFn;"
+          [item]="item"
+          [content]="content"
+          (click)="this.onClick(item)"
+          class="cursor-pointer"
+      ></tr>
+     <tr *ngIf="!dataReady">
+       <td [colSpan]="(content?.headers?.length + 1) ?? 1">
+         <ion-progress-bar [type]="'indeterminate'"></ion-progress-bar>
+       </td>
+     </tr>
+<!--  Replaced by app-generic-content-object-table-row. Keep in comment in case something is missing or faulty. Remove eventually.
+
+  <tr *cdkVirtualFor="let item of filtered_items;trackBy: trackByFn"
+      (click)="this.onClick(item)"
+      class="cursor-pointer"
+  >
+    <td *ngIf="this.w.data().showAdmin" click-stop-propagation>
+      <ion-button [fill]="'clear'" (click)="deleteOrRestore(item)" >
+        <ng-container  *ngIf="item.item['live']">
+          <ion-icon name="trash-outline" *ngIf="!item['draft']"></ion-icon>
+          <ion-icon name="backspace-outline" *ngIf="item['draft']"></ion-icon>
+        </ng-container>
+        <ion-icon name="arrow-undo-outline" *ngIf="!item.item['live']"></ion-icon>
+      </ion-button>
+    </td>
+    <ng-container *ngIf="DEV.tools.isDevMode">
+              <pre (click)="$event.stopPropagation()" class="not-cursor-pointer" >{{
+                {
+                  value: item.item[item.info.uuid_paths[0]],
+                  created: item.item.created,
+                  table: item.item.table,
+                  key: item.info.uuid_paths[0],
+                  projet_uuid: item.item.projet_uuid
+                } | json
+                }}
+              </pre>
+    </ng-container>
+    <td *ngFor="let head of content.headers"
+        [ngClass]="{'tag-label': (head.format === 'tag'), 'user-column' : (head.format === 'user'),
+        'image-column': head.format === 'image',
+         'td-sector-style' : (head?.format === 'SECTOR')}"
+        [ngStyle]="{'background-color': head?.color ? head?.color(item.item) : '',
+         'vertical-align' : 'middle'}">
+      &lt;!&ndash; CLassic Format&ndash;&gt;
+      <ng-container  >
+        <ng-container *ngIf="head.format">
+          <ng-container
+            [ngSwitch]="head.format"
+          >
+
+            <ng-container *ngSwitchCase="'tag'">
+              <app-castor-tag-display [object]="item.item" [infoBulle]="true" [mainTag]="true"></app-castor-tag-display>
+            </ng-container>
+            <ng-container *ngSwitchCase="'image'">
+              <app-castor-file-display
+                [view]="'thumbnail'"
+                [file_uuid]="item.item[head.key]"
+                [tag]="item.item['tag']"
+                [download_button]="true"
+              ></app-castor-file-display>
+            </ng-container>
+            <ng-container *ngSwitchCase="'info'">
+              {{item.info[head.key] | uppercase}}
+            </ng-container>
+            <ng-container *ngSwitchCase="'US'">
+              <ion-row>
+                <ion-col size="auto">
+                  <app-castor-tag-display [infoBulle]="true"
+                                          [description]="{ table: ApiDbTable.us, uuid: item.item[head.key] }">
+                  </app-castor-tag-display>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+            <ng-container *ngSwitchCase="'SECTOR'">
+              <ion-row>
+                <ion-col size="auto">
+                  <app-castor-tag-display [infoBulle]="true"
+                                          [description]="{ table: ApiDbTable.secteur, uuid: item.item[head.key] }">
+                  </app-castor-tag-display>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+            <ng-container *ngSwitchCase="'SECTION'">
+              {{item.item[head.key] | apiSondage}}
+            </ng-container>
+            <ng-container *ngSwitchCase="'usFait'">
+              &lt;!&ndash; Get the fait of the US with apiUS pipe from us_uuid of the item &ndash;&gt;
+              <ion-row>
+                <ion-col size="auto">
+                  <app-castor-tag-display
+                    *ngIf="!!(item.item[head.key] | apiUS:true)"
+                    [infoBulle]="true"
+                    [description]="{ table: ApiDbTable.fait, uuid: item.item[head.key] | apiUS:true }">
+                  </app-castor-tag-display>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+            <ng-container *ngSwitchCase="'user'">
+              {{item.item[head.key] | apiUser}}
+            </ng-container>
+            <ng-container *ngSwitchCase="'boolean'">
+              {{item.item[head.key] ? 'Oui' : 'Non'}}
+            </ng-container>
+            <ng-container *ngSwitchCase="'LINK_LIST'">
+              <app-generic-linked-object-tag-list
+                [object]="item"
+                [link_table]="head.key"
+              ></app-generic-linked-object-tag-list>
+            </ng-container>
+            <ng-container *ngSwitchCase="'type'">
+              <app-castor-type-display
+                [type]="item.item[head.key]"
+                [display_label]="true"
+                [display_prefix]=" false"
+              ></app-castor-type-display>
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              {{item.item[head.key] | truncate: ['100']}}
+            </ng-container>
+          </ng-container>
+        </ng-container>
+        &lt;!&ndash; Special format &ndash;&gt;
+        <ng-container *ngIf="head.specialDisplay">
+          <ng-container
+            [ngSwitch]="head.specialDisplay"
+          >
+            <ng-container *ngSwitchCase="'synthese'">
+              {{item.item[head.key] | sectorSynthese }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'author'">
+              {{item.item[head.key] | apiUser }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'contenu'">
+              {{item.item[head.key] | contenantContenu }}
+            </ng-container>
+            <ng-container *ngSwitchCase="'usDatation'">
+              <app-mobilier-datation-display [usUuid]="item.item[head.key]">
+              </app-mobilier-datation-display>
+            </ng-container>
+            <ng-container *ngSwitchCase="'faitDatation'">
+              <app-mobilier-datation-display [faitUuid]="item.item[head.key]">
+              </app-mobilier-datation-display>
+            </ng-container>
+            <ng-container *ngSwitchDefault>{{item.item[head.key]}}</ng-container>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+
+    </td>
+    <td></td>
+  </tr>
+-->
+
+
+  </tbody>
+</table>
+
+  </cdk-virtual-scroll-viewport>
+</div>
+
+<ng-template #noContent>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Pas de contenu</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,80 @@
+<ion-accordion value="marquesLapidaires">
+  <ion-item slot="header">
+    <ion-label>Marques lapidaires</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <mat-card class="card-list hide-scrollbar pt-0">
+        <table class="table table-borderless table-responsive">
+          <!-- HEADER -->
+          <thead class="fixed-table-header">
+          <tr>
+            <th scope="col">Type de marque</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Localisation</th>
+            <th scope="col">Description</th>
+            <th scope="col"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- ROWS -->
+          <ng-container *ngIf="this.us?.us_marques_lapidaires?.length > 0">
+            <tr *ngFor="let marquesLapidaires of this.us?.us_marques_lapidaires; let index = index"
+                [style]="{'text-decoration': (marquesLapidaires.live ? '' : 'line-through')}">
+              <td>
+                <app-castor-type-selector
+                  [prefix]="false"
+                  [editable]="false"
+                  [category]="ApiTypeCategory.US_CONSTRUITE_LAPIDAIRES_TYPE"
+                  [(value)]="marquesLapidaires.us_marques_lapidaires_type"
+                ></app-castor-type-selector>
+              </td>
+              <td>
+                {{ marquesLapidaires?.us_marques_lapidaires_nombre }}
+              </td>
+              <td>
+                {{ marquesLapidaires?.us_marques_lapidaires_localisation }}
+              </td>
+              <td>
+                {{ marquesLapidaires?.us_marques_lapidaires_description }}
+              </td>
+              <td class="text-end">
+                <ion-button [disabled]="!marquesLapidaires.live" [fill]="'clear'"
+                            (click)="this.deleteRow(marquesLapidaires, index)">
+                  <ion-icon [slot]="'icon-only'" name="close"></ion-icon>
+                </ion-button>
+              </td>
+            </tr>
+          </ng-container>
+          <!-- ADDING NEW ROW -->
+          <tr>
+            <td>
+              <app-castor-type-selector
+                [prefix]="false"
+                [editable]="true"
+                [category]="ApiTypeCategory.US_CONSTRUITE_LAPIDAIRES_TYPE"
+                [(value)]="typeMarqueToAdd"
+              ></app-castor-type-selector>
+            </td>
+            <td>
+              <ion-input placeholder="Nombre" type="number" [(ngModel)]="numberToAdd"/>
+            </td>
+            <td>
+              <ion-input placeholder="Localisation" type="text" [(ngModel)]="localisationToAdd"/>
+            </td>
+            <td>
+              <ion-input placeholder="Description" type="text" [(ngModel)]="descriptionToAdd"/>
+            </td>
+            <td class="text-end">
+              <ion-button [fill]="'clear'" [size]="'small'" [disabled]="!isValidForm()" (click)="this.addRow()">
+                <mat-icon svgIcon="castorAddIcon" style="width: 25px; height: 25px"></mat-icon>
+              </ion-button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </mat-card>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

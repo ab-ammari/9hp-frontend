@@ -1,0 +1,24 @@
+<ng-container *ngIf="relations[0]?.ensemble?.info?.ref_table === isReference">
+
+  <app-castor-link-topo-table-display [topos]="this.arrayTopo"></app-castor-link-topo-table-display>
+
+</ng-container>
+
+<ng-container *ngIf="relations[0]?.topo?.info?.ref_table === isReference">
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th scope="col">Tag</th>
+      <th scope="col">Identification</th>
+      <th scope="col">Remarques</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let rel of relations">
+        <th scope="row">{{rel.ensemble.item.tag}}</th>
+        <td>{{rel?.ensemble?.item?.ensemble_identification_uuid }}</td>
+        <td>{{rel?.ensemble?.item?.ensemble_description}}</td>
+    </tr>
+    </tbody>
+  </table>
+</ng-container>

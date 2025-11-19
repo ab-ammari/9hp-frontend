@@ -1,0 +1,137 @@
+<div id="container" *ngIf="isReady">
+  <header>
+    <ion-header class="toolbar-style">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-buttons slot="start">
+            <ion-back-button defaultHref="home/projects"></ion-back-button>
+          </ion-buttons>
+        </ion-buttons>
+        <ion-title class="text-center">
+          Configuration projet
+        </ion-title>
+        <ion-buttons [slot]="'end'">
+          <ion-button (click)="archiveProject()">
+            <ion-icon [icon]="'trash'"></ion-icon>
+            <ion-label>archiver</ion-label>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+  </header>
+  <main>
+    <section>
+      <div class="container">
+        <ion-row *ngIf="this.w.data().user?.user_uuid === this.projet?.owner_uuid; else notAdmin">
+          <ion-col>
+            <ion-card *ngIf="projet">
+              <ion-card-title>
+                Utilisateurs
+              </ion-card-title>
+              <ion-card-header>
+                <ion-item id="search-result-popover" [button]="true" [detail]="true">
+                  <ion-label>Ajouter un utilisateur</ion-label>
+                </ion-item>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-row>
+                  <ion-col>
+                    <ng-container
+                      *ngIf="!this.w.hasAnyOfPending([
+                UserActions.UPDATE_USER,
+                UserActions.PROJET_USER,
+                DataActions.RETRIEVE_PROJETS,
+                UserActions.RETRIEVE_USER
+                ]); else loading"
+                    ></ng-container>
+                    <ion-list *ngIf="this.owner">
+                      <ion-item>
+                        <ion-label>{{this.owner?.user_email}}</ion-label>
+                        <ion-icon [name]="'star-outline'" [slot]="'end'">
+                        </ion-icon>
+                      </ion-item>
+                      <ion-item *ngFor="let user of users">
+                        <ion-label>{{user.user_email}}</ion-label>
+                        <ion-select interface="popover" placeholder="access rights" [(ngModel)]="user.projet_role"
+                                    (ngModelChange)="editUserAccess($event, user)">
+                          <ion-select-option [value]="ApiProjetRoleEnum.READ">Read</ion-select-option>
+                          <ion-select-option [value]="ApiProjetRoleEnum.READ_AND_WRITE">Write</ion-select-option>
+                        </ion-select>
+                        <ion-buttons [slot]="'end'">
+                          <ion-button (click)="removeUser(user)" [shape]="'round'" [fill]="'clear'" [slot]="'end'">
+                            <ion-icon [color]="'danger'" [name]="'trash-outline'" slot="icon-only"></ion-icon>
+                          </ion-button>
+                        </ion-buttons>
+
+                      </ion-item>
+
+                    </ion-list>
+
+                    <ion-popover
+                      [alignment]="'center'"
+                      [trigger]="'search-result-popover'"
+                      [reference]="'trigger'"
+                      [showBackdrop]="true">
+                      <ng-template>
+                        <ion-input [placeholder]="'search User'"
+                                   (ngModelChange)="this.onSearch()"
+                                   class="text-center"
+                                   [(ngModel)]="this.user_search">
+                        </ion-input>
+                        <ng-container *ngIf="!this.w.hasActionPending(UserActions.SEARCH_USER); else loading">
+                          <ion-list *ngIf="user_search_result?.length > 0 || !this.user_search; else noUserFound">
+                            <ion-item *ngFor="let user of user_search_result"
+                                      (click)="this.addUser(user)"
+                                      [button]="true">
+                              <ion-avatar [slot]="'start'">
+                                <ion-img [src]="user.user_picture"></ion-img>
+                              </ion-avatar>
+                              <ion-label>{{user?.user_email}}</ion-label>
+                            </ion-item>
+                          </ion-list>
+                          <ng-template #noUserFound>
+                            <ion-label class="text-center">
+                              no result
+                            </ion-label>
+                          </ng-template>
+                        </ng-container>
+
+                      </ng-template>
+
+                    </ion-popover>
+                  </ion-col>
+                </ion-row>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col>
+            <app-access-guard
+              [project]="this.projet"
+              [ownerOnly]="true"
+              [preConfiguredOnly]="true" 
+            >
+              <app-project-type-configuration
+                *ngIf="this.w.data().objects.isReady && this.projet && DB.database.isReady"
+                [project]="this.projet"
+              ></app-project-type-configuration>
+              <app-project-tag-configuration
+                [project]="this.projet"
+              ></app-project-tag-configuration>
+            </app-access-guard>
+
+          </ion-col>
+        </ion-row>
+      </div>
+    </section>
+  </main>
+</div>
+
+
+<ng-template #loading>
+  <ion-progress-bar [type]="'indeterminate'"></ion-progress-bar>
+</ng-template>
+<ng-template #notAdmin>
+  Vous n'êtes pas administrateur de ce projet
+</ng-template>

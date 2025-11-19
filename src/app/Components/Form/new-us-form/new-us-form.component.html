@@ -1,0 +1,87 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouvelle Us</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+  <ng-container *ngIf="this.w.data().objects.secteur.all && this.w.data().objects.secteur.all?.list?.length > 0 else noSector">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <ion-list>
+          <app-castor-object-selector
+            [disabled]="!!sectorUuid"
+            [required]="!sectorUuid"
+            [filter]="SectorFilter"
+            [list]="this.w.data().objects.secteur.all?.list"
+            [filterByObject]="{
+            fait_uuid: this.selected_fait?.item['fait_uuid'],
+            secteur_uuid: selected_sector?.item['secteur_uuid']
+          }"
+            [(selection)]="this.selected_sector"
+            [placeholder]="'Sélection du Secteur*'"
+          ></app-castor-object-selector>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <app-us-type-selector [(selectedUsType)]="this.usTypeSelected"
+                              [selectorLabel]="'Sélectionnez un type d\'US*'"></app-us-type-selector>
+      </ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <app-castor-type-selector
+          [prefix]="false"
+          [title]="'Identification'"
+          [showTitle]="true"
+          [category]="ApiTypeCategory.US_IDENTIFICATION"
+          [(value)]="this.selected_us_identification_uuid"
+        ></app-castor-type-selector>
+      </ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center" *ngIf="this.isTagSystemFait">
+      <ion-col size="12" size-md="6">
+        <ion-list>
+          <app-castor-object-selector
+            [disabled]="!!faitUuid"
+            [required]="!faitUuid"
+            [filter]="FaitFilter"
+            [filterByObject]="{
+            fait_uuid: selected_fait?.item['fait_uuid'],
+            secteur_uuid: selected_sector?.item['secteur_uuid']
+          }"
+            [list]="this.w.data().objects.fait.all.list"
+            [(selection)]="this.selected_fait"
+            [placeholder]="'Sélection du fait'"
+          ></app-castor-object-selector>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+
+    <!-- <ion-row class="ion-justify-content-center">
+       <ion-col size="12" size-md="6">
+         <ion-item lines="full">
+           <ion-label position="floating" class="label-placeholder">Nombre</ion-label>
+           <ion-input type="number" [(ngModel)]="this.numberOfCreation"></ion-input>
+         </ion-item>
+       </ion-col>
+     </ion-row>-->
+
+    <ng-content></ng-content>
+
+    <app-valid-cancel-grouped-btn
+      (validCallBackBtn)="this.createNewUs()"
+      (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)"
+      [disableValidBtn]="!this.isValidUsCreation()"
+    ></app-valid-cancel-grouped-btn>
+    {{this.error}}
+  </ng-container>
+</ion-grid>
+
+<ng-template #noSector>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Créer un secteur pour pouvoir ajouter une US</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,28 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.section.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.section.selected?.item else noSelectedSondage"
+                        [object]="this.w.data().objects.section.selected"
+                        >
+        <app-sondage-form [section]="this.w.data().objects.section.selected.item"
+
+                          ></app-sondage-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedSondage>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun sondage selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

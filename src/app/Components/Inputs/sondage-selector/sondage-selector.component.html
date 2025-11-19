@@ -1,0 +1,11 @@
+<mat-form-field class="w-100" appearance="fill">
+  <mat-label>Sélectionnez un sondage</mat-label>
+  <mat-select [(ngModel)]="this.selectedSondageUuid"
+              (ngModelChange)="this.selectedSondageUuidChange.emit($event)" name="sondage">
+    <ng-container *ngFor="let sondage of sondageArray; let index = index">
+      <mat-option *ngIf="sondage?.item && sondage?.item?.section_uuid" [value]="sondage.item.section_uuid">
+        {{sondage.item?.tag ?? 'Sondage ' + index}}
+      </mat-option>
+    </ng-container>
+  </mat-select>
+</mat-form-field>

@@ -1,0 +1,24 @@
+<table class="table table-striped table-borderless" *ngIf="this.photoList?.length > 0 else noPhotoLink">
+  <thead class="fixed-table-header">
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Type</th>
+    <!-- <th scope="col">Sujet(s)</th> -->
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let photo of this.photoList">
+    <th scope="row">{{ photo?.tag }}</th>
+    <td>{{photo?.photo_type_uuid}}</td>
+    <!-- <td>{{mobilier?.us_uuid}}</td> -->
+  </tr>
+  </tbody>
+</table>
+
+<ng-template #noPhotoLink>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Aucun lien de Photo</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

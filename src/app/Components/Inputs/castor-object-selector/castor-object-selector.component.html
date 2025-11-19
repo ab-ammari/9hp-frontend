@@ -1,0 +1,45 @@
+
+
+  <ion-item [id]="modal_id" [button]="!disabled" class="transparent-item">
+    <ion-label *ngIf="selection?.item">
+      <app-castor-tag-display
+        [object]="this.selection.item"
+      ></app-castor-tag-display>
+    </ion-label>
+
+    <ion-label [color]="disabled ? 'medium' : 'dark'" *ngIf="!selection">
+      {{ placeholder}}
+    </ion-label>
+    <ng-content></ng-content>
+  </ion-item>
+
+<ion-modal *ngIf="!disabled"  class="selector-modal" #modal [trigger]="disabled ? null : modal_id">
+  <ng-template>
+    <ion-header>
+      <ion-item>
+        <ion-input [required]="required" [(ngModel)]="list_filter" (ngModelChange)="filterList()" [placeholder]="'Filtre'"></ion-input>
+        <ion-button slot="end" (click)="filterList('')" fill="clear"><ion-icon name="close-outline"></ion-icon></ion-button>
+      </ion-item>
+    </ion-header>
+    <ion-content>
+      <ion-item *ngIf="!filtered_list || filtered_list.length === 0">
+        Vide
+      </ion-item>
+      <ion-item *ngFor="let item of filtered_list" [button]="true" (click)="select(item)" >
+        <ion-icon *ngIf="selection?.item?.created === item.item.created" name="checkmark-outline" slot="end"></ion-icon>
+        <ion-label>
+          {{labelFactory(item.item)}}
+        </ion-label>
+        <ion-avatar
+          *ngIf="isDocument(item.item)"
+          [slot]="'start'"
+        >
+          <app-castor-file-display
+            [file_uuid]="item.item.document_uuid"
+          ></app-castor-file-display>
+        </ion-avatar>
+      </ion-item>
+    </ion-content>
+  </ng-template>
+</ion-modal>
+

@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "resources": {
+        "files": [
+          "/favicon.ico",
+          "/index.html",
+          "/manifest.webmanifest",
+          "/*.css",
+          "/*.js"
+        ]
+      }
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/**",
+          "/*.(eot|svg|cur|jpg|png|webp|gif|otf|ttf|woff|woff2|ani)"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [
+    {
+      "name": "api-call",
+      "urls": [
+        "https://sheltered-savannah-51502.herokuapp.com/users/"
+      ],
+      "cacheConfig": {
+        "maxAge": "48h",
+        "maxSize": 50,
+        "strategy": "freshness",
+        "timeout": "10s"
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+
+<ion-progress-bar type="indeterminate" *ngIf="!listReady"></ion-progress-bar>
+
+<ng-container *ngIf="content as listContent">
+  <ng-container *ngIf="!document_view; else DocumentView">
+    <app-generic-content-object-table
+      [content]="listContent"
+      [global_filter]="global_search"
+      [dataReady]="listReady"
+      (onSelect)="handleDetailsClick($event.item)"
+    ></app-generic-content-object-table>
+  </ng-container>
+
+  <ng-template #DocumentView>
+    <app-generic-document-table
+      [content]="listContent"
+      [global_filter]="global_search"
+      (onSelect)="handleDetailsClick($event.item)"
+    ></app-generic-document-table>
+  </ng-template>
+</ng-container>

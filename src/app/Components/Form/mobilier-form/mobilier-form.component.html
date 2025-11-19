@@ -1,0 +1,160 @@
+<ng-container *ngIf="this.mobilier;">
+
+  <ion-accordion-group>
+    <ion-accordion>
+      <!--Header-->
+      <ion-item slot="header">
+        <ion-label>Localisation</ion-label>
+      </ion-item>
+      <!--Content-->
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="4" *ngIf="this.w.data().objects.us.all && this.w.data().objects.us.all?.list?.length > 0">
+          <ion-list>
+            <app-castor-object-selector
+              [list]="this.w.data().objects.us.all.list"
+              [(selection)]="this.us"
+              [placeholder]="'US'"
+            >
+            </app-castor-object-selector>
+          </ion-list>
+
+        </ion-col>
+        <ion-col size="4">
+          <ion-list>
+            <ion-item>
+              <ion-label>
+                <app-castor-tag-display
+                  [object]="fait?.item"
+                ></app-castor-tag-display>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </ion-col >
+        <ion-col size="4">
+          <ion-list>
+            <app-castor-object-selector
+              [(selection)]="this.sondage"
+              (selectionChange)="onChangeForm()"
+              [list]="this.w.data().objects.section.all.list"
+              [placeholder]="'Sondage'"
+              [filter]="sondage_filter"
+            ></app-castor-object-selector>
+          </ion-list>
+        </ion-col>
+
+      </ion-row>
+    </ion-accordion>
+    <ion-accordion>
+      <!--Header-->
+      <ion-item slot="header">
+        <ion-label>Description</ion-label>
+      </ion-item>
+      <!--Content-->
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12" size-md="6">
+          <ion-row>
+            <ion-col size="12">
+              <app-castor-type-selector
+                [category]="ApiTypeCategory.MOBILIER_MATERIAUX"
+                [(value)]="mobilier.type_materiaux_uuid"
+                (valueChange)="onChangeForm()"
+                [title]="'Matériau'"
+                [showTitle]="true"
+              ></app-castor-type-selector>
+            </ion-col>
+            <ion-col size="12">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Précision</ion-label>
+                <ion-input type="text" [(ngModel)]="this.mobilier.mobilier_precision"
+                           (ngModelChange)="onChangeForm()"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="12">
+              <app-castor-type-selector
+                [(value)]="mobilier.mobilier_identification_uuid"
+                (valueChange)="onChangeForm()"
+                [prefix]="false"
+                [title]="'Identification'"
+                [showTitle]="true"
+                [category]="ApiTypeCategory.MOBILIER_IDENTIFICATION"
+              ></app-castor-type-selector>
+            </ion-col>
+            <ion-col size="12">
+              <app-castor-type-selector
+                [(value)]="mobilier.mobilier_type_uuid"
+                (valueChange)="onChangeForm()"
+                [prefix]="false"
+                [title]="'Type'"
+                [showTitle]="true"
+                [category]="ApiTypeCategory.MOBILIER_TYPE"
+              ></app-castor-type-selector>
+            </ion-col>
+            <ion-col size="12">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Nombre de restes (NR)</ion-label>
+                <ion-input type="text" [(ngModel)]="this.mobilier.mobilier_nr"
+                           (ngModelChange)="onChangeForm()"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="12">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Poids des restes (PR)</ion-label>
+                <ion-input type="text" [(ngModel)]="this.mobilier.mobilier_pr"
+                           (ngModelChange)="onChangeForm()"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="12">
+              <app-castor-type-selector
+                [(value)]="mobilier.mobilier_datation_uuid"
+                (valueChange)="onChangeForm()"
+                [prefix]="false"
+                [title]="'Datation'"
+                [showTitle]="true"
+                [category]="ApiTypeCategory.DATATION_MOBILIER"
+              ></app-castor-type-selector>
+            </ion-col>
+            <!--<ion-col size="12">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Position</ion-label>
+                <ion-input type="text" [(ngModel)]="this.mobilier.mobilier_position"
+                           (ngModelChange)="onChangeForm()"></ion-input>
+              </ion-item>
+            </ion-col>-->
+            <ion-col size="12">
+              <app-castor-type-selector
+                [(value)]="mobilier.mobilier_etat_uuid"
+                (valueChange)="onChangeForm()"
+                [prefix]="false"
+                [title]="'Etat'"
+                [showTitle]="true"
+                [category]="ApiTypeCategory.MOBILIER_ETAT"
+              ></app-castor-type-selector>
+            </ion-col>
+            <ion-col size="12">
+              <ion-item lines="full">
+                <ion-label position="floating">Remarques</ion-label>
+                <ion-textarea [autoGrow]="true"
+                              [(ngModel)]="this.mobilier.echantillon_description"
+                              (ngModelChange)="onChangeForm()" type="text"></ion-textarea>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+        <!--Divider-->
+        <ion-col size="12" class="d-md-none d-block">
+          <mat-divider></mat-divider>
+        </ion-col>
+        <!--Fiche-->
+        <ion-col size="12" size-md="6">
+          <app-fiche-form
+            [object]="mobilier"
+          >
+          </app-fiche-form>
+        </ion-col>
+      </ion-row>
+    </ion-accordion>
+  </ion-accordion-group>
+
+
+
+</ng-container>

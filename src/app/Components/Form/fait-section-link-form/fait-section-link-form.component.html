@@ -1,0 +1,49 @@
+<ion-grid>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12">
+      <app-castor-type-selector
+        [title]="'Profil'"
+        [category]="ApiTypeCategory.FAIT_FORME_PROFIL"
+        [dismissParentPopover]="false"
+        [(value)]="this.profile"
+      ></app-castor-type-selector>
+    </ion-col>
+    <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Largeur (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.largeur"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Hauteur (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.hauteur"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Z supp (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.z_supp"></ion-input>
+      </ion-item>
+    </ion-col>
+    <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Z inf (m)</ion-label>
+        <ion-input type="number" [(ngModel)]="this.z_inf"></ion-input>
+      </ion-item>
+    </ion-col>
+   <!-- <ion-col size="12">
+      <ion-item lines="full">
+        <ion-label position="floating" class="label-placeholder">Note</ion-label>
+        <ion-input type="text" [(ngModel)]="this.note"></ion-input>
+      </ion-item>
+    </ion-col>-->
+    <ion-col size="auto">
+      <ion-button
+        [disabled]="this.disable"
+        (click)="this.valid()">
+        Valider
+      </ion-button>
+    </ion-col>
+  </ion-row>
+</ion-grid>

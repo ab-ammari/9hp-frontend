@@ -1,0 +1,37 @@
+<ion-row>
+  <ion-col>
+    <mat-form-field class="w-100" appearance="fill">
+      <mat-label>Sélectionnez un ensemble</mat-label>
+      <mat-select name="ensemble">
+          <mat-option [value]="'ES-01'">
+            {{'ES-01'}}
+          </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </ion-col>
+  <ion-col size="auto" class="ion-align-self-center">
+    <ion-button [fill]="'clear'">
+      <ion-icon [slot]="'icon-only'" name="add"></ion-icon>
+    </ion-button>
+  </ion-col>
+</ion-row>
+
+<ion-row>
+  <ion-col size="12">
+    <mat-card class="card-list hide-scrollbar pt-0">
+      <table class="table table-borderless table-responsive">
+        <tbody>
+        <!-- ROWS -->
+          <tr>
+            <th scope="row">{{ 'ENSEMBLE NUMERO' }}</th>
+            <td class="text-end">
+              <ion-button [fill]="'clear'">
+                <ion-icon [slot]="'icon-only'" name="close"></ion-icon>
+              </ion-button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </mat-card>
+  </ion-col>
+</ion-row>

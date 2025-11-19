@@ -1,0 +1,17 @@
+<ng-container *ngIf="!loading; else progressBar">
+  <ng-container *ngIf="this.w.data().user; else noUser">
+    <router-outlet></router-outlet>
+    <ng-container *ngIf="this.w.networkStatus.rest === NetworkStatus.online">
+      <app-castor-synchroniser></app-castor-synchroniser>
+    </ng-container>
+  </ng-container>
+</ng-container>
+
+
+<ng-template #noUser>
+      <app-authentication-button></app-authentication-button>
+</ng-template>
+
+<ng-template #progressBar>
+  <ion-progress-bar [type]="'indeterminate'"></ion-progress-bar>
+</ng-template>

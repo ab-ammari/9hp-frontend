@@ -1,0 +1,35 @@
+
+<ion-app>
+
+  <ion-header>
+    <ion-toolbar>
+      <ion-button [slot]="'start'"  (click)="closeModal()">Fermer</ion-button>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content [fullscreen]="true">
+
+
+<!--- This is the image display with the dedicated zoom component -->
+    <app-castor-zoom-container #zoomContainer>
+      <app-castor-file-display
+        [openModalOnClick]="false"
+        [file_uuid]="file.file_uuid"
+        #fileDisplay
+      ></app-castor-file-display>
+    </app-castor-zoom-container>
+
+    <!--- -------- -->
+
+
+
+
+
+  </ion-content>
+
+  <ion-footer>
+    <ion-toolbar>
+      <ion-button [slot]="'start'" (click)="previousFile()">Précedent</ion-button>
+      <ion-button [slot]="'end'" (click)="nextFile()">Suivant</ion-button>
+    </ion-toolbar>
+  </ion-footer>
+</ion-app>

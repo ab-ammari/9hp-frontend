@@ -1,0 +1,29 @@
+
+<ion-item lines="none" [button]="true" (click)="this.presentModal()" [disabled]="this.disabled">
+
+  <ion-label *ngIf="this.dateTimeTitleLabel">
+    {{this.dateTimeTitleLabel}}
+  </ion-label>
+
+  <ion-text class="placeholder" *ngIf="this.displayedDate === undefined">Sélectionnez une date</ion-text>
+  <ion-text *ngIf="this.displayedDate !== undefined" color="primary">{{ this.displayedDate }}</ion-text>
+
+  <!-- See styles in global.scss -->
+  <ion-modal class="datetime-modal" #dateTimeModal>
+    <ng-template>
+      <ion-content>
+        <ion-datetime
+          [(ngModel)]="this.datePicked"
+          (ngModelChange)="this.dateChange($event)"
+          [showDefaultButtons]="true"
+          [presentation]="'date-time'"
+          [min]="this.ionicMinDate"
+          [max]="this.ionicMaxDate"
+          [doneText]="'Confirmer'"
+          [cancelText]="'Annuler'"
+          [locale]="'fr-FR'"
+        ></ion-datetime>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-item>

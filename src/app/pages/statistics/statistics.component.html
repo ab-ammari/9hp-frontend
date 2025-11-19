@@ -1,0 +1,136 @@
+<div id="container">
+  <main>
+    <section>
+      <!-- GRAPHICS PART -->
+      <ion-row>
+        <ion-col size="12" style="max-height: 500px">
+          <ngx-charts-bar-vertical
+            [scheme]="colorScheme"
+            [results]="this.w.data()?.projectStats?.histogrammeData"
+            [gradient]="gradient"
+            [xAxis]="showXAxis"
+            [yAxis]="showYAxis"
+            [legend]="showLegend"
+            [showXAxisLabel]="showXAxisLabel"
+            [showYAxisLabel]="showYAxisLabel"
+            (select)="onSelect($event)">
+          </ngx-charts-bar-vertical>
+        </ion-col>
+        <ion-col size="12">
+          <ion-row>
+            <ion-col size="12" size-md="6" style="max-height: 250px; display: grid">
+              <ngx-charts-pie-chart
+                [scheme]="colorScheme"
+                [results]="this.w.data()?.projectStats?.pieStatsData"
+                [gradient]="gradient"
+                [legend]="showLegend"
+                [legendPosition]="legendPosition"
+                [labels]="showLabels"
+                [doughnut]="isDoughnut"
+                (select)="onSelect($event)"
+              >
+              </ngx-charts-pie-chart>
+            </ion-col>
+            <ion-col size="12" size-md="6" style="max-height: 250px; display: grid">
+              <ngx-charts-pie-chart
+                [scheme]="colorScheme"
+                [results]="this.w.data()?.projectStats?.pieMethodeTypeData"
+                [gradient]="gradient"
+                [legend]="showLegend"
+                [legendPosition]="legendPosition"
+                [labels]="showLabels"
+                [doughnut]="isDoughnut"
+                (select)="onSelect($event)"
+              >
+              </ngx-charts-pie-chart>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+      <!-- Progress part-->
+      <ion-row class="px-3">
+        <ion-col size="12">
+          <div class="progress-container">
+            <mat-progress-bar mode="determinate" [value]="this.w.data()?.projectStats?.searchProgress"></mat-progress-bar>
+            <span class="progress-bar-text-style">Progression de la fouille : {{this.w.data()?.projectStats?.searchProgress}}%</span>
+          </div>
+        </ion-col>
+        <ion-col size="12">
+          <div class="progress-container">
+            <mat-progress-bar mode="determinate" [value]="this.w.data()?.projectStats?.sheetsProgress"></mat-progress-bar>
+            <span class="progress-bar-text-style">Progression des fiches : {{this.w.data()?.projectStats?.sheetsProgress}}%</span>
+          </div>
+        </ion-col>
+        <ion-col size="12">
+          <div class="progress-container">
+            <mat-progress-bar mode="determinate" [value]="this.w.data()?.projectStats?.sheetsValidationProgress"></mat-progress-bar>
+            <span class="progress-bar-text-style">Validation des fiches : {{this.w.data()?.projectStats?.sheetsValidationProgress}}%</span>
+          </div>
+        </ion-col>
+      </ion-row>
+      <!-- Filter and selection part -->
+      <ion-row class="list-header-toolbar">
+        <ion-col>
+          <ion-row class="justify-content-end">
+            <ion-col class="my-auto align-items-sm-start">
+              <ion-label class="fw-bold">Afficher</ion-label>
+            </ion-col>
+            <ion-col size="10">
+              <ion-item>
+                <ion-label style="cursor: pointer" [matMenuTriggerFor]="family">
+                  {{ this.w.data()?.projectStats?.selectedDisplayFilter
+                  ? this.w.data()?.projectStats?.selectedDisplayFilter : 'Sélectionnez un affichage'}}
+                </ion-label>
+                <mat-icon (click)="this.resetDisplayFilter()"
+                          slot="end" svgIcon="castorCancelIcon" style="height: 15px; overflow: visible; cursor:pointer;"></mat-icon>
+              </ion-item>
+              <mat-menu #family="matMenu">
+                <ng-container *ngFor="let displayFilter of this.arraySelectionDisplayFilter">
+                  <button (click)="this.clickFilter(displayFilter)" mat-menu-item>{{displayFilter}}</button>
+                </ng-container>
+              </mat-menu>
+            </ion-col>
+          </ion-row>
+          <ion-row class="justify-content-end" *ngIf="!isContenantDisplayFilter()">
+            <ion-col class="my-auto">
+              <ion-label class="fw-bold">Filtrer</ion-label>
+            </ion-col>
+            <ion-col size="10">
+              <ion-item>
+                <ion-label id="click-trigger" style="cursor: pointer">
+                  <ng-container *ngIf="this.selectedSector?.length > 0 else noSelectedSector">
+                    <ng-container *ngFor="let sector of this.selectedSector">
+                      {{ sector.secteur_tag}}
+                    </ng-container>
+                  </ng-container>
+                  <ng-template #noSelectedSector>
+                    Selectionnez un filtre
+                  </ng-template>
+                </ion-label>
+                <mat-icon (click)="this.unselectAllSectorFilter()"
+                          slot="end" svgIcon="castorCancelIcon" style="height: 15px; overflow: visible; cursor: pointer"></mat-icon>
+              </ion-item>
+              <ion-popover trigger="click-trigger" triggerAction="click">
+                <ng-template>
+                  <ion-content class="ion-padding">
+                    <ion-row *ngIf="this.w.data()?.projectStats?.selectedSector?.length > 0">
+                      <ion-col size="12">
+                        <ng-container *ngFor="let checkbox of this.w.data()?.projectStats?.selectedSector">
+                          <ion-checkbox [(ngModel)]="checkbox.selected"
+                                        (ngModelChange)="this.sectorSelectionChange($event)">
+                          </ion-checkbox>
+                          <ion-label class="px-2">{{checkbox.secteur_tag}}</ion-label>
+                          <br>
+                        </ng-container>
+                      </ion-col>
+                    </ion-row>
+                  </ion-content>
+                </ng-template>
+              </ion-popover>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+    </section>
+  </main>
+</div>

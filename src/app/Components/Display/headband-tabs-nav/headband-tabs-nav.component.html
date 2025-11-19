@@ -1,0 +1,10 @@
+<ion-buttons style="overflow-x: scroll; width: 100%;" class="hide-scrollbar pt-3 buttons-style">
+  <ion-button
+    *ngFor="let tab of tabs"
+    (click)="navigateToTab(tab)"
+    [expand]="'full'"
+    [fill]="(currentTabId === tab.id) ? 'solid' : 'clear'"
+    [color]="'light'">
+    <ion-label class="tab-header">{{tab.label}}</ion-label>
+  </ion-button>
+</ion-buttons>

@@ -1,0 +1,16 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Type</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let section of this.sections">
+    <th scope="row">{{section.item.tag}}</th>
+    <td>{{section.item?.section_type }}</td>
+    <td>{{section.item?.section_notes}}</td>
+  </tr>
+  </tbody>
+</table>

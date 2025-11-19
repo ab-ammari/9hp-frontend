@@ -1,0 +1,16 @@
+<!--<mat-form-field class="w-100" appearance="fill">
+  <mat-label>Profil</mat-label>
+  <mat-select [(ngModel)]="this.selectedFormProfile" (ngModelChange)="this.selectedFormProfileChange.emit($event)"
+              name="formProfile">
+    <mat-option *ngFor="let formProfile of this.formProfileSelectionArray" [value]="formProfile">
+      {{formProfile}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>-->
+<app-castor-type-selector
+  [title]="'Profil'"
+  [showTitle]="true"
+  [category]="ApiTypeCategory.FAIT_FORME_PROFIL"
+  [(value)]="this.selectedFormProfile"
+  (valueChange)="this.selectedFormProfileChange.emit($event)"
+></app-castor-type-selector>

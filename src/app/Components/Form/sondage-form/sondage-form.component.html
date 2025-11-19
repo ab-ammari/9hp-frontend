@@ -1,0 +1,102 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <!--Header-->
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <!--Content-->
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <app-castor-type-selector
+        [category]="ApiTypeCategory.SONDAGE_TYPE"
+        [title]="'Type'"
+        [showTitle]="true"
+        [(value)]="this.section.section_type"
+        (valueChange)="onChangeForm()"
+        ></app-castor-type-selector>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Remarques</ion-label>
+          <ion-textarea type="text"
+                        [autoGrow]="true"
+                        [(ngModel)]="this.section.section_notes" (ngModelChange)="onChangeForm()"></ion-textarea>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <ion-col size="12">
+        <app-fiche-form
+          [object]="section"
+        ></app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Mesures</ion-label>
+    </ion-item>
+
+    <ion-row slot="content" class="background-form-color">
+      <app-dimensions-form
+        [hideDiameter]="true"
+        [hidePendage]="true"
+        [hideHeight]="true"
+        [hideReelLengthBool]="true"
+        [hideReelWidthBool]="true"
+        [(length)]="this.section.section_dim_longeur"
+        (lengthChange)="onChangeForm()"
+        [(width)]="this.section.section_dim_largeur"
+        (widthChange)="onChangeForm()"
+        [(depth)]="this.section.section_dim_profondeur"
+        (depthChange)="onChangeForm()"
+        [(area)]="this.section.section_dim_superficie"
+        (areaChange)="onChangeForm()"
+        [(volume)]="this.section.section_dim_volume"
+        (volumeChange)="onChangeForm()"
+      ></app-dimensions-form>
+    </ion-row>
+  </ion-accordion>
+
+  <ng-container *ngIf="this.section.table === ApiDbTable.section_sondage">
+    <ion-accordion>
+      <!--Header-->
+      <ion-item slot="header">
+        <ion-label>Coupes</ion-label>
+      </ion-item>
+      <!--Content-->
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12">
+          <app-sondage-coupe-list-form
+            [section]="this.sectionSondage"
+          ></app-sondage-coupe-list-form>
+        </ion-col>
+      </ion-row>
+    </ion-accordion>
+  </ng-container>
+
+  <ng-container *ngIf="this.w.data().objects.section.all && this.w.data().objects.section.all?.list
+       && this.section.table === ApiDbTable.section_coupe">
+    <ion-accordion>
+      <!--Header-->
+      <ion-item slot="header">
+        <ion-label>Sondage</ion-label>
+      </ion-item>
+      <!--Content-->
+      <ion-row slot="content" class="background-form-color">
+        <ion-col size="12">
+          <app-sondage-selector [sondageArray]="this.w.data().objects.section.all.list"
+                                [(selectedSondageUuid)]="this.sectionCoupe.section_sondage_uuid"
+                                (selectedSondageUuidChange)="onChangeForm()"></app-sondage-selector>
+        </ion-col>
+      </ion-row>
+    </ion-accordion>
+  </ng-container>
+</ion-accordion-group>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.validSondage()"
+  [cancelBackMode]="true"
+  ></app-valid-cancel-grouped-btn>-->

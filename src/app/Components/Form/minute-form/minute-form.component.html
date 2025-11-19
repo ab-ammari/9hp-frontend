@@ -1,0 +1,69 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Image Minute</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="auto">
+        <app-castor-file-input
+          [(file_uuid)]="this.document.document_file_uuid"
+          (file_uuidChange)="onChangeForm()"
+        ></app-castor-file-input>
+      </ion-col>
+      <ion-col size="auto">
+        <app-castor-file-display
+          [file_uuid]="document.document_file_uuid"
+        ></app-castor-file-display>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <ion-row>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Support'"
+              [showTitle]="true"
+              [category]="ApiTypeCategory.MINUTE_SUPPORT"
+              [(value)]="this.minute.minute_support"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Etat'"
+              [showTitle]="true"
+              [category]="ApiTypeCategory.MINUTE_STATE"
+              [(value)]="this.minute.minute_state_uuid"
+              (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating">Remarques</ion-label>
+              <ion-textarea type="text" [autoGrow]="true"
+                            [(ngModel)]="this.minute.document_remarques"
+                            (ngModelChange)="onChangeForm()"></ion-textarea>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <!--DIVIDER-->
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <!-- FICHE -->
+        <app-fiche-form
+          [object]="minute"
+        ></app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+
+

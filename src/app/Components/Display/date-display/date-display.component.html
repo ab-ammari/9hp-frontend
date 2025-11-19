@@ -1,0 +1,10 @@
+<ion-item lines="none">
+
+  <ion-label *ngIf="this.dateTimeTitleLabel">
+    {{this.dateTimeTitleLabel}}
+  </ion-label>
+
+  <ion-text *ngIf="this.displayedDate === undefined" color="danger">Non renseigné</ion-text>
+  <ion-text *ngIf="this.displayedDate !== undefined" color="primary">{{ this.displayedDate }}</ion-text>
+
+</ion-item>

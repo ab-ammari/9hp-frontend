@@ -1,0 +1,136 @@
+<ion-row>
+  <ion-col>
+    <h4>Altitudes (m NGF)</h4>
+  </ion-col>
+  <ion-col class="text-end">
+    <ion-button [fill]="'clear'" (click)="this.openRelativeModal()">
+      <ion-icon [name]="'create-outline'"></ion-icon>
+    </ion-button>
+  </ion-col>
+</ion-row>
+<ion-grid>
+    <ion-row *ngIf="!this.hideZAxe">
+      <ion-col size="12">
+        <ion-item lines="full" class="align-items-center">
+          <ion-label position="floating" class="label-placeholder">Z Axe</ion-label>
+          <ion-input type="number" inputmode="numeric" [(ngModel)]="this.zAxe"
+                     (ngModelChange)="this.zAxeChange.emit($event)"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-item lines="full" class="align-items-center">
+          <ion-label position="floating" class="label-placeholder">Z sup.</ion-label>
+          <ion-input type="number" [(ngModel)]="this.absoluteZSupp" [ngClass]="{'input-red-text': !this.isZSupCalculated}"
+                     (ngModelChange)="this.absoluteZSuppChange.emit($event)"></ion-input>
+          <ion-button *ngIf="this.showGetFaitAbsZSuppBtn"
+                      (click)="this.getFaitAbsZSuppCallback.emit($event)" fill="clear" slot="end">
+            <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+          </ion-button>
+          <ion-button *ngIf="this.showZSuppCalculatorIcon"
+                      class="mx-0"
+                      (click)="this.btnZSuppCalcCallback.emit($event)" fill="clear" slot="end">
+            <mat-icon mat-list-icon svgIcon="castorCalculator" class="svg-custom-style"></mat-icon>
+          </ion-button>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Z inf.</ion-label>
+          <ion-input type="number" [(ngModel)]="this.absoluteZInf" [ngClass]="{'input-red-text': !this.isZInfCalculated}"
+                     (ngModelChange)="this.absoluteZInfChange.emit($event)"></ion-input>
+          <ion-button *ngIf="this.showGetFaitAbsZInfBtn"
+                      (click)="this.getFaitAbsZInfCallback.emit($event)" fill="clear" slot="end">
+            <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+          </ion-button>
+          <ion-button *ngIf="this.showZInfCalculatorIcon"
+                      class="mx-0"
+                      (click)="this.btnZInfCalcCallback.emit($event)" fill="clear" slot="end">
+            <mat-icon mat-list-icon svgIcon="castorCalculator" class="svg-custom-style"></mat-icon>
+          </ion-button>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+</ion-grid>
+
+<ion-modal class="layer-modal" #altitudeModal (willDismiss)="this.onWillDismiss($event)">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Altitude relative</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()">Fermer</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12">
+            <ion-item lines="full" class="align-items-center">
+              <ion-label position="floating" class="label-placeholder">Z borne</ion-label>
+              <ion-input type="number" [(ngModel)]="this.zBorn"
+                         (ngModelChange)="this.onZBorneChange($event)"></ion-input>
+              <ion-button *ngIf="this.showGetFaitZBornBtn"
+                          (click)="this.getFaitZBornCallback.emit($event)" fill="clear" slot="end">
+                <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+              </ion-button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12">
+            <ion-item lines="full" class="align-items-center">
+              <ion-label position="floating" class="label-placeholder">Lecture</ion-label>
+              <ion-input type="number" [(ngModel)]="this.lectureBorn"
+                         (ngModelChange)="this.onLectureBorneChange($event)"></ion-input>
+              <ion-button *ngIf="this.showGetFaitLectureBornBtn"
+                          (click)="this.getFaitLectureBornCallback.emit($event)" fill="clear" slot="end">
+                <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+              </ion-button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12">
+            <ion-item lines="full" class="align-items-center">
+              <ion-label class="label-placeholder">Z Lunette</ion-label>
+              <ion-label>{{ this.zLunette ?? 0 }}</ion-label>
+              <ion-button *ngIf="this.showGetFaitZLunetteBtn"
+                          (click)="this.getFaitZLunetteCallback.emit($event)" fill="clear" slot="end">
+                <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+              </ion-button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row *ngIf="this.hideZSupZInfRelatif()">
+          <ion-col size="12">
+            <ion-item lines="full" class="align-items-center">
+              <ion-label position="floating" class="label-placeholder">Z sup. relatif</ion-label>
+              <ion-input type="number" [(ngModel)]="this.zsupp"
+                         (ngModelChange)="this.onZSuppChange($event)"></ion-input>
+              <ion-button *ngIf="this.showGetFaitZSuppBtn"
+                          (click)="this.getFaitZSuppCallback.emit($event)" fill="clear" slot="end">
+                <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+              </ion-button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row *ngIf="this.hideZSupZInfRelatif()">
+          <ion-col size="12">
+            <ion-item lines="full" class="align-items-center">
+              <ion-label position="floating" class="label-placeholder">Z inf. relatif</ion-label>
+              <ion-input type="number" [(ngModel)]="this.zinf"
+                         (ngModelChange)="this.onZInfChange($event)"></ion-input>
+              <ion-button *ngIf="this.showGetFaitZInfBtn"
+                          (click)="this.getFaitZInfCallback.emit($event)" fill="clear" slot="end">
+                <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+              </ion-button>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </ion-content>
+  </ng-template>
+</ion-modal>

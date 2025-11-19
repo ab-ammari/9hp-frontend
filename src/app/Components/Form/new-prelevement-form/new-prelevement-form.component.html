@@ -1,0 +1,49 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouveau Prélèvement</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+  <ng-container *ngIf="this.w.data().objects.us.all && this.w.data().objects.us.all?.list?.length > 0 else noUs">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <ion-list>
+          <app-castor-object-selector
+            [disabled]="!!this.usUuid"
+            [list]="this.w.data().objects.us.all.list"
+            [(selection)]="this.selectedUs"
+            [placeholder]="'US*'"
+          >
+          </app-castor-object-selector>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <app-castor-type-selector
+          [title]="'Nature'"
+          [showTitle]="true"
+          [category]="ApiTypeCategory.PRELEVEMENT_NATURE"
+          [(value)]="this.natureUuid"
+        ></app-castor-type-selector>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <app-valid-cancel-grouped-btn
+      (validCallBackBtn)="this.createNewPrelevement()"
+      (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)"
+      [disableValidBtn]="!this.isValidNewPrelevementForm()"
+    ></app-valid-cancel-grouped-btn>
+
+  </ng-container>
+</ion-grid>
+
+<ng-template #noUs>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Créer une us pour pouvoir ajouter un prélèvement</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

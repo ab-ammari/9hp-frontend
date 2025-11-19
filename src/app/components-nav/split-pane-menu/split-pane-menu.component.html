@@ -1,0 +1,143 @@
+<div class="box" >
+  <ion-header class="box-header toolbar-style">
+    <ion-toolbar>
+      <ion-row class="ion-justify-content-between">
+        <ion-col size="auto">
+          <ion-buttons>
+            <ion-menu-toggle autoHide="false">
+              <ion-button (click)="appDrawer.toggle()" [fill]="'clear'">
+                <mat-icon mat-list-icon svgIcon="castorLogoIcon" style="height: 40px; width: 40px"></mat-icon>
+              </ion-button>
+            </ion-menu-toggle>
+          </ion-buttons>
+        </ion-col>
+        <ion-col size="auto">
+          <ion-buttons>
+            <ion-button (click)="this.showSyncStats()">
+              <ion-title class="text-center" >
+                {{ this.w.data().projet.selected.item.projet_label }} <ion-icon name="skull-outline" [color]="'danger'" *ngIf="this.w.data().archive.errored"></ion-icon><ion-icon name="time-outline" [color]="'warning'" *ngIf="this.w.data().archive.locked"></ion-icon>
+                <ion-progress-bar [type]="'indeterminate'" *ngIf="showActivityIndicator"></ion-progress-bar>
+              </ion-title>
+            </ion-button>
+          </ion-buttons>
+
+        </ion-col>
+        <ion-col size="auto">
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="navbar-brand" href="#"><sup>ODS</sup> Castor <sub>V : {{ this.appVersion}}</sub></div>
+            </ion-col>
+            <ion-col size="auto">
+              <ion-buttons>
+                <ion-button (click)="openTechnicalSettings()" fill="clear">
+                  <ion-icon name="settings-outline"></ion-icon>
+                </ion-button>
+              </ion-buttons>
+            </ion-col>
+          </ion-row>
+        </ion-col>
+      </ion-row>
+    </ion-toolbar>
+  </ion-header>
+  <mat-sidenav-container class="box-content">
+    <mat-sidenav #appDrawer rail-mode [opened]="!this.platform.is('mobile')">
+      <mat-nav-list class="nav">
+
+        <a mat-list-item (click)="this.closeProject()">
+          <mat-icon mat-list-icon svgIcon="castorExitIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Fermer</p>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/statistics']"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorDashboardIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Tableau de bord</p>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.secteur ]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorSectorIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Secteurs ({{ this.w.data().objects?.secteur?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.fait]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Faits ({{ this.w.data().objects?.fait?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/'  + ApiDbTable.us]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorUsIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>US ({{ this.w.data().objects?.us?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.ensemble]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorEnsembleIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Ensembles ({{ this.w.data().objects?.ensemble?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.section_sondage]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorSondageIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Sondages ({{ this.w.data().objects?.section?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.echantillon_mobilier]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorMobilierIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Mobiliers
+            ({{ this.w.data().objects?.echantillon?.all?.childList(ApiDbTable.echantillon_mobilier)?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.echantillon_prelevement]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorPrelevementIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Prélèvements
+            ({{ this.w.data().objects?.echantillon?.all?.childList(ApiDbTable.echantillon_prelevement)?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.contenant]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorContenantIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Contenants ({{ this.w.data().objects?.contenant?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.document_minute]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorMinuteIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Minutes
+            ({{ this.w.data().objects?.document?.all?.childList(ApiDbTable.document_minute)?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.document_photo]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorPhotoIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Photos
+            ({{ this.w.data().objects?.document?.all?.childList(ApiDbTable.document_photo)?.length ?? 0 }})</p>
+        </a>
+
+        <a mat-list-item [routerLink]="['/home/project-dashboard/' + ApiDbTable.topo]"
+           routerLinkActive="active-link">
+          <mat-icon mat-list-icon svgIcon="castorTopoIcon" class="svg-custom-style"></mat-icon>
+          <p matLine>Points topo ({{ this.w.data().objects?.topo?.all?.list?.length ?? 0 }})</p>
+        </a>
+
+      </mat-nav-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+
+      <ng-content></ng-content>
+
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>

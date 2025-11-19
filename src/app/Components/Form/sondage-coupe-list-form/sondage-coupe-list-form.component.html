@@ -1,0 +1,90 @@
+<mat-card class="card-list hide-scrollbar pt-0">
+  <table class="table table-borderless table-responsive">
+    <!-- HEADER -->
+    <thead class="fixed-table-header">
+    <tr class="align-middle">
+      <th scope="col">N° Coupe</th>
+      <th scope="col">Type</th>
+      <th scope="col">Remarques</th>
+      <th scope="col" class="text-end">
+        <ion-button [fill]="'clear'" id="link-coupe">
+          <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+        </ion-button>
+        <ion-popover
+          #popover
+          [trigger]="'link-coupe'">
+          <ng-template>
+            <ion-content>
+              <ion-grid>
+                <ion-row class="ion-justify-content-center">
+                  <ion-col size="auto">
+                    <ion-button
+                      (click)="this.openNewCoupeModal()">
+                      Créer
+                    </ion-button>
+                  </ion-col>
+                  <ion-col size="12" *ngIf="this.arrayCoupeAvailable?.length > 0 else noCoupeAvailable">
+                    <mat-form-field  appearance="fill">
+                      <mat-label>Selectionnez une coupe</mat-label>
+                      <mat-select [(ngModel)]="this.selectedCoup" name="fait">
+                        <ng-container *ngFor="let coupe of this.arrayCoupeAvailable; let index = index;">
+                          <mat-option [value]="coupe">
+                            {{coupe.item.tag}}
+                          </mat-option>
+                        </ng-container>
+                      </mat-select>
+                    </mat-form-field>
+                  </ion-col>
+                  <ion-col size="auto">
+                    <ion-button
+                      [disabled]="!this.selectedCoup"
+                      (click)="this.linkCoup()">
+                      Valider
+                    </ion-button>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-content>
+          </ng-template>
+        </ion-popover>
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- ROWS -->
+    <ng-container *ngIf="this.linkedCoupeArray?.length > 0">
+      <tr *ngFor="let coupe of this.linkedCoupeArray; let index = index">
+        <th scope="row">
+          <app-castor-tag-display
+            [infoBulle]="true"
+            [object]="this.coupe?.item"></app-castor-tag-display>
+        </th>
+        <td>
+          <app-castor-type-display [type]="coupe?.item.section_type" [display_prefix]="false"></app-castor-type-display>
+        </td>
+        <td>{{ coupe?.item?.section_notes }}</td>
+        <td class="text-end">
+          <ion-button [fill]="'clear'" (click)="this.deleteCoup(coupe)">
+            <mat-icon svgIcon="castorCancelIcon" style="height: 15px; width: 15px"></mat-icon>
+          </ion-button>
+        </td>
+      </tr>
+    </ng-container>
+    </tbody>
+  </table>
+</mat-card>
+
+<ion-modal class="linkObjectCreatedModal" #newCoupeModal>
+  <ng-template>
+    <app-new-sondage-form (onSondageCreated)="this.linkCreatedCoupe($event)"
+                          (onCancelBtnClicked)="this.closeNewCoupeModal()"
+                          [sectorUuid]="this.section?.secteur_uuid"
+                          [disableRadioSelector]="true"
+                          [isLinkSondage]="false">
+    </app-new-sondage-form>
+  </ng-template>
+</ion-modal>
+
+<ng-template #noCoupeAvailable>
+  <h3 class="text-center">Pas de coupe disponible</h3>
+</ng-template>

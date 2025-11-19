@@ -1,0 +1,93 @@
+
+<ng-container *ngIf="this.popover">
+  <span
+    click-stop-propagation
+    (click)="this.openPopup()"
+  >
+    <ion-button
+      [fill]="'clear'"
+      [size]="'small'"
+      [strong]="true"
+      [id]="id">
+      <ng-content></ng-content>
+      <ng-container *ngIf="!object; else TAG">
+        <ion-icon name="scan-outline" ></ion-icon>
+      </ng-container>
+    </ion-button>
+  </span>
+</ng-container>
+
+<ng-container *ngIf="!this.popover">
+  <span>
+    <div>
+      <ng-content></ng-content>
+      <ng-container *ngIf="!object; else TAG">
+        <ion-icon name="scan-outline"></ion-icon>
+      </ng-container>
+    </div>
+  </span>
+</ng-container>
+
+<ion-popover #tagPopover
+             *ngIf="this.popover"
+             id="tag-popover"
+             [trigger]="id"
+             [isOpen]="popoverIsVisible"
+             [showBackdrop]="false"
+             [side]="'bottom'"
+             [translucent]="true">
+  <ng-template>
+    <ion-content>
+      <ion-item>
+        <ion-button [fill]="'clear'" (click)="goToObjectPage(object)">
+          <ng-container *ngIf="!object; else TAG">
+            <ion-icon name="scan-outline"></ion-icon>
+          </ng-container>
+        </ion-button>
+        <ion-button [fill]="'clear'" (click)="createDuplicates(object)">
+          <ion-icon name="duplicate-outline"></ion-icon>
+        </ion-button>
+        <ion-button slot="end" [fill]="'clear'" size="small" (click)="this.goToObjectPage(object, true)">
+          <mat-icon  mat-list-icon svgIcon="castorExitIcon" class="svg-custom-style"></mat-icon>
+        </ion-button>
+      </ion-item>
+
+      <ion-item [button]="true" [disabled]="CopyToClipboardActionMessage" (click)="copyToClipboard()">
+        <ion-label>
+          {{CopyToClipboardActionMessage ? CopyToClipboardActionMessage : object_uuid}}
+        </ion-label>
+      </ion-item>
+
+      <ng-container *ngIf="this.infoBulle && this.object && this.info">
+        <app-castor-generic-object-info-display
+          [object]="object"
+          [info]="info">
+        </app-castor-generic-object-info-display>
+      </ng-container>
+    </ion-content>
+
+  </ng-template>
+</ion-popover>
+
+<ng-template
+  #TAG
+>
+  <span
+    class="fw-bold"
+    [ngClass]="{'main-tag' : this.mainTag}"
+    [ngStyle]="{
+  'font-style': object.draft ? 'italic' : 'normal',
+  'text-decoration':
+  (object.error ? 'yellow wavy underline' : '') +
+  (object.live ? '' : 'line-through')
+  }">
+    <ng-container *ngIf="object['tag'] || object['tag_custom'];else noTag">
+      {{object['tag_custom'] ?? object['tag']}}
+    </ng-container>
+    {{object.draft ? '*' : ''}}
+  </span>
+</ng-template>
+
+<ng-template #noTag>
+  {{this.object[this.info?.uuid_paths[0]]?.substring(0, 5)}}
+</ng-template>

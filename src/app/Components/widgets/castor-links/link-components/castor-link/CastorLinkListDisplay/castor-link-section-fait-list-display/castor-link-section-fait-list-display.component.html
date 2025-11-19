@@ -1,0 +1,26 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <!--    <th scope="col">Type de lien</th>
+        <th scope="col">Draft</th>-->
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let rel of relations">
+    <ng-container [ngSwitch]="isReference">
+      <ng-container *ngSwitchCase="rel.fait.info.ref_table">
+        <th scope="row">
+          <app-castor-tag-display [object]="rel.fait.item"></app-castor-tag-display>
+        </th>
+      </ng-container>
+      <ng-container *ngSwitchCase="rel.section.info.ref_table">
+        <th scope="row">
+          <app-castor-tag-display [object]="rel.fait.item"></app-castor-tag-display></th>
+      </ng-container>
+    </ng-container>
+    <!--    <td>{{link?.relation?.item?.table }}</td>
+        <td>{{link?.relation?.item?.draft ? 'Brouillon' : 'Sauvegardé'}}</td>-->
+  </tr>
+  </tbody>
+</table>

@@ -1,0 +1,27 @@
+<table class="table table-striped table-borderless" *ngIf="this.mobilierList?.length > 0 else noMobilierLink">
+  <thead class="fixed-table-header">
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Fait</th>
+    <th scope="col">US</th>
+    <th scope="col">Materiau</th>
+    <th scope="col">Type</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let mobilier of this.mobilierList">
+    <th scope="row">{{ mobilier?.tag }}</th>
+    <td>{{mobilier?.us_uuid}}</td>
+    <td>{{mobilier?.type_materiaux_uuid}}</td>
+    <td>{{mobilier?.mobilier_type_uuid}}</td>
+  </tr>
+  </tbody>
+</table>
+
+<ng-template #noMobilierLink>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Aucun lien de Mobilier</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,77 @@
+<div id="sub-container" *ngIf="this.selection">
+  <header>
+    <ion-buttons style="overflow-x: scroll; width: 100%;" class="hide-scrollbar pt-3 buttons-style">
+      <ion-button
+        (click)="this.onSelect({id: 'details', label: 'details', type: null})"
+        [expand]="'full'"
+        [fill]="(this.w.data().context.linkSelection.id === 'details') ? 'solid' : 'clear'"
+        [color]="'light'"
+      >
+        <!--<app-castor-tag-display [popover]="false" [object]="this.object.item"></app-castor-tag-display>-->
+        <ion-label class="castor-links-header">
+          Détails
+        </ion-label>
+      </ion-button>
+      <ion-button
+        *ngFor="let i of this.availableApiLinkSelections"
+        (click)="this.onSelect(i)"
+        [expand]="'full'"
+        [fill]="(this.w.data().context.linkSelection.id === i.id) ? 'solid' : 'clear'"
+        [color]="'light'"
+      >
+        <ion-label class="castor-links-header">
+          {{i.label}} ({{i.count}})
+        </ion-label>
+      </ion-button>
+    </ion-buttons>
+  </header>
+  <main>
+    <section>
+      <ng-container *ngIf="this.isDetailsSelection; else isNotDetails">
+        <app-castor-sync-obj-info
+          *ngIf="this.isProjectOwner"
+          [object]="this.object"
+        ></app-castor-sync-obj-info>
+        <ng-content></ng-content>
+      </ng-container>
+
+
+      <ion-fab #fabCreateObject *ngIf="this.displayCreateFab()" vertical="bottom" horizontal="center" slot="fixed" >
+        <!-- Display fab list if type is link otherwise we display only the create button -->
+        <ion-fab-button class="btn-fab-add" *ngIf="this.w.data().context.linkSelection?.type === 'link' && displayAddNewObjectBtn">
+          <mat-icon svgIcon="castorAddIcon" style="width: 35px; height: 35px"></mat-icon>
+        </ion-fab-button>
+        <ion-fab-button class="btn-fab-add" (click)="this.onClickAddNewObject()" *ngIf="this.w.data().context.linkSelection?.type === 'direct'">
+          <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+        </ion-fab-button>
+        <ion-fab-button  class="btn-fab-add" (click)="openLinkModal()" *ngIf="this.w.data().context.linkSelection?.type === 'link' && !displayAddNewObjectBtn">
+          <mat-icon svgIcon="castorAddNewLinkIcon" class="material-icon-custom-size-create"></mat-icon>
+        </ion-fab-button>
+        <ion-fab-list side="end" *ngIf="this.w.data().context.linkSelection?.type === 'link' && displayAddNewObjectBtn">
+          <ion-fab-button class="btn-fab-add" (click)="this.onClickAddNewObject()" *ngIf="displayAddNewObjectBtn">
+            <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+          </ion-fab-button>
+          <ion-fab-button  class="btn-fab-add" (click)="openLinkModal()">
+            <mat-icon svgIcon="castorAddNewLinkIcon" class="material-icon-custom-size-create"></mat-icon>
+          </ion-fab-button>
+        </ion-fab-list>
+      </ion-fab>
+    </section>
+  </main>
+</div>
+
+<ng-template #isNotDetails>
+  <ng-container *ngIf="this.w.data().context.linkSelection?.type === 'link'; else directLink">
+    <app-castor-link
+      [reference]="object"
+      [target]="this.w.data().context.linkSelection"
+    ></app-castor-link>
+  </ng-container>
+  <ng-template #directLink>
+    <app-direct-link-display
+      [reference]="object"
+      [boundList]="selection.direct_objects"
+      [target]="this.w.data().context.linkSelection"
+    ></app-direct-link-display>
+  </ng-template>
+</ng-template>

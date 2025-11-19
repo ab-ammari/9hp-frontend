@@ -1,0 +1,24 @@
+.type-strati-box {
+  position: relative;
+  vertical-align: middle;
+}
+
+.border-right {
+  border-right: 3px solid #D4D7E1;
+  top: 20%;
+  bottom: 20%;
+  position: absolute;
+  right: 0;
+}
+
+.border-right {
+  span {
+    display: inline-block;
+    margin-right: 2px;
+
+    ion-icon {
+      font-size: 16px;
+      vertical-align: middle;
+    }
+  }
+}

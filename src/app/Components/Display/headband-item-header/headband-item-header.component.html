@@ -1,0 +1,55 @@
+<ion-row *ngIf="this.item?.item">
+  <ion-col size="auto" class="tag-label align-content-center"
+           [ngStyle]="{'background-color' : this.labelBackgroundColor ?? '#E7411B'}">
+    <ion-row class="justify-content-center">
+      <ion-col size="auto" style="padding-top: 7px">
+        <app-castor-tag-display [popover]="false" [object]="this.item?.item"></app-castor-tag-display>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+  <ion-col>
+    <ion-row class="no-col-padding">
+      <ion-col size="12" *ngIf="this.infoToDisplay?.title?.length > 0">
+        <ion-row>
+          <ion-col size="auto" class="py-0" style="padding-right: 0.5rem"
+                   *ngFor="let title of this.infoToDisplay?.title">
+            <ng-container [ngSwitch]="title.keyType">
+              <ion-label *ngSwitchCase="'string'" class="fw-bold">{{ this.item?.item[title.key] }}</ion-label>
+              <app-castor-type-display *ngSwitchCase="'type'"
+                                       [type]="this.item?.item[title.key]"
+                                       [display_prefix]="false"></app-castor-type-display>
+              <ion-label *ngSwitchCase="'custString'" class="fw-bold">{{ title.key }}</ion-label>
+            </ng-container>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12" *ngIf="this.infoToDisplay?.subTitle?.length > 0">
+        <ion-row>
+          <ion-col size="auto" class="py-0" style="padding-right: 0.5rem"
+                   *ngFor="let subTitle of this.infoToDisplay?.subTitle">
+            <ng-container [ngSwitch]="subTitle.keyType">
+              <p *ngSwitchCase="'string'" class="small m-0">{{ this.item?.item[subTitle.key]}}</p>
+              <ng-container *ngIf="this.item?.item[subTitle.key]">
+                <app-castor-type-display *ngSwitchCase="'type'"
+                                         [type]="this.item?.item[subTitle.key]"
+                                         [display_prefix]="false"></app-castor-type-display>
+              </ng-container>
+              <p *ngSwitchCase="'custString'" class="small m-0">{{ subTitle.key }}</p>
+            </ng-container>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+  <ion-col size="auto">
+    <ion-button [disabled]="this.isFirstObject()" [size]="'small'" [fill]="'clear'" (click)="this.onBackward()">
+      <mat-icon svgIcon="castorChevronBack" style="height: 25px; width: 25px"></mat-icon>
+    </ion-button>
+    <ion-button [disabled]="this.isLastObject()" [size]="'small'" [fill]="'clear'" (click)="this.onForward()">
+      <mat-icon svgIcon="castorChevronForward" style="height: 25px; width: 25px"></mat-icon>
+    </ion-button>
+    <!--<ion-button [size]="'small'" [fill]="'clear'" (click)="this.deleteObject()">
+      <mat-icon svgIcon="castorCancelIcon" style="height: 25px; width: 25px"></mat-icon>
+    </ion-button>-->
+  </ion-col>
+</ion-row>

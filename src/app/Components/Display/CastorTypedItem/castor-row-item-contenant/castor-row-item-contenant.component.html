@@ -1,0 +1,8 @@
+<ion-row *ngIf="this.contenant" class="h-100">
+  <ion-col size="auto" class="my-auto tag-label" [ngStyle]="{'background-color' : '#76B99C'}">
+    <app-castor-tag-display [object]="this.contenant"></app-castor-tag-display>
+  </ion-col>
+  <ion-col *ngIf="this.contenant?.type_contenant_uuid">
+    <ion-label>{{ this.contenant?.type_contenant_uuid }} </ion-label>
+  </ion-col>
+</ion-row>

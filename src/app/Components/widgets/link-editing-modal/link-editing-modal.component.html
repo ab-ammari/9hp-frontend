@@ -1,0 +1,61 @@
+
+    <ion-header class="toolbar-style">
+      <ion-toolbar class="text-center">
+        <ion-title slot="start">
+          {{this.link ? 'Modifier un lien' : 'Ajouter un lien'}}
+        </ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cancel()">Annuler</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      <ion-row>
+        <ion-col>
+          <app-castor-object-selector
+          [list]="this.available_target_list"
+          [disabled]="!!this.link"
+          [(selection)]="this.selectedTarget"
+          [placeholder]="'Ajouter '"
+          ></app-castor-object-selector>
+        </ion-col>
+      </ion-row>
+
+      <ng-container *ngIf="this.selectedTarget">
+
+        <ng-container *ngIf="!this.isCustomRelation()">
+          <!-- Classic link -->
+          <ion-grid>
+            <ion-row class="ion-justify-content-center">
+              <!--<ion-col size="12">
+                <ion-item lines="full">
+                  <ion-label position="floating" class="label-placeholder">Note</ion-label>
+                  <ion-input type="text" [(ngModel)]="this.note"></ion-input>
+                </ion-item>
+              </ion-col>-->
+              <ion-col size="auto">
+                <ion-button
+                  (click)="createNewLinkWith(this.selectedTarget)">
+                  Valider
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ng-container>
+        <!-- Minute link relation form -->
+        <app-minute-link-form
+          *ngIf="this.isMinuteRelation()"
+          [link]="link?.item"
+          (handleValidClick)="this.handleCreateCustomLink(this.selectedTarget, $event)">
+        </app-minute-link-form>
+        <!-- Fait Section Link relation form -->
+        <app-fait-section-link-form
+          *ngIf="this.isFaitSectionRelation()"
+          [link]="link?.item"
+          (handleValidClick)="this.handleCreateCustomLink(this.selectedTarget, $event)">
+        </app-fait-section-link-form>
+
+      </ng-container>
+
+    </ion-content>
+

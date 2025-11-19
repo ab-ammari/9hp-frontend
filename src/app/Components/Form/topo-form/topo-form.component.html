@@ -1,0 +1,83 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <ion-row>
+          <ion-col size="12">
+            <app-castor-type-selector
+            [title]="'Type'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.TOPO_TYPE"
+            [(value)]="this.topo.topo_type_uuid"
+            (valueChange)="onChangeForm()"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="none">
+              <ion-label>Levée</ion-label>
+              <ion-checkbox slot="end" [(ngModel)]="this.topo.topo_levee"
+                            (ngModelChange)="onChangeForm()"></ion-checkbox>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12">
+            <mat-divider></mat-divider>
+          </ion-col>
+
+          <ion-col size="12">
+            <h4>Coordonnées</h4>
+          </ion-col>
+
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">X</ion-label>
+              <ion-input type="number" [(ngModel)]="this.topo.topo_loc_x"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Y</ion-label>
+              <ion-input type="number" [(ngModel)]="this.topo.topo_loc_y"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating" class="label-placeholder">Z</ion-label>
+              <ion-input type="number" [(ngModel)]="this.topo.topo_loc_z"
+                         (ngModelChange)="onChangeForm()"></ion-input>
+            </ion-item>
+          </ion-col>
+
+          <ion-col size="12">
+            <ion-item lines="full">
+              <ion-label position="floating">Remarques</ion-label>
+              <ion-textarea type="text" [autoGrow]="true"
+                            [(ngModel)]="this.topo.topo_note"
+                            (ngModelChange)="onChangeForm()"></ion-textarea>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <!--Divider-->
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <!--Fiche-->
+      <ion-col size="12" size-md="6">
+        <app-fiche-form
+          [object]="topo"
+        >
+        </app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.validTopo()"
+  [cancelBackMode]="true"></app-valid-cancel-grouped-btn>-->

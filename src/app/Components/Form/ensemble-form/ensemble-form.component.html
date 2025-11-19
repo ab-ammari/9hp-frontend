@@ -1,0 +1,90 @@
+<ion-accordion-group>
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Généralités</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12" size-md="6">
+        <app-castor-type-selector
+          [(value)]="this.ensemble.ensemble_identification_uuid"
+          (valueChange)="onChangeForm()"
+          [title]="'Identification'"
+          [prefix]="false"
+          [category]="ApiTypeCategory.ENSEMBLE_IDENTIFICATION"
+        ></app-castor-type-selector>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Précisions</ion-label>
+          <ion-input type="text" [(ngModel)]="this.ensemble.ensemble_precisions" (ngModelChange)="onChangeForm()"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" class="d-md-none d-block">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <ion-col size="12">
+        <app-fiche-form
+          [object]="ensemble"
+        >
+        </app-fiche-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Description</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Description</ion-label>
+          <ion-textarea type="text" [autoGrow]="true"
+                        [(ngModel)]="this.ensemble.ensemble_description" (ngModelChange)="onChangeForm()"></ion-textarea>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12">
+        <mat-divider></mat-divider>
+      </ion-col>
+      <ion-col size="12">
+        <app-castor-type-selector
+          [category]="ApiTypeCategory.DATATION_ENSEMBLE"
+          [editable]="false"
+          [(value)]="this.ensemble.ensemble_datation_uuid"
+          (valueChange)="this.onChangeForm()"
+          [prefix]="false"
+          [showTitle]="true"
+          [title]="'Datation'"
+        ></app-castor-type-selector>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Mesures</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <!-- Ensemble dimension form -->
+        <app-dimensions-form
+          [hideDiameter]="true"
+          [hidePendage]="true"
+          [hideHeight]="true"
+          [hideDepth]="true"
+          [hideVolume]="true"
+          [(width)]="this.ensemble.ensemble_dim_largeur"
+          (widthChange)="onChangeForm()"
+          [(length)]="this.ensemble.ensemble_dim_longeur"
+          (lengthChange)="onChangeForm()"
+          [(area)]="this.ensemble.ensemble_dim_superficie"
+          (areaChange)="onChangeForm()"
+          [(toggleReelWidthBool)]="this.ensemble.ensemble_dim_reel_largeur"
+          [(toggleReelLengthBool)]="this.ensemble.ensemble_dim_reel_longeur"
+        ></app-dimensions-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+</ion-accordion-group>
+
+

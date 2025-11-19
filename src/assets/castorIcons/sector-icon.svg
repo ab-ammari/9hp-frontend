@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="392.3 275.4 33.8 30.7" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style type="text/css">
+	.st0{font-family:'MyriadPro-Regular';}
+	.st1{font-size:12px;}
+	.st2{fill:#FFFFFF;stroke:#475B75;stroke-width:2;stroke-miterlimit:10;}
+	.st3{fill:#475B75;stroke:#FFFFFF;stroke-width:2;stroke-miterlimit:10;}
+	.st4{fill:#FFFFFF;}
+	.st5{fill:none;stroke:#475B75;stroke-width:2;stroke-linecap:round;stroke-miterlimit:10;stroke-dasharray:6.226,4.1507;}
+	.st6{fill:#475B75;}
+	.st7{fill:none;stroke:#475B75;stroke-width:2;stroke-miterlimit:10;}
+	.st8{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+</style>
+  </defs>
+  <g style="" transform="matrix(0.9999999999999999, 0, 0, 0.9999999999999999, 0, 0)">
+    <g>
+      <path class="st2" d="M417.6,306.1h-16.8c0,0-0.1,0-0.1-0.1l-8.4-15.2c0,0,0-0.1,0-0.1l8.4-15.2c0,0,0.1-0.1,0.1-0.1h16.8 c0,0,0.1,0,0.1,0.1l8.4,15.2c0,0,0,0.1,0,0.1l-8.4,15.2C417.7,306.1,417.7,306.1,417.6,306.1z"/>
+    </g>
+  </g>
+  <line class="st2" x1="420.3" y1="280" x2="395.3" y2="295.7" transform="matrix(0.9999999999999999, 0, 0, 0.9999999999999999, 0, 0)"/>
+  <line class="st7" x1="405.1" y1="289.8" x2="420" y2="300.9" transform="matrix(0.9999999999999999, 0, 0, 0.9999999999999999, 0, 0)"/>
+</svg>

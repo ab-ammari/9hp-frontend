@@ -1,0 +1,10 @@
+
+
+
+
+<ng-container *ngIf="show; else placeholder">
+  <ng-content></ng-content>
+</ng-container>
+<ng-template #placeholder>
+  <ion-skeleton-text animated="false" style="width: 100%"></ion-skeleton-text>
+</ng-template>

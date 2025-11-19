@@ -1,0 +1,36 @@
+<div id="container">
+  <header>
+    <!-- Title header -->
+    <ion-row class="ion-justify-content-between list-header-toolbar">
+      <ion-col size="auto">
+        <h3 class="my-2">CONTENANTS ({{ this.w.data().objects.contenant.all?.list?.length ?? '0' }})</h3>
+      </ion-col>
+      <ion-col size="auto">
+        <ion-row>
+          <ion-col>
+            <ion-button [fill]="'clear'" (click)="this.goToCreateContenant()">
+              <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </header>
+  <main>
+    <section>
+      <app-castor-items-list  *ngIf="this.w.data().objects.contenant.all?.list?.length > 0 else noContenant"
+                              [list]="this.w.data().objects.contenant.all.list"
+                              (detailsCallBack)="this.gotToDetailsContenant($event)"
+                              (btnDeleteCallback)="this.markAsDelete($event)">
+      </app-castor-items-list>
+    </section>
+  </main>
+</div>
+
+<ng-template #noContenant>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Ce projet ne contient pas de contenant</h3><br />
+    </ion-col>
+  </ion-row>
+</ng-template>

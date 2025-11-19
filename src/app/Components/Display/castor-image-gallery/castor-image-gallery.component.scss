@@ -1,0 +1,27 @@
+.zoom-container {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  touch-action: none; /* Prevents browser handling of touch gestures */
+}
+
+.zoom-img-wrapper {
+  position: relative;
+  transform-origin: center;
+  transition: transform 0.1s ease-out;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Make sure the ion-img inside takes full width */
+::ng-deep .zoom-img-wrapper ion-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}

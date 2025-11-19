@@ -1,0 +1,106 @@
+<ion-row class="background-form-color">
+  <!-- Localisation -->
+  <ion-col size="12" size-xl="6" size-lg="6" size-md="6">
+    <ion-row>
+      <ion-col size="12">
+        <h4>Contexte</h4>
+      </ion-col>
+      <ion-col size="12">
+        <ion-item lines="none">
+          <ion-label>
+            <app-castor-tag-display
+              [infoBulle]="true"
+              [description]="{ table: ApiDbTable.secteur, uuid: this.selectedSectorUuid }">
+            </app-castor-tag-display>
+          </ion-label>
+         <!-- <app-castor-tooltip>
+            <app-castor-sector-info-display
+              [secteurUuid]="this.selectedSectorUuid">
+            </app-castor-sector-info-display>
+          </app-castor-tooltip>-->
+        </ion-item>
+        <!--<ion-row>
+          <ion-col>
+
+            &lt;!&ndash;   <ng-container *ngIf="this.w.data().objects.secteur.all
+               && this.w.data().objects.secteur.all?.list?.length > 0">
+                  <app-sector-selector
+                    [(selectedSectorUuid)]="this.selectedSectorUuid"
+                    (selectedSectorUuidChange)="this.selectedSectorUuidChange.emit($event)"
+                    [sectorArray]="this .w.data().objects.secteur.all?.list">
+                  </app-sector-selector>
+                </ng-container>&ndash;&gt;
+          </ion-col>
+          <ion-col size="auto">
+
+          </ion-col>
+        </ion-row>-->
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating" class="label-placeholder">Précisions</ion-label>
+          <ion-input [(ngModel)]="this.precision" (ngModelChange)="this.precisionChange.emit($event)"
+                     type="text"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-col size="12">
+      <mat-divider></mat-divider>
+    </ion-col>
+
+    <!-- FOUILLE -->
+    <ion-row>
+      <ion-col size="12">
+        <h4>Fouille</h4>
+      </ion-col>
+      <ion-col size="12">
+        <ion-row>
+          <ion-col size="12">
+            Méthode
+          </ion-col>
+          <ion-col>
+            <ion-item lines="none">
+              <ion-label>Manuelle</ion-label>
+              <ion-checkbox slot="end" [(ngModel)]="this.manualMethode"
+                            (ngModelChange)="this.manualMethodeChange.emit($event)"></ion-checkbox>
+            </ion-item>
+          </ion-col>
+          <ion-col>
+            <ion-item lines="none">
+              <ion-label>Mécanique</ion-label>
+              <ion-checkbox slot="end" [(ngModel)]="this.mechanicalMethode"
+                            (ngModelChange)="this.mechanicalMethodeChange.emit($event)"></ion-checkbox>
+            </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-col>
+      <ion-col size="12">
+        <!-- Etat fouile selection -->
+        <app-castor-type-selector
+          [category]="ApiTypeCategory.FAIT_ETAT"
+          [editable]="false"
+          [(value)]="this.stat"
+          (valueChange)="this.statChange.emit($event)"
+          [prefix]="false"
+          [showTitle]="true"
+          [title]="'Etat'"
+        ></app-castor-type-selector>
+      </ion-col>
+    </ion-row>
+  </ion-col>
+
+  <ion-col size="12" class="d-md-none d-block">
+    <mat-divider></mat-divider>
+  </ion-col>
+
+  <ion-col size="12" size-xl="6" size-lg="6" size-md="6">
+    <!-- Fiche -->
+    <app-fiche-form
+      [object]="object"
+    ></app-fiche-form>
+  </ion-col>
+
+</ion-row>

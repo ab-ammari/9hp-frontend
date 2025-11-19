@@ -1,0 +1,22 @@
+<table class="table table-striped table-borderless" *ngIf="this.ensembleList?.length > 0 else noEnsembleLink">
+  <thead class="fixed-table-header">
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">ID</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let ensemble of this.ensembleList">
+    <th scope="row">{{ ensemble?.tag }}</th>
+    <td>{{ensemble?.ensemble_identification_uuid ?? '-'}}</td>
+  </tr>
+  </tbody>
+</table>
+
+<ng-template #noEnsembleLink>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Aucun lien d'ensemble</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

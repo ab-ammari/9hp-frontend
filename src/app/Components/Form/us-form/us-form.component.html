@@ -1,0 +1,210 @@
+<ion-accordion-group>
+  <!-- Generality -->
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label [ngClass]="{'form-not-valid' : this.generalityNotValid()}">
+        Généralités</ion-label>
+    </ion-item>
+    <div slot="content">
+      <ion-row class="background-form-color align-items-center pt-3">
+        <ion-col size="12">
+          <app-castor-type-selector
+            [prefix]="false"
+            [title]="'Identification'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_IDENTIFICATION"
+            [(value)]="us.us_identification_uuid"
+            (valueChange)="onChangeForm()"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+            <app-us-type-selector [(selectedUsType)]="this.usTypeSelected"
+                                  (selectedUsTypeChange)="this.onTypeUsChange()"></app-us-type-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+          <app-fait-selector
+            [faitArray]="this.w.data().objects.fait.all.list"
+            [secteur_uuid]="us.secteur_uuid"
+            [(selectedFait)]="this.faitOfUs"
+            (selectedFaitChange)="onChangeForm(true)"
+          ></app-fait-selector>
+        </ion-col>
+      </ion-row>
+      <!-- Generality us form -->
+      <app-generality-form
+        [(stat)]="this.us.us_stat"
+        (statChange)="onChangeForm()"
+        [object]="us"
+        [author]="us.author_uuid"
+        [(manualMethode)]="this.us.us_methode_manual"
+        (manualMethodeChange)="onChangeForm()"
+        [(mechanicalMethode)]="this.us.us_methode_mechanical"
+        (mechanicalMethodeChange)="onChangeForm()"
+        [(precision)]="this.us.us_precision"
+        (precisionChange)="onChangeForm()"
+        [(selectedSectorUuid)]="this.us.secteur_uuid"
+        (selectedSectorUuidChange)="onChangeForm()"
+        [updatedDate]="this.us.created"
+        [createdDate]="this.us.versions ?( this.us.versions.length > 0 ? this.us.versions[this.us.versions.length - 1]?.created : this.us.created) : this.us.created"
+      ></app-generality-form>
+    </div>
+  </ion-accordion>
+  <!-- Us Specific case -->
+  <ng-container [ngSwitch]="this.us.table">
+    <ng-container *ngSwitchCase="ApiDbTable.us_positive">
+      <app-us-positive-form [us]="this.usPositive" (unSavedFormChange)="onChangeForm()"/>
+    </ng-container>
+    <ng-container *ngSwitchCase="ApiDbTable.us_negative">
+      <app-us-negative-form [us]="this.usNegative"/>
+    </ng-container>
+    <ng-container *ngSwitchCase="ApiDbTable.us_construite">
+      <app-us-construite-form [us]="this.usConstruite" (unSaveFormChange)="onChangeForm()"/>
+    </ng-container>
+  </ng-container>
+  <!-- Description -->
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label [ngClass]="{'form-not-valid' : !this.us?.us_description}">Description</ion-label>
+    </ion-item>
+
+    <ion-row slot="content" class="background-form-color">
+
+      <ion-col size="12">
+        <ion-item lines="full">
+          <ion-label position="floating">Description</ion-label>
+          <ion-textarea [autoGrow]="true" [(ngModel)]="this.us.us_description"
+                        (ngModelChange)="onChangeForm()" type="text"></ion-textarea>
+          <div *ngIf="displayGenerateDescriptionButton()" slot="end" ngClass="icon-description-auto-container" (click)="generateUsDescription()">
+            <ion-icon name="brush"></ion-icon>
+          </div>
+          <mat-icon *ngIf="this.us?.us_description?.length > 0" slot="end"
+                    (click)="this.clearDescription()" svgIcon="castorCloseOutline"
+                    style="cursor:pointer; height: 25px; width: 25px"></mat-icon>
+        </ion-item>
+      </ion-col>
+
+    </ion-row>
+  </ion-accordion>
+  <!-- Mesure -->
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label [ngClass]="{'form-not-valid' : this.mesureNotValid()}">Mesures</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+
+      <ion-col size="12">
+        <!-- Dimensions -->
+        <app-dimensions-form
+          [hideDiameter]="true"
+          [hideArea]="true"
+          [hideVolume]="true"
+          [hideDepth]="true"
+          [(length)]="this.us.us_dim_longeur"
+          (lengthChange)="onChangeForm()"
+          [showBtnGetFaitLength]="this?.faitOfUs?.item?.fait_dim_longueur !== null"
+          (btnGetFaitLengthCallback)="this.getFaitLength()"
+          [(width)]="this.us.us_dim_largeur"
+          (widthChange)="onChangeForm()"
+          [showBtnGetFaitWidth]="this?.faitOfUs?.item?.fait_dim_largeur !== null"
+          (btnGetFaitWidthCallback)="this.getFaitWidth()"
+          [(height)]="this.us.us_dim_hauteur"
+          (heightChange)="onChangeForm()"
+          [showBtnGetFaitHeight]="this?.faitOfUs?.item?.fait_dim_hauteur !== null"
+          (btnGetFaitHeightCallback)="this.getFaitHeight()"
+          [(pendage)]="this.us.us_pendage"
+          (pendageChange)="onChangeForm()"
+          [(toggleReelHeightBool)]="this.us.us_dim_reel_hauteur"
+          (toggleReelHeightBoolChange)="onChangeForm()"
+          [(toggleReelLengthBool)]="this.us.us_dim_reel_longeur"
+          (toggleReelLengthBoolChange)="onChangeForm()"
+          [(toggleReelWidthBool)]="this.us.us_dim_reel_largeur"
+          (toggleReelWidthBoolChange)="onChangeForm()"
+          [showHeightBtnCalculator]="!!(this.us?.us_alt_absolute_z_supp && this.us?.us_alt_absolute_z_inf)"
+          (btnHeightCalculatorCallBack)="this.calcUsHeight()"
+          [isHeightCalculated]="this.isHeightCalculated()"
+        ></app-dimensions-form>
+      </ion-col>
+      <ion-col size="12">
+        <!-- Altitude -->
+        <app-altitude-form
+          [hideZAxe]="true"
+          [(zBorn)]="this.us.us_z_borne"
+          (zBornChange)="onChangeForm()"
+          [showGetFaitZBornBtn]="this?.faitOfUs?.item?.fait_z_borne !== null"
+          (getFaitZBornCallback)="this.getFaitZBorn()"
+          [(lectureBorn)]="this.us.us_z_lecture"
+          (lectureBornChange)="onChangeForm()"
+          [showGetFaitLectureBornBtn]="this?.faitOfUs?.item?.fait_z_lecture !== null"
+          (getFaitLectureBornCallback)="this.getFaitZLecture()"
+          [(zLunette)]="this.us.us_z_calcul_lunette"
+          (zLunetteChange)="onChangeForm()"
+          [showGetFaitZLunetteBtn]="this?.faitOfUs?.item?.fait_z_lunette !== null"
+          (getFaitZLunetteCallback)="this.getFaitZLunette()"
+          [(zsupp)]="this.us.us_z_sup"
+          (zsuppChange)="onChangeForm()"
+          [showGetFaitZSuppBtn]="this?.faitOfUs?.item?.fait_z_sup !== null"
+          (getFaitZSuppCallback)="this.getFaitZSupp()"
+          [(zinf)]="this.us.us_z_inf"
+          (zinfChange)="onChangeForm()"
+          [showGetFaitZInfBtn]="this?.faitOfUs?.item?.fait_z_inf !== null"
+          (getFaitZInfCallback)="this.getFaitZInf()"
+          [(absoluteZInf)]="this.us.us_alt_absolute_z_inf"
+          (absoluteZInfChange)="onChangeForm()"
+          [showGetFaitAbsZInfBtn]="this?.faitOfUs?.item?.fait_absolute_z_inf !== null"
+          (getFaitAbsZInfCallback)="this.getFaitAbsZInf()"
+          [(absoluteZSupp)]="this.us.us_alt_absolute_z_supp"
+          (absoluteZSuppChange)="onChangeForm()"
+          [showGetFaitAbsZSuppBtn]="this?.faitOfUs?.item?.fait_absolute_z_sup !== null"
+          (getFaitAbsZSuppCallback)="this.getFaitAbsZSupp()"
+          [showZSuppCalculatorIcon]="!!(this.us.us_alt_absolute_z_inf && this.us.us_dim_hauteur)"
+          (btnZSuppCalcCallback)="this.calcUsZSup()"
+          [showZInfCalculatorIcon]="!!(this.us.us_alt_absolute_z_supp && this.us.us_dim_hauteur)"
+          (btnZInfCalcCallback)="this.calcUsZInf()"
+          [isZSupCalculated]="this.isHeightCalculated()"
+          [isZInfCalculated]="this.isHeightCalculated()"
+        >
+        </app-altitude-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+  <!-- Stratigraphie -->
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label [ngClass]="{'form-not-valid' : !this.stratigraphieFormValid}">Stratigraphie</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <app-stratigraphie-form
+          [us]="this.us"
+          [(formValid)]="this.stratigraphieFormValid"
+          (unSavedFormChange)="onChangeForm()"
+        ></app-stratigraphie-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+  <!-- Sous-divisions -->
+  <ion-accordion>
+    <ion-item slot="header">
+      <ion-label>Sous divisions</ion-label>
+    </ion-item>
+    <ion-row slot="content" class="background-form-color">
+      <ion-col size="12">
+        <app-us-sous-divisons-form [us]="this.us" (unSavedFormChange)="onChangeForm()"></app-us-sous-divisons-form>
+      </ion-col>
+    </ion-row>
+  </ion-accordion>
+
+</ion-accordion-group>
+
+<ion-row class="background-form-color">
+  <ion-col size="12">
+    <ion-item lines="none">
+      <ion-label>Validation</ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="this.us.us_validation" (ngModelChange)="onChangeForm()"></ion-checkbox>
+    </ion-item>
+  </ion-col>
+</ion-row>
+
+<!--<app-valid-cancel-grouped-btn
+  (validCallBackBtn)="this.validUs(this.us)"
+  [cancelBackMode]="true"></app-valid-cancel-grouped-btn>-->

@@ -1,0 +1,24 @@
+.clickable-image {
+  cursor: pointer;
+  border-radius: 8px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.clickable-image:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.max-size-image {
+  max-width: 120px;
+  max-height: 120px;
+}
+
+.image-label {
+  font-weight: bold;
+  color: #3a3a3a;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+}

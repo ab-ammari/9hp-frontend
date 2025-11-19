@@ -1,0 +1,158 @@
+<ion-accordion>
+  <ion-item slot="header">
+    <ion-label [ngClass]="{'form-not-valid' : this.usPositiveNotValid()}">US Positive</ion-label>
+  </ion-item>
+
+  <ion-row slot="content" class="background-form-color">
+    <ion-col size="12">
+      <ion-row class="align-items-center">
+        <ion-col size="12">
+          <h4>Caractéristique de l'US {{ this.us?.us_label}}</h4>
+        </ion-col>
+        <ion-col [size]="shouldShowPositiveNatureButton() ? 11 : 12" [sizeMd]="shouldShowPositiveNatureButton() ? 5 : 6">
+          <app-castor-type-selector
+            [title]="'Composante principale'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_POSITIVE_COMPOSANTE"
+            [(value)]="this.us.positive_nature1"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="1" size-md="1" class="ion-text-center" *ngIf="shouldShowPositiveNatureButton()">
+          <ion-button [fill]="'clear'" [size]="'small'" (click)="addPositiveNature()"
+                      [disabled]="!canAddPositiveNature()"
+                      style="margin-top: auto;">
+            <mat-icon svgIcon="castorAddIcon" style="width: 25px; height: 25px"></mat-icon>
+          </ion-button>
+        </ion-col>
+        <ion-col size="12" size-md="6" *ngIf="shouldShowSecondNature()">
+          <app-castor-type-selector
+            [title]="'Composante secondaire'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_POSITIVE_COMPOSANTE"
+            [(value)]="this.us.positive_nature2"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12">
+          <h4 class="my-1">Inculsion</h4>
+        </ion-col>
+        <!--Inclusion form-->
+        <ion-col size="12" class="ion-no-padding">
+          <ng-container *ngFor="let field of inclusionFields; index as i">
+            <ng-container *ngIf="shouldShowInclusionField(i)">
+              <ion-row class="justify-content-center align-items-center">
+                <ion-col [size]="shouldShowDensity(field) ? (isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 5 : 6) : (isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 11 : 12)"
+                       [sizeMd]="shouldShowDensity(field) ? (isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 8 : 9) : (isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 11 : 12)">
+                  <app-castor-type-selector
+                    [title]="'Inclusions'"
+                    [showTitle]="true"
+                    [category]="ApiTypeCategory.US_POSITIVE_INCLUSIONS"
+                    [(value)]="this.us[field.typeKey]"
+                    (valueChange)="onChangeForm()"
+                    [enableClearValue]="true"
+                  ></app-castor-type-selector>
+                </ion-col>
+                <ion-col [size]="isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 5 : 6"
+                       [sizeMd]="isLastVisibleInclusion(i) && shouldShowInclusionButton() ? 3 : 3"
+                       *ngIf="shouldShowDensity(field)">
+                  <app-castor-type-selector
+                    [title]="'Densité'"
+                    [showTitle]="true"
+                    [category]="ApiTypeCategory.US_POSITIVE_INCLUSIONS_GRANULARITE"
+                    [(value)]="this.us[field.densityKey]"
+                    (valueChange)="onChangeForm()"
+                    [editable]="false"
+                    [imageMode]="true"
+                    [imageMap]="imageDensityTypeMap"
+                    [enableClearValue]="true"
+                  ></app-castor-type-selector>
+                </ion-col>
+                <ion-col size="1" size-md="1" class="ion-text-center" *ngIf="isLastVisibleInclusion(i) && shouldShowInclusionButton()">
+                  <ion-button size="small" [fill]="'clear'" (click)="addInclusion()"
+                              [disabled]="!canAddInclusion()"
+                              style="margin-top: auto;">
+                    <mat-icon svgIcon="castorAddIcon" style="width: 25px; height: 25px"></mat-icon>
+                  </ion-button>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+          </ng-container>
+        </ion-col>
+        <!---->
+        <!--Pertubation form-->
+        <ion-col size="12">
+          <h4 class="my-1">Perturbation</h4>
+        </ion-col>
+        <ion-col size="12" class="ion-no-padding">
+          <ng-container *ngFor="let field of pertubationFields; index as i">
+            <ng-container *ngIf="shouldShowPertubationField(i)">
+              <ion-row class="justify-content-center align-items-center">
+                <ion-col [size]="isLastVisiblePerturbation(i) && shouldShowPerturbationButton() ? 11 : 12">
+                  <app-castor-type-selector
+                    [title]="'Perturbation'"
+                    [showTitle]="true"
+                    [category]="ApiTypeCategory.US_POSITIVE_PERTURBATION"
+                    [(value)]="this.us[field.typeKey]"
+                    (valueChange)="onChangeForm()"
+                    [enableClearValue]="true"
+                  ></app-castor-type-selector>
+                </ion-col>
+                <ion-col size="1" class="ion-text-center" *ngIf="isLastVisiblePerturbation(i) && shouldShowPerturbationButton()">
+                  <ion-button size="small" fill="clear" (click)="addPerturbation()"
+                              [disabled]="!canAddPerturbation() || !shouldShowPerturbationButton()"
+                              style="margin-top: auto;">
+                    <mat-icon svgIcon="castorAddIcon" style="width: 25px; height: 25px"></mat-icon>
+                  </ion-button>
+                </ion-col>
+              </ion-row>
+            </ng-container>
+          </ng-container>
+        </ion-col>
+        <!---->
+        <ion-col size="12" size-md="6">
+          <app-castor-type-selector
+            [title]="'Dureté'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_DURETE"
+            [(value)]="this.us.positive_durete"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+          <app-castor-type-selector
+            [title]="'Homogénéité'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_POSITIVE_HOMOGENEITE"
+            [(value)]="this.us.positive_homogeneite"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+          <app-castor-type-selector
+            [title]="'Couleur'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_POSITIVE_COULEUR"
+            [(value)]="this.us.positive_couleur"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12" size-md="6">
+          <app-castor-type-selector
+            [title]="'Charbons'"
+            [showTitle]="true"
+            [category]="ApiTypeCategory.US_POSITIVE_CHARBONS"
+            [(value)]="this.us.positive_charbons"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

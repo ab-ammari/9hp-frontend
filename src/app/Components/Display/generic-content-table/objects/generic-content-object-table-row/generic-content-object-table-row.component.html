@@ -1,0 +1,160 @@
+
+<td *ngIf="this.w.data().showAdmin" click-stop-propagation>
+  <ion-button [fill]="'clear'" (click)="deleteOrRestore(item)" >
+    <ng-container  *ngIf="item.item['live']">
+      <ion-icon name="trash-outline" *ngIf="!item['draft']"></ion-icon>
+      <ion-icon name="backspace-outline" *ngIf="item['draft']"></ion-icon>
+    </ng-container>
+    <ion-icon name="arrow-undo-outline" *ngIf="!item.item['live']"></ion-icon>
+  </ion-button>
+</td>
+
+<!-- Icône stratigraphie visible si toggle activé (même hors devMode) -->
+<td *ngIf="showStratiIcon && !DEV.tools.isDevMode" click-stop-propagation style="vertical-align: middle; text-align: center; width: 40px;">
+  <ion-icon 
+    *ngIf="hasStratigraphie(item)" 
+    name="git-network-outline" 
+    style="font-size: 24px; color: #3880ff;"
+    title="Liaison stratigraphique configurée">
+  </ion-icon>
+</td>
+
+<ng-container *ngIf="DEV.tools.isDevMode">
+  <td click-stop-propagation style="vertical-align: middle; text-align: center; width: 40px;">
+    <ion-icon 
+      *ngIf="hasStratigraphie(item)" 
+      name="git-network-outline" 
+      style="font-size: 24px; color: #3880ff;"
+      title="Liaison stratigraphique configurée">
+    </ion-icon>
+  </td>
+  <td>
+    <pre (click)="$event.stopPropagation()" class="not-cursor-pointer" >{{
+      {
+        value: item.item[item.info.uuid_paths[0]],
+        created: item.item.created,
+        table: item.item.table,
+        key: item.info.uuid_paths[0],
+        projet_uuid: item.item.projet_uuid
+      } | json
+    }}
+    </pre>
+  </td>
+</ng-container>
+
+
+<td *ngFor="let head of content.headers;"
+    [ngClass]="{'tag-label': (head.format === 'tag'), 'user-column' : (head.format === 'user'),
+        'image-column': head.format === 'image',
+         'td-sector-style' : (head?.format === 'SECTOR')}"
+    [ngStyle]="{'background-color': head?.color ? head?.color(item.item) : '',
+         'vertical-align' : 'middle'}">
+  <!-- CLassic Format-->
+  <app-debouced-init-content [debounceTime]="0">
+    <ng-container *ngIf="head.format">
+      <ng-container
+        [ngSwitch]="head.format"
+      >
+        <ng-container *ngSwitchCase="'tag'">
+          <app-castor-tag-display [object]="item.item" [infoBulle]="true" [mainTag]="true"></app-castor-tag-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'image'">
+          <app-castor-file-display
+            [view]="'thumbnail'"
+            [file_uuid]="item.item[head.key]"
+            [tag]="item.item['tag']"
+            [download_button]="true"
+          ></app-castor-file-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'info'">
+          {{item.info[head.key] | uppercase}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'US'">
+          <ion-row>
+            <ion-col size="auto">
+              <app-castor-tag-display [infoBulle]="true"
+                                      [description]="{ table: ApiDbTable.us, uuid: item.item[head.key] }">
+              </app-castor-tag-display>
+            </ion-col>
+          </ion-row>
+        </ng-container>
+        <ng-container *ngSwitchCase="'SECTOR'">
+          <ion-row>
+            <ion-col size="auto">
+              <app-castor-tag-display [infoBulle]="true"
+                                      [description]="{ table: ApiDbTable.secteur, uuid: item.item[head.key] }">
+              </app-castor-tag-display>
+            </ion-col>
+          </ion-row>
+        </ng-container>
+        <ng-container *ngSwitchCase="'SECTION'">
+          {{item.item[head.key] | apiSondage}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'usFait'">
+          <!-- Get the fait of the US with apiUS pipe from us_uuid of the item -->
+          <ion-row>
+            <ion-col size="auto">
+              <app-castor-tag-display
+                *ngIf="!!(item.item[head.key] | apiUS:true)"
+                [infoBulle]="true"
+                [description]="{ table: ApiDbTable.fait, uuid: item.item[head.key] | apiUS:true }">
+              </app-castor-tag-display>
+            </ion-col>
+          </ion-row>
+        </ng-container>
+        <ng-container *ngSwitchCase="'user'">
+          {{item.item[head.key] | apiUser}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'boolean'">
+          {{item.item[head.key] ? 'Oui' : 'Non'}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'LINK_LIST'">
+          <app-generic-linked-object-tag-list
+            [object]="item"
+            [link_table]="head.key"
+          ></app-generic-linked-object-tag-list>
+        </ng-container>
+        <ng-container *ngSwitchCase="'type'">
+          <app-castor-type-display
+            [type]="item.item[head.key]"
+            [display_label]="true"
+            [display_prefix]=" false"
+          ></app-castor-type-display>
+        </ng-container>
+        <ng-container *ngSwitchDefault>
+          <div style="text-overflow: ellipsis; max-width: 200px; max-height: 50px; overflow: hidden; white-space: nowrap; ">
+            {{item.item[head.key]}}
+          </div>
+        </ng-container>
+      </ng-container>
+    </ng-container>
+    <!-- Special format -->
+    <ng-container *ngIf="head.specialDisplay">
+      <ng-container
+        [ngSwitch]="head.specialDisplay"
+      >
+        <ng-container *ngSwitchCase="'synthese'">
+          {{item.item[head.key] | sectorSynthese }}
+        </ng-container>
+        <ng-container *ngSwitchCase="'author'">
+          {{item.item[head.key] | apiUser }}
+        </ng-container>
+        <ng-container *ngSwitchCase="'contenu'">
+          {{item.item[head.key] | contenantContenu }}
+        </ng-container>
+        <ng-container *ngSwitchCase="'usDatation'">
+          <app-mobilier-datation-display [usUuid]="item.item[head.key]">
+          </app-mobilier-datation-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'faitDatation'">
+          <app-mobilier-datation-display [faitUuid]="item.item[head.key]">
+          </app-mobilier-datation-display>
+        </ng-container>
+        <ng-container *ngSwitchDefault>{{item.item[head.key]}}</ng-container>
+      </ng-container>
+    </ng-container>
+  </app-debouced-init-content>
+
+
+</td>
+<td></td>

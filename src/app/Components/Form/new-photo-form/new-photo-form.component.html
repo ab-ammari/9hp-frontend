@@ -1,0 +1,34 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouvelle photo</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <ion-list>
+        <app-castor-object-selector
+          [disabled]="!!sectorUuid"
+          [list]="this.w.data().objects.secteur.all.list"
+          [(selection)]="this.selected_secteur"
+          [placeholder]="this.sectionSeletionTitle"
+        ></app-castor-object-selector>
+      </ion-list>
+    </ion-col>
+  </ion-row>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="12" size-md="6">
+      <app-castor-file-input
+        [(file_uuid)]="file_uuid"
+      ></app-castor-file-input>
+    </ion-col>
+  </ion-row>
+
+
+  <ng-content></ng-content>
+
+  <app-valid-cancel-grouped-btn
+    (validCallBackBtn)="this.createNewPhoto()"
+    (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)"
+    [disableValidBtn]="!this.isValidNewPhotoForm()"
+    ></app-valid-cancel-grouped-btn>
+</ion-grid>

@@ -1,0 +1,37 @@
+<div id="container">
+  <header>
+    <!-- Title header -->
+    <ion-row class="ion-justify-content-between list-header-toolbar">
+      <ion-col size="auto">
+        <h3 class="my-2">SONDAGES ({{ this.w.data().objects.section.all?.list?.length ?? '0' }})</h3>
+      </ion-col>
+      <ion-col size="auto">
+        <ion-row>
+          <ion-col>
+            <ion-button [fill]="'clear'" (click)="this.goToCreateSondage()">
+              <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+            </ion-button>
+          </ion-col>
+
+        </ion-row>
+      </ion-col>
+    </ion-row>
+  </header>
+  <main>
+    <section>
+      <app-castor-items-list  *ngIf="this.w.data().objects.section.all?.list?.length > 0 else noSondage"
+                              [list]="this.w.data().objects.section.all?.list"
+                              (detailsCallBack)="this.gotToDetailsSondage($event)"
+                              (btnDeleteCallback)="this.markAsDelete($event)">
+      </app-castor-items-list>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSondage>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Ce projet ne contient pas de sondages</h3><br />
+    </ion-col>
+  </ion-row>
+</ng-template>

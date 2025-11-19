@@ -1,0 +1,20 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Fait</th>
+    <th scope="col">Type</th>
+    <th scope="col">Identification</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let us of this.usArray">
+    <th scope="row">{{us.item.tag}}</th>
+    <td>{{ us.item?.fait_uuid }}</td>
+    <td>{{ us.item?.table }}</td>
+    <td>{{ us.item?.us_identification_uuid }}</td>
+    <td>{{ us.item?.us_description }}</td>
+  </tr>
+  </tbody>
+</table>

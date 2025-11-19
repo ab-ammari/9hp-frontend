@@ -1,0 +1,55 @@
+<ng-container *ngIf="this.infoToDisplay?.length > 0 else noInfo">
+  <ion-grid class="p-2 align-content-center align-items-center">
+    <ion-row *ngFor="let info of this.infoToDisplay">
+      <ion-col size="auto" class="m-auto">{{ info.label }} :</ion-col>
+      <ng-container [ngSwitch]="info.valueType">
+        <ng-container *ngSwitchCase="'string'">
+          <ion-col class="m-auto">{{ object[info.key] }}</ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'tag'">
+          <ion-col class="m-auto">
+            <app-castor-tag-display
+              [description]="{table: info.tagTable, uuid: object[info.key]}"
+              [popover]="false"
+            ></app-castor-tag-display>
+          </ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'type'">
+          <ion-col class="m-auto">
+            <app-castor-type-display [type]="object[info.key]"
+                                     [display_prefix]="false"></app-castor-type-display>
+          </ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'boolean'">
+          <ion-col class="m-auto">
+            <ion-label> {{ object[info.key] ? 'Oui' : 'Non' }}</ion-label>
+          </ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'dimension'">
+          <ion-col class="m-auto">
+            <ion-label> {{ object[info.key] | dimensionPipe: info.dimensionType }}</ion-label>
+          </ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'number'">
+          <ion-col class="m-auto">
+            <ion-label> {{ object[info.key] | number }}</ion-label>
+          </ion-col>
+        </ng-container>
+        <ng-container *ngSwitchCase="'date'">
+          <ion-col class="m-auto">
+            <ion-label> {{ object[info.key] | date: 'short' }}</ion-label>
+          </ion-col>
+        </ng-container>
+      </ng-container>
+
+    </ion-row>
+  </ion-grid>
+</ng-container>
+
+<ng-template #noInfo>
+  <ion-row>
+    <ion-col>
+      <ion-label>Pas d'info disponible</ion-label>
+    </ion-col>
+  </ion-row>
+</ng-template>

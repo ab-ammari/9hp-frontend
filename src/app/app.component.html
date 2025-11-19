@@ -1,0 +1,34 @@
+<ion-app>
+  <ion-content>
+    <ng-container *ngIf="DB.database.isReady; else appNotReady">
+      <router-outlet></router-outlet>
+    </ng-container>
+    <ng-container *ngIf="!this.config.isDevMode; else devmode"></ng-container>
+  </ion-content>
+</ion-app>
+
+
+<ng-template #appNotReady>
+  <ion-grid>
+    <ion-row style="height: 100vh; width: 100vw" class="justify-content-center align-content-center">
+      <ion-col size="auto">
+        <ion-spinner name="crescent"></ion-spinner>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ng-template>
+
+<ng-template
+  #devmode
+>
+  <ion-fab vertical="center" horizontal="end" slot="fixed">
+    <ion-fab-button id="trigger-button">
+      <ion-icon name="build-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+  <ion-popover trigger="trigger-button">
+    <ng-template>
+      <app-dev-tools-interface></app-dev-tools-interface>
+    </ng-template>
+  </ion-popover>
+</ng-template>

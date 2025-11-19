@@ -1,0 +1,31 @@
+<div id="container" *ngIf="this.w.data().objects.isReady">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.echantillon.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getPrelevementColors(this.selectedPrelevement)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.echantillon.selected?.item else noSelectedPrelevement"
+                        [object]="this.w.data().objects.echantillon.selected"
+      >
+
+        <app-prelevement-form [echantillon]="this.w.data().objects.echantillon.selected.item"
+
+
+        ></app-prelevement-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedPrelevement>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun prélèvement selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,86 @@
+<ion-accordion value="negatifs">
+  <ion-item slot="header">
+    <ion-label>Negatifs</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <mat-card class="card-list hide-scrollbar pt-0">
+        <table class="table table-borderless table-responsive">
+          <!-- HEADER -->
+          <thead class="fixed-table-header">
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Hauteur</th>
+            <th scope="col">Largeur</th>
+            <th scope="col">Profondeur</th>
+            <th scope="col"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <!-- ROWS -->
+          <ng-container *ngIf="this.us?.us_construite_negatifs?.length > 0">
+            <tr *ngFor="let nagatifs of this.us?.us_construite_negatifs; let index = index"
+                [style]="{'text-decoration': (nagatifs.live ? '' : 'line-through')}">
+              <td>
+                <app-castor-type-selector
+                  [prefix]="false"
+                  [editable]="false"
+                  [category]="ApiTypeCategory.US_CONSTRUITE_NEGATIFS_TYPE"
+                  [(value)]="nagatifs.us_negatifs_type"
+                ></app-castor-type-selector>
+              </td>
+              <td>{{ nagatifs?.us_negatifs_number }}</td>
+              <td>{{ nagatifs?.us_negatifs_hauteur }}</td>
+              <td>{{ nagatifs?.us_negatifs_largeur }}</td>
+              <td>{{ nagatifs?.us_negatifs_profondeur }}</td>
+              <td class="text-end">
+                <ion-button [disabled]="!nagatifs.live" [fill]="'clear'" (click)="this.deleteRow(nagatifs, index)">
+                  <ion-icon [slot]="'icon-only'" name="close"></ion-icon>
+                </ion-button>
+              </td>
+            </tr>
+          </ng-container>
+          <!-- ADDING NEW ROW -->
+          <tr>
+            <td>
+              <app-castor-type-selector
+                [prefix]="false"
+                [editable]="true"
+                [category]="ApiTypeCategory.US_CONSTRUITE_NEGATIFS_TYPE"
+                [(value)]="negatifsTypeToAdd"
+              ></app-castor-type-selector>
+            </td>
+            <td>
+              <ion-item lines="full">
+                <ion-input type="number" [(ngModel)]="this.negatifsNombreToAdd"></ion-input>
+              </ion-item>
+            </td>
+            <td>
+              <ion-item lines="full">
+                <ion-input type="number" [(ngModel)]="this.negatifsHauteurToAdd"></ion-input>
+              </ion-item>
+            </td>
+            <td>
+              <ion-item lines="full">
+                <ion-input type="number" [(ngModel)]="this.negatifsLargeurToAdd"></ion-input>
+              </ion-item>
+            </td>
+            <td>
+              <ion-item lines="full">
+                <ion-input type="number" [(ngModel)]="this.negatifsProfondeurToAdd"></ion-input>
+              </ion-item>
+            </td>
+            <td class="text-end">
+              <ion-button [fill]="'clear'" [size]="'small'" [disabled]="!isValidForm()" (click)="this.addRow()">
+                <mat-icon svgIcon="castorAddIcon"  style="width: 25px; height: 25px"></mat-icon>
+              </ion-button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </mat-card>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

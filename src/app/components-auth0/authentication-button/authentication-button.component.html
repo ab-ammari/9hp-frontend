@@ -1,0 +1,35 @@
+  <ng-container *ngIf="this.w.data().user; else noUser">
+    <ion-row class="pb-4">
+      <ion-col>
+        <p class="fw-bold text-center">
+          {{this.w.data().user.user_first_name}} {{this.w.data().user.user_last_name}}
+        </p>
+      </ion-col>
+    </ion-row>
+    <ng-content></ng-content>
+    <ion-row>
+      <ion-col>
+        <ion-button
+          expand="block"
+          (click)="logout()">
+          Déconnexion
+        </ion-button>
+      </ion-col>
+    </ion-row>
+  </ng-container>
+
+<ng-template #noUser>
+  <ng-container *ngIf="this.w.data().status.online; else offline">
+
+<ion-content class="auth-form">
+    <ion-grid>
+      <app-login-button *ngIf="!this.w.data().user">
+      </app-login-button>
+    </ion-grid>
+  </ion-content>
+  </ng-container>
+</ng-template>
+
+<ng-template #offline>
+  Attention, vous êtes hors ligne..
+</ng-template>

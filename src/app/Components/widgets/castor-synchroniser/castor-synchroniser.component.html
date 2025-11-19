@@ -1,0 +1,7 @@
+<div style="position: absolute; left: 0; right: 0; top: 0; z-index: 1000">
+  <ion-progress-bar
+    *ngIf="this.w.hasAnyActionsPending() || this.w.data().archive?.total > 0 || this.w.data().objectsToFetch?.length > 0 || Manager.ongoingTasks"
+    [type]="'indeterminate'"
+  ></ion-progress-bar>
+</div>
+

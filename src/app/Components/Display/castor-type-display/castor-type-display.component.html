@@ -1,0 +1,2 @@
+<ion-note *ngIf="display_prefix" [slot]="'start'">{{this.ref?.type_prefix ?? '---'}} </ion-note>
+<ion-label *ngIf="display_label" [slot]="'start'">{{this.ref?.type_label ?? '---'}}</ion-label>

@@ -1,0 +1,361 @@
+<ion-accordion>
+  <ion-item slot="header">
+    <ion-label>US Construite</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <!-- FORM -->
+      <ion-row>
+        <ion-col size="12">
+          <h4>Caractéristique de l'US {{ this.us?.us_label }}</h4>
+        </ion-col>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-label class="label-placeholder">Matériaux</ion-label>
+            <ion-button (click)="this.presentModal()" slot="end">Ajouter</ion-button>
+            <ion-modal class="construite-modal" #materialsModal>
+              <!-- Template of adding materials -->
+              <ng-template>
+                <ion-header>
+                  <ion-toolbar>
+                    <ion-title>Ajouter materiaux</ion-title>
+                    <ion-buttons slot="end">
+                      <mat-icon (click)="closeModal()" svgIcon="castorCloseOutline"
+                                style="height: 25px; width: 25px"></mat-icon>
+                    </ion-buttons>
+                  </ion-toolbar>
+                </ion-header>
+                <ion-content>
+                  <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-elegant">
+                      <thead>
+                      <tr class="text-center">
+                        <th>Nature</th>
+                        <th>%</th>
+                        <th>Modules</th>
+                        <th>Largeur</th>
+                        <th>Hauteur</th>
+                        <th>Profondeur</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td>
+                          <app-castor-type-selector
+                            [title]="'Nature'"
+                            [showTitle]="true"
+                            [category]="ApiTypeCategory.US_CONSTRUITE_MATERIAUX_NATURE"
+                            [(value)]="this.nature"
+                          ></app-castor-type-selector>
+                        </td>
+                        <td>
+                          <app-castor-type-selector
+                            [title]="'Pourcent'"
+                            [showTitle]="true"
+                            [category]="ApiTypeCategory.US_CONSTRUITE_MATERIAUX_PERCENT"
+                            [(value)]="this.percent"
+                          ></app-castor-type-selector>
+                        </td>
+                        <td>
+                          <app-castor-type-selector
+                            [title]="'Modules'"
+                            [category]="ApiTypeCategory.US_CONSTRUITE_MATERIAUX_MODULES"
+                            [(value)]="this.modules"
+                          ></app-castor-type-selector>
+                        </td>
+                        <td>
+                          <div class="dimension-inputs">
+                            <div class="dimension-input">
+                              <ion-input placeholder="Min" type="number" [(ngModel)]="this.largeurMin"
+                                         (ngModelChange)="calcLargeurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Max" type="number" [(ngModel)]="this.largeurMax"
+                                         (ngModelChange)="calcLargeurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Moy" type="number" [(ngModel)]="this.largeurMoy"></ion-input>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="dimension-inputs">
+                            <div class="dimension-input">
+                              <ion-input placeholder="Min" type="number" [(ngModel)]="this.hauteurMin"
+                                         (ngModelChange)="calcHauteurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Max" type="number" [(ngModel)]="this.hauteurMax"
+                                         (ngModelChange)="calcHauteurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Moy" type="number" [(ngModel)]="this.hauteurMoy"></ion-input>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div class="dimension-inputs">
+                            <div class="dimension-input">
+                              <ion-input placeholder="Min" type="number" [(ngModel)]="this.profondeurMin"
+                                         (ngModelChange)="calcProfondeurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Max" type="number" [(ngModel)]="this.profondeurMax"
+                                         (ngModelChange)="calcProfondeurMoyenne()"></ion-input>
+                            </div>
+                            <div class="dimension-input">
+                              <ion-input placeholder="Moy" type="number" [(ngModel)]="this.profondeurMoy"></ion-input>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </ion-content>
+                <ion-footer>
+                  <ion-toolbar>
+                    <ion-row class="justify-content-center">
+                      <ion-col size="auto">
+                        <ion-button (click)="this.addMaterial()" [fill]="'clear'">
+                          <mat-icon svgIcon="castorValidIcon" style="height: 35px; width: 35px"></mat-icon>
+                        </ion-button>
+                      </ion-col>
+                    </ion-row>
+                  </ion-toolbar>
+                </ion-footer>
+              </ng-template>
+            </ion-modal>
+          </ion-item>
+          <!-- Table of materials -->
+          <ng-container *ngIf="this.us?.us_materials?.length > 0">
+            <mat-card class="card-list hide-scrollbar">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th scope="col">Nature</th>
+                  <th scope="col">%</th>
+                  <th scope="col">Modules</th>
+                  <th scope="col">Largeur</th>
+                  <th scope="col">Hauteur</th>
+                  <th scope="col">Profondeur</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr *ngFor="let material of this.us.us_materials; let index = index"
+                    [style]="{'text-decoration' : (material.live ? '' : 'line-through')}">
+                  <td>
+                    <app-castor-type-display [type]="material.nature"
+                                             [display_prefix]="false"></app-castor-type-display>
+                  </td>
+                  <td>
+                    <app-castor-type-display [type]="material.pourcent"
+                                             [display_prefix]="false"></app-castor-type-display>
+                  </td>
+                  <td>
+                    <app-castor-type-display [type]="material.modules"
+                                             [display_prefix]="false"></app-castor-type-display>
+                  </td>
+                  <td>Min: {{ material?.largeur_min ?? 0 }} Max: {{ material?.largeur_max ?? 0 }}
+                    Moy: {{ material?.largeur_moyenne ?? 0 }}
+                  </td>
+                  <td>Min: {{ material?.hauteur_min ?? 0 }} Max: {{ material?.hauteur_max ?? 0 }}
+                    Moy: {{ material?.hauteur_moyenne ?? 0 }}
+                  </td>
+                  <td>Min: {{ material?.profondeur_min ?? 0 }} Max: {{ material?.profondeur_max ?? 0 }}
+                    Moy: {{ material?.profondeur_moyenne ?? 0 }}
+                  </td>
+                  <td class="text-end">
+                    <ion-button [disabled]="!material.live" [fill]="'clear'" (click)="this.deleteMaterial(material)">
+                      <mat-icon svgIcon="castorCancelIcon" style="height: 25px; width: 25px"></mat-icon>
+                    </ion-button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </mat-card>
+          </ng-container>
+        </ion-col>
+        <ion-col size="12">
+          <ion-item lines="none">
+            <ion-label class="label-placeholder">Mortier</ion-label>
+            <ion-button (click)="this.presentConstModal()" slot="end">Ajouter</ion-button>
+            <ion-modal class="construite-modal" #construiteModal>
+              <!-- Template of adding Mortier -->
+              <ng-template>
+                <ion-header>
+                  <ion-toolbar>
+                    <ion-title>Ajouter un mortier</ion-title>
+                    <ion-buttons slot="end">
+                      <ion-button (click)="closeConstModal()" [fill]="'clear'">
+                        <mat-icon svgIcon="castorCancelIcon" style="height: 25px; width: 25px"></mat-icon>
+                      </ion-button>
+                    </ion-buttons>
+                  </ion-toolbar>
+                </ion-header>
+                <ion-content>
+                  <ion-grid>
+                    <ion-row>
+                      <ion-col size="12">
+                        <app-castor-type-selector
+                          [category]="ApiTypeCategory.US_CONSTRUITE_MORTIER_TYPE"
+                          [title]="'Type'"
+                          #mortarSelector
+                          [(value)]="this.us.us_mortal_type_uuid"
+                        ></app-castor-type-selector>
+                      </ion-col>
+                      <ng-container
+                        *ngIf="mortarSelector?.selection?.type_uuid === UsMortarTypeEnum.MORTIER_DE_CHAUD
+                         || mortarSelector?.selection?.type_uuid === UsMortarTypeEnum.MORTIER_DE_TUILEAU">
+                        <ion-col size="12">
+                          <app-castor-type-selector
+                            [category]="ApiTypeCategory.US_DURETE"
+                            [title]="'Dureté'"
+                            [(value)]="this.hardness"
+                          ></app-castor-type-selector>
+                        </ion-col>
+                        <ion-col size="12">
+                          <app-castor-type-selector
+                            [category]="ApiTypeCategory.US_COLOR"
+                            [title]="'Couleur'"
+                            [(value)]="this.color"
+                          ></app-castor-type-selector>
+                        </ion-col>
+                        <ion-col size="12">
+                          <ion-row>
+                            <ion-col size="12">
+                              <ion-label>Inclusions</ion-label>
+                            </ion-col>
+                          </ion-row>
+                          <ion-row>
+                            <ion-col size="12">
+                              <ng-container *ngFor="let checkbox of this.inclusionsCheckbox">
+                                <ion-checkbox [(ngModel)]="checkbox.value">
+                                </ion-checkbox>
+                                <ion-label class="px-2">{{ checkbox.checkBoxLabel }}</ion-label>
+                                <br>
+                              </ng-container>
+                            </ion-col>
+                          </ion-row>
+                        </ion-col>
+                      </ng-container>
+                    </ion-row>
+                  </ion-grid>
+                </ion-content>
+                <ion-footer>
+                  <ion-toolbar>
+                    <ion-row class="justify-content-center">
+                      <ion-col size="auto">
+                        <ion-button (click)="this.validMortal()" [fill]="'clear'">
+                          <mat-icon svgIcon="castorValidIcon" style="height: 35px; width: 35px"></mat-icon>
+                        </ion-button>
+                      </ion-col>
+                    </ion-row>
+                  </ion-toolbar>
+                </ion-footer>
+              </ng-template>
+            </ion-modal>
+          </ion-item>
+
+          <ng-container *ngIf="this.us?.us_mortal_type_uuid">
+            <mat-card class="hide-scrollbar" style="overflow-y: auto; height: auto">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th *ngIf="this.us?.us_mortal_type_uuid" scope="col">Type</th>
+                  <ng-container
+                    *ngIf="this.us?.us_mortal_type_uuid === UsMortarTypeEnum.MORTIER_DE_CHAUD
+                         || this.us?.us_mortal_type_uuid === UsMortarTypeEnum.MORTIER_DE_TUILEAU">
+                    <th *ngIf="this.us?.us_mortal_durete" scope="col">Dureté</th>
+                    <th *ngIf="this.us?.us_mortal_color" scope="col">Couleur</th>
+                    <th scope="col">Inclusions</th>
+                  </ng-container>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td *ngIf="this.us?.us_mortal_type_uuid">
+                    <app-castor-type-display [type]="this.us?.us_mortal_type_uuid"
+                                             [display_prefix]="false"></app-castor-type-display>
+                  </td>
+                  <ng-container
+                    *ngIf="this.us?.us_mortal_type_uuid === UsMortarTypeEnum.MORTIER_DE_CHAUD
+                         || this.us?.us_mortal_type_uuid === UsMortarTypeEnum.MORTIER_DE_TUILEAU">
+                    <td *ngIf="this.us?.us_mortal_durete">
+                      <app-castor-type-display [type]="this.us?.us_mortal_durete"
+                                               [display_prefix]="false"></app-castor-type-display>
+                    </td>
+                    <td *ngIf="this.us?.us_mortal_color">
+                      <app-castor-type-display [type]="this.us?.us_mortal_color"
+                                               [display_prefix]="false"></app-castor-type-display>
+                    </td>
+                    <td>
+                      <ion-row>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_sable">
+                          <ion-text>Sable</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_gravier">
+                          <ion-text>Gravier</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_cailloutis">
+                          <ion-text>Cailloutis</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_nodules_argile">
+                          <ion-text>Nodule d'argile</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_nodules_chaux">
+                          <ion-text>Nodule de chaux</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_tca">
+                          <ion-text>Tca</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_charbons">
+                          <ion-text>Charbon</ion-text>
+                        </ion-col>
+                        <ion-col size="auto" *ngIf="this.us?.us_mortal_inclusions_matiere_vegetale">
+                          <ion-text>Matière végétal</ion-text>
+                        </ion-col>
+                      </ion-row>
+                    </td>
+                  </ng-container>
+                  <td class="text-end">
+                    <ion-button [fill]="'clear'" (click)="this.clearMortal()">
+                      <mat-icon svgIcon="castorCancelIcon" style="height: 25px; width: 25px"></mat-icon>
+                    </ion-button>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </mat-card>
+          </ng-container>
+        </ion-col>
+        <ion-col size="12">
+          <app-castor-type-selector
+            [title]="'Enduit'"
+            [category]="ApiTypeCategory.US_CONSTRUITE_SOL_TYPE"
+            [(value)]="this.us.us_enduit"
+            (valueChange)="onChangeForm()"
+            [enableClearValue]="true"
+          ></app-castor-type-selector>
+        </ion-col>
+        <ion-col size="12">
+          <ion-accordion-group multiple="true">
+            <app-appareil-form [us]="this.us"/>
+            <app-assises-form [us]="this.us"/>
+            <app-liant-form [us]="this.us"/>
+            <app-joints-form [us]="this.us"/>
+            <app-fourrure-blocage-form
+              *ngIf="this.isStructureRevetement()"
+              [us]="this.us"/>
+            <app-construite-negatifs-form [us]="this.us"/>
+            <app-moulures-form [us]="this.us"/>
+            <app-remplois-form [us]="this.us"/>
+            <app-traces-taille-form [us]="this.us"/>
+            <app-marques-lapidaires-form [us]="this.us"/>
+          </ion-accordion-group>
+        </ion-col>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

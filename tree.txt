@@ -1,0 +1,1300 @@
+9hp-front
+├── shared
+│   ├── actions
+│   │   ├── ActionList.ts
+│   │   ├── admin-actions.ts
+│   │   ├── data-actions.ts
+│   │   ├── gps-actions.ts
+│   │   ├── login-actions.ts
+│   │   ├── socket-actions.ts
+│   │   └── user-actions.ts
+│   ├── index.ts
+│   ├── objects
+│   │   ├── ApiErrorCode.ts
+│   │   ├── ApiErrorTraduction.ts
+│   │   ├── EnvApp.ts
+│   │   ├── LanguageCode.ts
+│   │   ├── models
+│   │   │   ├── apiGpsPoint.ts
+│   │   │   ├── DbInterfaces.ts
+│   │   │   ├── enums
+│   │   │   │   ├── ApiLoginReply.ts
+│   │   │   │   ├── ApiLoginRequest.ts
+│   │   │   │   ├── ApiRole.ts
+│   │   │   │   ├── ApiSynchroFrontInterfaceEnum.ts
+│   │   │   │   ├── ApiVerbose.ts
+│   │   │   │   ├── CronTaskEnum.ts
+│   │   │   │   ├── ExcavationStatus.ts
+│   │   │   │   ├── FormPlanEnum.ts
+│   │   │   │   ├── FormProfileEnum.ts
+│   │   │   │   ├── LoginStatus.ts
+│   │   │   │   ├── MinuteStatEnum.ts
+│   │   │   │   ├── MobilierStatEnum.ts
+│   │   │   │   ├── PrelevementStatEnum.ts
+│   │   │   │   ├── UsMortarTypeEnum.ts
+│   │   │   │   └── UsTypeEnum.ts
+│   │   │   └── StandardTypes.ts
+│   │   └── REST_Method.ts
+│   ├── README.md
+│   ├── utilities
+│   │   ├── convertEnumToArray.ts
+│   │   ├── Guid.ts
+│   │   ├── OxyError.ts
+│   │   ├── regex.ts
+│   │   └── time.ts
+│   └── validation
+│       ├── bench.ts
+│       ├── dag.ts
+│       ├── dsu.ts
+│       ├── example-angular.ts
+│       ├── indexer.ts
+│       ├── strati-client.ts
+│       ├── strati-worker.ts
+│       └── validator.ts
+└── src
+    ├── app
+    │   ├── app-routing.module.ts
+    │   ├── app.component.html
+    │   ├── app.component.scss
+    │   ├── app.component.ts
+    │   ├── app.module.ts
+    │   ├── Components
+    │   │   ├── Display
+    │   │   │   ├── castor-file-display
+    │   │   │   │   ├── castor-file-display.component.html
+    │   │   │   │   ├── castor-file-display.component.scss
+    │   │   │   │   └── castor-file-display.component.ts
+    │   │   │   ├── castor-generic-object-info-display
+    │   │   │   │   ├── castor-generic-link-edit-button
+    │   │   │   │   │   ├── castor-generic-link-edit-button.component.html
+    │   │   │   │   │   ├── castor-generic-link-edit-button.component.scss
+    │   │   │   │   │   ├── castor-generic-link-edit-button.component.spec.ts
+    │   │   │   │   │   └── castor-generic-link-edit-button.component.ts
+    │   │   │   │   ├── castor-generic-object-info-display.component.html
+    │   │   │   │   ├── castor-generic-object-info-display.component.scss
+    │   │   │   │   └── castor-generic-object-info-display.component.ts
+    │   │   │   ├── castor-image-gallery
+    │   │   │   │   ├── castor-image-gallery.component.html
+    │   │   │   │   ├── castor-image-gallery.component.scss
+    │   │   │   │   └── castor-image-gallery.component.ts
+    │   │   │   ├── castor-items-list
+    │   │   │   │   ├── castor-items-list.component.html
+    │   │   │   │   ├── castor-items-list.component.scss
+    │   │   │   │   ├── castor-items-list.component.spec.ts
+    │   │   │   │   └── castor-items-list.component.ts
+    │   │   │   ├── castor-sector-info-display
+    │   │   │   │   ├── castor-sector-info-display.component.html
+    │   │   │   │   ├── castor-sector-info-display.component.scss
+    │   │   │   │   └── castor-sector-info-display.component.ts
+    │   │   │   ├── castor-stratigraphie-visualization
+    │   │   │   │   ├── castor-stratigraphie-visualization.component.html
+    │   │   │   │   ├── castor-stratigraphie-visualization.component.scss
+    │   │   │   │   ├── castor-stratigraphie-visualization.component.spec.ts
+    │   │   │   │   └── castor-stratigraphie-visualization.component.ts
+    │   │   │   ├── castor-sync-obj-info
+    │   │   │   │   ├── castor-sync-obj-info.component.html
+    │   │   │   │   ├── castor-sync-obj-info.component.scss
+    │   │   │   │   ├── castor-sync-obj-info.component.spec.ts
+    │   │   │   │   └── castor-sync-obj-info.component.ts
+    │   │   │   ├── castor-sync-progress-display
+    │   │   │   │   ├── castor-sync-progress-display.component.html
+    │   │   │   │   ├── castor-sync-progress-display.component.scss
+    │   │   │   │   ├── castor-sync-progress-display.component.spec.ts
+    │   │   │   │   └── castor-sync-progress-display.component.ts
+    │   │   │   ├── castor-tag-display
+    │   │   │   │   ├── castor-tag-display.component.html
+    │   │   │   │   ├── castor-tag-display.component.scss
+    │   │   │   │   ├── castor-tag-display.component.spec.ts
+    │   │   │   │   └── castor-tag-display.component.ts
+    │   │   │   ├── castor-tooltip
+    │   │   │   │   ├── castor-tooltip.component.html
+    │   │   │   │   ├── castor-tooltip.component.scss
+    │   │   │   │   ├── castor-tooltip.component.spec.ts
+    │   │   │   │   └── castor-tooltip.component.ts
+    │   │   │   ├── castor-type-display
+    │   │   │   │   ├── castor-type-display.component.html
+    │   │   │   │   ├── castor-type-display.component.scss
+    │   │   │   │   ├── castor-type-display.component.spec.ts
+    │   │   │   │   └── castor-type-display.component.ts
+    │   │   │   ├── castor-user-item-display
+    │   │   │   │   ├── castor-user-item-display.component.html
+    │   │   │   │   ├── castor-user-item-display.component.scss
+    │   │   │   │   ├── castor-user-item-display.component.spec.ts
+    │   │   │   │   └── castor-user-item-display.component.ts
+    │   │   │   ├── castor-zoom-container
+    │   │   │   │   ├── castor-zoom-container.component.html
+    │   │   │   │   ├── castor-zoom-container.component.scss
+    │   │   │   │   └── castor-zoom-container.component.ts
+    │   │   │   ├── CastorTypedItem
+    │   │   │   │   ├── castor-row-genereic-item
+    │   │   │   │   │   ├── castor-row-genereic-item.component.html
+    │   │   │   │   │   ├── castor-row-genereic-item.component.scss
+    │   │   │   │   │   ├── castor-row-genereic-item.component.spec.ts
+    │   │   │   │   │   └── castor-row-genereic-item.component.ts
+    │   │   │   │   ├── castor-row-item-contenant
+    │   │   │   │   │   ├── castor-row-item-contenant.component.html
+    │   │   │   │   │   ├── castor-row-item-contenant.component.scss
+    │   │   │   │   │   ├── castor-row-item-contenant.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-contenant.component.ts
+    │   │   │   │   ├── castor-row-item-ensemble
+    │   │   │   │   │   ├── castor-row-item-ensemble.component.html
+    │   │   │   │   │   ├── castor-row-item-ensemble.component.scss
+    │   │   │   │   │   ├── castor-row-item-ensemble.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-ensemble.component.ts
+    │   │   │   │   ├── castor-row-item-fait
+    │   │   │   │   │   ├── castor-row-item-fait.component.html
+    │   │   │   │   │   ├── castor-row-item-fait.component.scss
+    │   │   │   │   │   ├── castor-row-item-fait.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-fait.component.ts
+    │   │   │   │   ├── castor-row-item-minute
+    │   │   │   │   │   ├── castor-row-item-minute.component.html
+    │   │   │   │   │   ├── castor-row-item-minute.component.scss
+    │   │   │   │   │   ├── castor-row-item-minute.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-minute.component.ts
+    │   │   │   │   ├── castor-row-item-mobilier
+    │   │   │   │   │   ├── castor-row-item-mobilier.component.html
+    │   │   │   │   │   ├── castor-row-item-mobilier.component.scss
+    │   │   │   │   │   ├── castor-row-item-mobilier.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-mobilier.component.ts
+    │   │   │   │   ├── castor-row-item-photo
+    │   │   │   │   │   ├── castor-row-item-photo.component.html
+    │   │   │   │   │   ├── castor-row-item-photo.component.scss
+    │   │   │   │   │   ├── castor-row-item-photo.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-photo.component.ts
+    │   │   │   │   ├── castor-row-item-prelevement
+    │   │   │   │   │   ├── castor-row-item-prelevement.component.html
+    │   │   │   │   │   ├── castor-row-item-prelevement.component.scss
+    │   │   │   │   │   ├── castor-row-item-prelevement.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-prelevement.component.ts
+    │   │   │   │   ├── castor-row-item-secteur
+    │   │   │   │   │   ├── castor-row-item-secteur.component.html
+    │   │   │   │   │   ├── castor-row-item-secteur.component.scss
+    │   │   │   │   │   ├── castor-row-item-secteur.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-secteur.component.ts
+    │   │   │   │   ├── castor-row-item-sondage
+    │   │   │   │   │   ├── castor-row-item-section.component.html
+    │   │   │   │   │   ├── castor-row-item-section.component.scss
+    │   │   │   │   │   ├── castor-row-item-section.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-section.component.ts
+    │   │   │   │   ├── castor-row-item-topo
+    │   │   │   │   │   ├── castor-row-item-topo.component.html
+    │   │   │   │   │   ├── castor-row-item-topo.component.scss
+    │   │   │   │   │   ├── castor-row-item-topo.component.spec.ts
+    │   │   │   │   │   └── castor-row-item-topo.component.ts
+    │   │   │   │   └── castor-row-item-us
+    │   │   │   │       ├── castor-row-item-us.component.html
+    │   │   │   │       ├── castor-row-item-us.component.scss
+    │   │   │   │       ├── castor-row-item-us.component.spec.ts
+    │   │   │   │       └── castor-row-item-us.component.ts
+    │   │   │   ├── check-sync-icon
+    │   │   │   │   ├── check-sync-icon.component.html
+    │   │   │   │   ├── check-sync-icon.component.scss
+    │   │   │   │   ├── check-sync-icon.component.spec.ts
+    │   │   │   │   ├── check-sync-icon.component.ts
+    │   │   │   │   └── check-sync-icon.module.ts
+    │   │   │   ├── date-display
+    │   │   │   │   ├── date-display.component.html
+    │   │   │   │   ├── date-display.component.scss
+    │   │   │   │   └── date-display.component.ts
+    │   │   │   ├── display.module.ts
+    │   │   │   ├── draft-status-item
+    │   │   │   │   ├── draft-status-item.component.html
+    │   │   │   │   ├── draft-status-item.component.scss
+    │   │   │   │   └── draft-status-item.component.ts
+    │   │   │   ├── generic-content-table
+    │   │   │   │   ├── links
+    │   │   │   │   │   ├── generic-content-table.component.html
+    │   │   │   │   │   ├── generic-content-table.component.scss
+    │   │   │   │   │   ├── generic-content-table.component.spec.ts
+    │   │   │   │   │   └── generic-content-table.component.ts
+    │   │   │   │   └── objects
+    │   │   │   │       ├── generic-content-object-table-row
+    │   │   │   │       │   ├── generic-content-object-table-row.component.html
+    │   │   │   │       │   ├── generic-content-object-table-row.component.scss
+    │   │   │   │       │   ├── generic-content-object-table-row.component.spec.ts
+    │   │   │   │       │   └── generic-content-object-table-row.component.ts
+    │   │   │   │       ├── generic-content-object-table.component.html
+    │   │   │   │       ├── generic-content-object-table.component.scss
+    │   │   │   │       ├── generic-content-object-table.component.spec.ts
+    │   │   │   │       └── generic-content-object-table.component.ts
+    │   │   │   ├── generic-document-table
+    │   │   │   │   ├── generic-document-table.component.html
+    │   │   │   │   ├── generic-document-table.component.scss
+    │   │   │   │   ├── generic-document-table.component.spec.ts
+    │   │   │   │   └── generic-document-table.component.ts
+    │   │   │   ├── generic-linked-object-tag-list
+    │   │   │   │   ├── generic-linked-object-tag-list.component.html
+    │   │   │   │   ├── generic-linked-object-tag-list.component.scss
+    │   │   │   │   ├── generic-linked-object-tag-list.component.spec.ts
+    │   │   │   │   └── generic-linked-object-tag-list.component.ts
+    │   │   │   ├── headband-item-header
+    │   │   │   │   ├── headband-item-header.component.html
+    │   │   │   │   ├── headband-item-header.component.scss
+    │   │   │   │   ├── headband-item-header.component.spec.ts
+    │   │   │   │   └── headband-item-header.component.ts
+    │   │   │   ├── headband-tabs-nav
+    │   │   │   │   ├── headband-tabs-nav.component.html
+    │   │   │   │   ├── headband-tabs-nav.component.scss
+    │   │   │   │   ├── headband-tabs-nav.component.ts
+    │   │   │   │   └── headband-tabs-nav.module.ts
+    │   │   │   ├── headband-town-display
+    │   │   │   │   ├── headband-town-display.component.html
+    │   │   │   │   ├── headband-town-display.component.scss
+    │   │   │   │   ├── headband-town-display.component.spec.ts
+    │   │   │   │   └── headband-town-display.component.ts
+    │   │   │   ├── items-details-tabs-menu
+    │   │   │   │   ├── items-details-tabs-menu.component.html
+    │   │   │   │   ├── items-details-tabs-menu.component.scss
+    │   │   │   │   └── items-details-tabs-menu.component.ts
+    │   │   │   ├── mobilier-datation-display
+    │   │   │   │   ├── mobilier-datation-display.component.html
+    │   │   │   │   ├── mobilier-datation-display.component.scss
+    │   │   │   │   └── mobilier-datation-display.component.ts
+    │   │   │   ├── ProjetDisplayCard
+    │   │   │   │   ├── projet-display-card.component.html
+    │   │   │   │   ├── projet-display-card.component.scss
+    │   │   │   │   ├── projet-display-card.component.spec.ts
+    │   │   │   │   └── projet-display-card.component.ts
+    │   │   │   └── stratigraphie-list-display
+    │   │   │       ├── stratigraphie-list-display.component.html
+    │   │   │       ├── stratigraphie-list-display.component.scss
+    │   │   │       ├── stratigraphie-list-display.component.spec.ts
+    │   │   │       └── stratigraphie-list-display.component.ts
+    │   │   ├── Form
+    │   │   │   ├── altitude-form
+    │   │   │   │   ├── altitude-form.component.html
+    │   │   │   │   ├── altitude-form.component.scss
+    │   │   │   │   └── altitude-form.component.ts
+    │   │   │   ├── contenant-form
+    │   │   │   │   ├── contenant-form.component.html
+    │   │   │   │   ├── contenant-form.component.scss
+    │   │   │   │   └── contenant-form.component.ts
+    │   │   │   ├── dimensions-form
+    │   │   │   │   ├── dimensions-form.component.html
+    │   │   │   │   ├── dimensions-form.component.scss
+    │   │   │   │   └── dimensions-form.component.ts
+    │   │   │   ├── ensemble-form
+    │   │   │   │   ├── ensemble-form.component.html
+    │   │   │   │   ├── ensemble-form.component.scss
+    │   │   │   │   └── ensemble-form.component.ts
+    │   │   │   ├── fait-form
+    │   │   │   │   ├── fait-form.component.html
+    │   │   │   │   ├── fait-form.component.scss
+    │   │   │   │   └── fait-form.component.ts
+    │   │   │   ├── fait-section-link-form
+    │   │   │   │   ├── fait-section-link-form.component.html
+    │   │   │   │   ├── fait-section-link-form.component.scss
+    │   │   │   │   ├── fait-section-link-form.component.spec.ts
+    │   │   │   │   └── fait-section-link-form.component.ts
+    │   │   │   ├── fiche-form
+    │   │   │   │   ├── fiche-form.component.html
+    │   │   │   │   ├── fiche-form.component.scss
+    │   │   │   │   └── fiche-form.component.ts
+    │   │   │   ├── form.module.ts
+    │   │   │   ├── generality-form
+    │   │   │   │   ├── generality-form.component.html
+    │   │   │   │   ├── generality-form.component.scss
+    │   │   │   │   └── generality-form.component.ts
+    │   │   │   ├── linked-ensemble-form
+    │   │   │   │   ├── linked-ensemble-form.component.html
+    │   │   │   │   ├── linked-ensemble-form.component.scss
+    │   │   │   │   └── linked-ensemble-form.component.ts
+    │   │   │   ├── minute-form
+    │   │   │   │   ├── minute-form.component.html
+    │   │   │   │   ├── minute-form.component.scss
+    │   │   │   │   └── minute-form.component.ts
+    │   │   │   ├── minute-link-form
+    │   │   │   │   ├── minute-link-form.component.html
+    │   │   │   │   ├── minute-link-form.component.scss
+    │   │   │   │   ├── minute-link-form.component.spec.ts
+    │   │   │   │   └── minute-link-form.component.ts
+    │   │   │   ├── mobilier-form
+    │   │   │   │   ├── mobilier-form.component.html
+    │   │   │   │   ├── mobilier-form.component.scss
+    │   │   │   │   └── mobilier-form.component.ts
+    │   │   │   ├── new-contenant-form
+    │   │   │   │   ├── new-contenant-form.component.html
+    │   │   │   │   ├── new-contenant-form.component.scss
+    │   │   │   │   └── new-contenant-form.component.ts
+    │   │   │   ├── new-ensemble-form
+    │   │   │   │   ├── new-ensemble-form.component.html
+    │   │   │   │   ├── new-ensemble-form.component.scss
+    │   │   │   │   └── new-ensemble-form.component.ts
+    │   │   │   ├── new-fait-form
+    │   │   │   │   ├── new-fait-form.component.html
+    │   │   │   │   ├── new-fait-form.component.scss
+    │   │   │   │   └── new-fait-form.component.ts
+    │   │   │   ├── new-link-form
+    │   │   │   │   ├── new-link-form.component.html
+    │   │   │   │   ├── new-link-form.component.scss
+    │   │   │   │   └── new-link-form.component.ts
+    │   │   │   ├── new-minute-form
+    │   │   │   │   ├── new-minute-form.component.html
+    │   │   │   │   ├── new-minute-form.component.scss
+    │   │   │   │   └── new-minute-form.component.ts
+    │   │   │   ├── new-mobilier-form
+    │   │   │   │   ├── new-mobilier-form.component.html
+    │   │   │   │   ├── new-mobilier-form.component.scss
+    │   │   │   │   └── new-mobilier-form.component.ts
+    │   │   │   ├── new-photo-form
+    │   │   │   │   ├── new-photo-form.component.html
+    │   │   │   │   ├── new-photo-form.component.scss
+    │   │   │   │   └── new-photo-form.component.ts
+    │   │   │   ├── new-prelevement-form
+    │   │   │   │   ├── new-prelevement-form.component.html
+    │   │   │   │   ├── new-prelevement-form.component.scss
+    │   │   │   │   └── new-prelevement-form.component.ts
+    │   │   │   ├── new-sondage-form
+    │   │   │   │   ├── new-sondage-form.component.html
+    │   │   │   │   ├── new-sondage-form.component.scss
+    │   │   │   │   └── new-sondage-form.component.ts
+    │   │   │   ├── new-topo-form
+    │   │   │   │   ├── new-topo-form.component.html
+    │   │   │   │   ├── new-topo-form.component.scss
+    │   │   │   │   └── new-topo-form.component.ts
+    │   │   │   ├── new-us-form
+    │   │   │   │   ├── new-us-form.component.html
+    │   │   │   │   ├── new-us-form.component.scss
+    │   │   │   │   └── new-us-form.component.ts
+    │   │   │   ├── photo-form
+    │   │   │   │   ├── photo-form.component.html
+    │   │   │   │   ├── photo-form.component.scss
+    │   │   │   │   └── photo-form.component.ts
+    │   │   │   ├── prelevement-form
+    │   │   │   │   ├── prelevement-form.component.html
+    │   │   │   │   ├── prelevement-form.component.scss
+    │   │   │   │   └── prelevement-form.component.ts
+    │   │   │   ├── projet-form
+    │   │   │   │   ├── projet-form.component.html
+    │   │   │   │   ├── projet-form.component.scss
+    │   │   │   │   └── projet-form.component.ts
+    │   │   │   ├── secteur-form
+    │   │   │   │   ├── secteur-form.component.html
+    │   │   │   │   ├── secteur-form.component.scss
+    │   │   │   │   └── secteur-form.component.ts
+    │   │   │   ├── sondage-coupe-list-form
+    │   │   │   │   ├── sondage-coupe-list-form.component.html
+    │   │   │   │   ├── sondage-coupe-list-form.component.scss
+    │   │   │   │   ├── sondage-coupe-list-form.component.spec.ts
+    │   │   │   │   └── sondage-coupe-list-form.component.ts
+    │   │   │   ├── sondage-form
+    │   │   │   │   ├── sondage-form.component.html
+    │   │   │   │   ├── sondage-form.component.scss
+    │   │   │   │   └── sondage-form.component.ts
+    │   │   │   ├── stratigraphie-form
+    │   │   │   │   ├── stratigraphie-form.component.html
+    │   │   │   │   ├── stratigraphie-form.component.scss
+    │   │   │   │   ├── stratigraphie-form.component.spec.ts
+    │   │   │   │   └── stratigraphie-form.component.ts
+    │   │   │   ├── topo-form
+    │   │   │   │   ├── topo-form.component.html
+    │   │   │   │   ├── topo-form.component.scss
+    │   │   │   │   └── topo-form.component.ts
+    │   │   │   ├── us-construite-form
+    │   │   │   │   ├── appareil-form
+    │   │   │   │   │   ├── appareil-form.component.html
+    │   │   │   │   │   ├── appareil-form.component.scss
+    │   │   │   │   │   └── appareil-form.component.ts
+    │   │   │   │   ├── assises-form
+    │   │   │   │   │   ├── assises-form.component.html
+    │   │   │   │   │   ├── assises-form.component.scss
+    │   │   │   │   │   └── assises-form.component.ts
+    │   │   │   │   ├── construite-negatifs-form
+    │   │   │   │   │   ├── construite-negatifs-form.component.html
+    │   │   │   │   │   ├── construite-negatifs-form.component.scss
+    │   │   │   │   │   └── construite-negatifs-form.component.ts
+    │   │   │   │   ├── fourrure-blocage-form
+    │   │   │   │   │   ├── fourrure-blocage-form.component.html
+    │   │   │   │   │   ├── fourrure-blocage-form.component.scss
+    │   │   │   │   │   └── fourrure-blocage-form.component.ts
+    │   │   │   │   ├── joints-form
+    │   │   │   │   │   ├── joints-form.component.html
+    │   │   │   │   │   ├── joints-form.component.scss
+    │   │   │   │   │   └── joints-form.component.ts
+    │   │   │   │   ├── liant-form
+    │   │   │   │   │   ├── liant-form.component.html
+    │   │   │   │   │   ├── liant-form.component.scss
+    │   │   │   │   │   └── liant-form.component.ts
+    │   │   │   │   ├── marques-lapidaires-form
+    │   │   │   │   │   ├── marques-lapidaires-form.component.html
+    │   │   │   │   │   ├── marques-lapidaires-form.component.scss
+    │   │   │   │   │   └── marques-lapidaires-form.component.ts
+    │   │   │   │   ├── moulures-form
+    │   │   │   │   │   ├── moulures-form.component.html
+    │   │   │   │   │   ├── moulures-form.component.scss
+    │   │   │   │   │   └── moulures-form.component.ts
+    │   │   │   │   ├── remplois-form
+    │   │   │   │   │   ├── remplois-form.component.html
+    │   │   │   │   │   ├── remplois-form.component.scss
+    │   │   │   │   │   └── remplois-form.component.ts
+    │   │   │   │   ├── traces-taille-form
+    │   │   │   │   │   ├── traces-taille-form.component.html
+    │   │   │   │   │   ├── traces-taille-form.component.scss
+    │   │   │   │   │   └── traces-taille-form.component.ts
+    │   │   │   │   ├── us-construite-form.component.html
+    │   │   │   │   ├── us-construite-form.component.scss
+    │   │   │   │   └── us-construite-form.component.ts
+    │   │   │   ├── us-form
+    │   │   │   │   ├── us-form.component.html
+    │   │   │   │   ├── us-form.component.scss
+    │   │   │   │   └── us-form.component.ts
+    │   │   │   ├── us-negative-form
+    │   │   │   │   ├── us-negative-form.component.html
+    │   │   │   │   ├── us-negative-form.component.scss
+    │   │   │   │   ├── us-negative-form.component.spec.ts
+    │   │   │   │   └── us-negative-form.component.ts
+    │   │   │   ├── us-positive-form
+    │   │   │   │   ├── us-positive-form.component.html
+    │   │   │   │   ├── us-positive-form.component.scss
+    │   │   │   │   └── us-positive-form.component.ts
+    │   │   │   └── us-sous-divisons-form
+    │   │   │       ├── us-sous-divisons-form.component.html
+    │   │   │       ├── us-sous-divisons-form.component.scss
+    │   │   │       ├── us-sous-divisons-form.component.spec.ts
+    │   │   │       └── us-sous-divisons-form.component.ts
+    │   │   ├── Inputs
+    │   │   │   ├── castor-file-input
+    │   │   │   │   ├── castor-file-input.component.html
+    │   │   │   │   ├── castor-file-input.component.scss
+    │   │   │   │   ├── castor-file-input.component.spec.ts
+    │   │   │   │   └── castor-file-input.component.ts
+    │   │   │   ├── castor-object-selector
+    │   │   │   │   ├── castor-object-selector.component.html
+    │   │   │   │   ├── castor-object-selector.component.scss
+    │   │   │   │   ├── castor-object-selector.component.spec.ts
+    │   │   │   │   └── castor-object-selector.component.ts
+    │   │   │   ├── castor-project-user-selection
+    │   │   │   │   ├── castor-project-user-selection.component.html
+    │   │   │   │   ├── castor-project-user-selection.component.scss
+    │   │   │   │   ├── castor-project-user-selection.component.spec.ts
+    │   │   │   │   └── castor-project-user-selection.component.ts
+    │   │   │   ├── castor-tag-input
+    │   │   │   │   ├── castor-tag-input.component.html
+    │   │   │   │   ├── castor-tag-input.component.scss
+    │   │   │   │   ├── castor-tag-input.component.spec.ts
+    │   │   │   │   └── castor-tag-input.component.ts
+    │   │   │   ├── castor-type-selector
+    │   │   │   │   ├── castor-type-selector.component.html
+    │   │   │   │   ├── castor-type-selector.component.scss
+    │   │   │   │   ├── castor-type-selector.component.spec.ts
+    │   │   │   │   └── castor-type-selector.component.ts
+    │   │   │   ├── dimension-input
+    │   │   │   │   ├── dimension-input.component.html
+    │   │   │   │   ├── dimension-input.component.scss
+    │   │   │   │   └── dimension-input.component.ts
+    │   │   │   ├── fait-selector
+    │   │   │   │   ├── fait-selector.component.html
+    │   │   │   │   ├── fait-selector.component.scss
+    │   │   │   │   └── fait-selector.component.ts
+    │   │   │   ├── form-plan-selector
+    │   │   │   │   ├── form-plan-selector.component.html
+    │   │   │   │   ├── form-plan-selector.component.scss
+    │   │   │   │   └── form-plan-selector.component.ts
+    │   │   │   ├── form-profile-selector
+    │   │   │   │   ├── form-profile-selector.component.html
+    │   │   │   │   ├── form-profile-selector.component.scss
+    │   │   │   │   └── form-profile-selector.component.ts
+    │   │   │   ├── inputs.module.ts
+    │   │   │   ├── ionic-date-time-picker
+    │   │   │   │   ├── ionic-date-time-picker.component.html
+    │   │   │   │   ├── ionic-date-time-picker.component.scss
+    │   │   │   │   └── ionic-date-time-picker.component.ts
+    │   │   │   ├── sondage-selector
+    │   │   │   │   ├── sondage-selector.component.html
+    │   │   │   │   ├── sondage-selector.component.scss
+    │   │   │   │   └── sondage-selector.component.ts
+    │   │   │   ├── us-selector
+    │   │   │   │   ├── us-selector.component.html
+    │   │   │   │   ├── us-selector.component.scss
+    │   │   │   │   └── us-selector.component.ts
+    │   │   │   ├── us-type-selector
+    │   │   │   │   ├── us-type-selector.component.html
+    │   │   │   │   ├── us-type-selector.component.scss
+    │   │   │   │   └── us-type-selector.component.ts
+    │   │   │   └── valid-cancel-grouped-btn
+    │   │   │       ├── valid-cancel-grouped-btn.component.html
+    │   │   │       ├── valid-cancel-grouped-btn.component.scss
+    │   │   │       ├── valid-cancel-grouped-btn.component.spec.ts
+    │   │   │       └── valid-cancel-grouped-btn.component.ts
+    │   │   └── widgets
+    │   │       ├── access-guard
+    │   │       │   ├── access-guard.component.html
+    │   │       │   ├── access-guard.component.scss
+    │   │       │   ├── access-guard.component.ts
+    │   │       │   └── access-guard.module.ts
+    │   │       ├── castor-btn-csv-downloader
+    │   │       │   ├── castor-btn-csv-downloader.component.html
+    │   │       │   ├── castor-btn-csv-downloader.component.scss
+    │   │       │   ├── castor-btn-csv-downloader.component.spec.ts
+    │   │       │   ├── castor-btn-csv-downloader.component.ts
+    │   │       │   └── castor-btn-csv-downloader.module.ts
+    │   │       ├── castor-links
+    │   │       │   ├── castor-links.component.html
+    │   │       │   ├── castor-links.component.scss
+    │   │       │   ├── castor-links.component.ts
+    │   │       │   ├── castor-links.module.ts
+    │   │       │   ├── direct-link-components
+    │   │       │   │   ├── direct-link-display
+    │   │       │   │   │   ├── direct-link-display.component.html
+    │   │       │   │   │   ├── direct-link-display.component.scss
+    │   │       │   │   │   ├── direct-link-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-display.component.ts
+    │   │       │   │   ├── direct-link-list-ensemble-display
+    │   │       │   │   │   ├── direct-link-list-ensemble-display.component.html
+    │   │       │   │   │   ├── direct-link-list-ensemble-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-ensemble-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-ensemble-display.component.ts
+    │   │       │   │   ├── direct-link-list-fait-display
+    │   │       │   │   │   ├── direct-link-list-fait-display.component.html
+    │   │       │   │   │   ├── direct-link-list-fait-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-fait-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-fait-display.component.ts
+    │   │       │   │   ├── direct-link-list-minute-display
+    │   │       │   │   │   ├── direct-link-list-minute-display.component.html
+    │   │       │   │   │   ├── direct-link-list-minute-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-minute-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-minute-display.component.ts
+    │   │       │   │   ├── direct-link-list-mobilier-display
+    │   │       │   │   │   ├── direct-link-list-mobilier-display.component.html
+    │   │       │   │   │   ├── direct-link-list-mobilier-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-mobilier-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-mobilier-display.component.ts
+    │   │       │   │   ├── direct-link-list-photo-display
+    │   │       │   │   │   ├── direct-link-list-photo-display.component.html
+    │   │       │   │   │   ├── direct-link-list-photo-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-photo-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-photo-display.component.ts
+    │   │       │   │   ├── direct-link-list-prelevement-display
+    │   │       │   │   │   ├── direct-link-list-prelevement-display.component.html
+    │   │       │   │   │   ├── direct-link-list-prelevement-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-prelevement-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-prelevement-display.component.ts
+    │   │       │   │   ├── direct-link-list-section-display
+    │   │       │   │   │   ├── direct-link-list-section-display.component.html
+    │   │       │   │   │   ├── direct-link-list-section-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-section-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-section-display.component.ts
+    │   │       │   │   ├── direct-link-list-topo-display
+    │   │       │   │   │   ├── direct-link-list-topo-display.component.html
+    │   │       │   │   │   ├── direct-link-list-topo-display.component.scss
+    │   │       │   │   │   ├── direct-link-list-topo-display.component.spec.ts
+    │   │       │   │   │   └── direct-link-list-topo-display.component.ts
+    │   │       │   │   └── direct-link-list-us-display
+    │   │       │   │       ├── direct-link-list-us-display.component.html
+    │   │       │   │       ├── direct-link-list-us-display.component.scss
+    │   │       │   │       ├── direct-link-list-us-display.component.spec.ts
+    │   │       │   │       └── direct-link-list-us-display.component.ts
+    │   │       │   └── link-components
+    │   │       │       └── castor-link
+    │   │       │           ├── castor-link-list
+    │   │       │           │   ├── castor-link-list.component.html
+    │   │       │           │   ├── castor-link-list.component.scss
+    │   │       │           │   ├── castor-link-list.component.spec.ts
+    │   │       │           │   ├── castor-link-list.component.ts
+    │   │       │           │   └── genericTableDescriptions.ts
+    │   │       │           ├── castor-link.component.html
+    │   │       │           ├── castor-link.component.scss
+    │   │       │           ├── castor-link.component.spec.ts
+    │   │       │           ├── castor-link.component.ts
+    │   │       │           └── CastorLinkListDisplay
+    │   │       │               ├── abstract
+    │   │       │               │   ├── castor-list-link-abstract-display.component.html
+    │   │       │               │   ├── castor-list-link-abstract-display.component.scss
+    │   │       │               │   ├── castor-list-link-abstract-display.component.spec.ts
+    │   │       │               │   └── castor-list-link-abstract-display.component.ts
+    │   │       │               ├── castor-link-contenant-echantillon-list-display
+    │   │       │               │   ├── castor-link-contenant-echantillon-list-display.component.html
+    │   │       │               │   ├── castor-link-contenant-echantillon-list-display.component.scss
+    │   │       │               │   ├── castor-link-contenant-echantillon-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-contenant-echantillon-list-display.component.ts
+    │   │       │               ├── castor-link-document-echantillon-list-display
+    │   │       │               │   ├── castor-link-document-echantillon-list-display.component.html
+    │   │       │               │   ├── castor-link-document-echantillon-list-display.component.scss
+    │   │       │               │   ├── castor-link-document-echantillon-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-document-echantillon-list-display.component.ts
+    │   │       │               ├── castor-link-document-fait-list-display
+    │   │       │               │   ├── castor-link-document-fait-list-display.component.html
+    │   │       │               │   ├── castor-link-document-fait-list-display.component.scss
+    │   │       │               │   ├── castor-link-document-fait-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-document-fait-list-display.component.ts
+    │   │       │               ├── castor-link-document-section-list-display
+    │   │       │               │   ├── castor-link-document-section-list-display.component.html
+    │   │       │               │   ├── castor-link-document-section-list-display.component.scss
+    │   │       │               │   ├── castor-link-document-section-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-document-section-list-display.component.ts
+    │   │       │               ├── castor-link-document-us-list-display
+    │   │       │               │   ├── castor-link-document-us-list-display.component.html
+    │   │       │               │   ├── castor-link-document-us-list-display.component.scss
+    │   │       │               │   ├── castor-link-document-us-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-document-us-list-display.component.ts
+    │   │       │               ├── castor-link-ensemble-document-list-display
+    │   │       │               │   ├── castor-link-ensemble-document-list-display.component.html
+    │   │       │               │   ├── castor-link-ensemble-document-list-display.component.scss
+    │   │       │               │   ├── castor-link-ensemble-document-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-ensemble-document-list-display.component.ts
+    │   │       │               ├── castor-link-ensemble-fait-list-display
+    │   │       │               │   ├── castor-link-ensemble-fait-list-display.component.html
+    │   │       │               │   ├── castor-link-ensemble-fait-list-display.component.scss
+    │   │       │               │   ├── castor-link-ensemble-fait-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-ensemble-fait-list-display.component.ts
+    │   │       │               ├── castor-link-ensemble-us-list-display
+    │   │       │               │   ├── castor-link-ensemble-us-list-display.component.html
+    │   │       │               │   ├── castor-link-ensemble-us-list-display.component.scss
+    │   │       │               │   ├── castor-link-ensemble-us-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-ensemble-us-list-display.component.ts
+    │   │       │               ├── castor-link-secteur-gps-list-display
+    │   │       │               │   ├── castor-link-secteur-gps-list-display.component.html
+    │   │       │               │   ├── castor-link-secteur-gps-list-display.component.scss
+    │   │       │               │   ├── castor-link-secteur-gps-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-secteur-gps-list-display.component.ts
+    │   │       │               ├── castor-link-section-ensemble-list-display
+    │   │       │               │   ├── castor-link-section-ensemble-list-display.component.html
+    │   │       │               │   ├── castor-link-section-ensemble-list-display.component.scss
+    │   │       │               │   ├── castor-link-section-ensemble-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-section-ensemble-list-display.component.ts
+    │   │       │               ├── castor-link-section-fait-list-display
+    │   │       │               │   ├── castor-link-section-fait-list-display.component.html
+    │   │       │               │   ├── castor-link-section-fait-list-display.component.scss
+    │   │       │               │   ├── castor-link-section-fait-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-section-fait-list-display.component.ts
+    │   │       │               ├── castor-link-section-us-list-display
+    │   │       │               │   ├── castor-link-section-us-list-display.component.html
+    │   │       │               │   ├── castor-link-section-us-list-display.component.scss
+    │   │       │               │   ├── castor-link-section-us-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-section-us-list-display.component.ts
+    │   │       │               ├── castor-link-topo-document-list-display
+    │   │       │               │   ├── castor-link-topo-document-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-document-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-document-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-document-list-display.component.ts
+    │   │       │               ├── castor-link-topo-echantillon-list-display
+    │   │       │               │   ├── castor-link-topo-echantillon-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-echantillon-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-echantillon-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-echantillon-list-display.component.ts
+    │   │       │               ├── castor-link-topo-ensemble-list-display
+    │   │       │               │   ├── castor-link-topo-ensemble-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-ensemble-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-ensemble-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-ensemble-list-display.component.ts
+    │   │       │               ├── castor-link-topo-fait-list-display
+    │   │       │               │   ├── castor-link-topo-fait-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-fait-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-fait-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-fait-list-display.component.ts
+    │   │       │               ├── castor-link-topo-section-list-display
+    │   │       │               │   ├── castor-link-topo-section-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-section-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-section-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-section-list-display.component.ts
+    │   │       │               ├── castor-link-topo-us-list-display
+    │   │       │               │   ├── castor-link-topo-us-list-display.component.html
+    │   │       │               │   ├── castor-link-topo-us-list-display.component.scss
+    │   │       │               │   ├── castor-link-topo-us-list-display.component.spec.ts
+    │   │       │               │   └── castor-link-topo-us-list-display.component.ts
+    │   │       │               └── CastorLinkTable
+    │   │       │                   ├── castor-link-contenant-table-display
+    │   │       │                   │   ├── castor-link-contenant-table-display.component.html
+    │   │       │                   │   ├── castor-link-contenant-table-display.component.scss
+    │   │       │                   │   ├── castor-link-contenant-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-contenant-table-display.component.ts
+    │   │       │                   ├── castor-link-document-table-display
+    │   │       │                   │   ├── castor-link-document-table-display.component.html
+    │   │       │                   │   ├── castor-link-document-table-display.component.scss
+    │   │       │                   │   ├── castor-link-document-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-document-table-display.component.ts
+    │   │       │                   ├── castor-link-echantillon-table-display
+    │   │       │                   │   ├── castor-link-echantillon-table-display.component.html
+    │   │       │                   │   ├── castor-link-echantillon-table-display.component.scss
+    │   │       │                   │   ├── castor-link-echantillon-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-echantillon-table-display.component.ts
+    │   │       │                   ├── castor-link-fait-table-display
+    │   │       │                   │   ├── castor-link-fait-table-display.component.html
+    │   │       │                   │   ├── castor-link-fait-table-display.component.scss
+    │   │       │                   │   ├── castor-link-fait-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-fait-table-display.component.ts
+    │   │       │                   ├── castor-link-section-table-display
+    │   │       │                   │   ├── castor-link-section-table-display.component.html
+    │   │       │                   │   ├── castor-link-section-table-display.component.scss
+    │   │       │                   │   ├── castor-link-section-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-section-table-display.component.ts
+    │   │       │                   ├── castor-link-topo-table-display
+    │   │       │                   │   ├── castor-link-topo-table-display.component.html
+    │   │       │                   │   ├── castor-link-topo-table-display.component.scss
+    │   │       │                   │   ├── castor-link-topo-table-display.component.spec.ts
+    │   │       │                   │   └── castor-link-topo-table-display.component.ts
+    │   │       │                   └── castor-link-us-table-display
+    │   │       │                       ├── castor-link-us-table-display.component.html
+    │   │       │                       ├── castor-link-us-table-display.component.scss
+    │   │       │                       ├── castor-link-us-table-display.component.spec.ts
+    │   │       │                       └── castor-link-us-table-display.component.ts
+    │   │       ├── castor-synchroniser
+    │   │       │   ├── castor-synchroniser.component.html
+    │   │       │   ├── castor-synchroniser.component.scss
+    │   │       │   └── castor-synchroniser.component.ts
+    │   │       ├── debouced-init-content
+    │   │       │   ├── debouced-init-content.component.html
+    │   │       │   ├── debouced-init-content.component.scss
+    │   │       │   ├── debouced-init-content.component.spec.ts
+    │   │       │   └── debouced-init-content.component.ts
+    │   │       ├── dev-tools-interface
+    │   │       │   ├── dev-tools-interface.component.html
+    │   │       │   ├── dev-tools-interface.component.scss
+    │   │       │   └── dev-tools-interface.component.ts
+    │   │       ├── link-editing-modal
+    │   │       │   ├── link-editing-modal.component.html
+    │   │       │   ├── link-editing-modal.component.scss
+    │   │       │   ├── link-editing-modal.component.spec.ts
+    │   │       │   └── link-editing-modal.component.ts
+    │   │       ├── link-object-created-modal
+    │   │       │   ├── link-object-created-modal.component.html
+    │   │       │   ├── link-object-created-modal.component.scss
+    │   │       │   ├── link-object-created-modal.component.ts
+    │   │       │   └── link-object-created-modal.module.ts
+    │   │       └── technical-settings
+    │   │           ├── technical-settings.component.html
+    │   │           ├── technical-settings.component.scss
+    │   │           └── technical-settings.component.ts
+    │   ├── components-auth0
+    │   │   ├── authentication-button
+    │   │   │   ├── authentication-button.component.html
+    │   │   │   └── authentication-button.component.ts
+    │   │   ├── component-auth.module.ts
+    │   │   ├── login-button
+    │   │   │   ├── login-button.component.html
+    │   │   │   └── login-button.component.ts
+    │   │   └── signup-button
+    │   │       ├── signup-button.component.html
+    │   │       └── signup-button.component.ts
+    │   ├── components-nav
+    │   │   ├── components-nav.module.ts
+    │   │   └── split-pane-menu
+    │   │       ├── split-pane-menu.component.html
+    │   │       ├── split-pane-menu.component.scss
+    │   │       ├── split-pane-menu.component.spec.ts
+    │   │       └── split-pane-menu.component.ts
+    │   ├── Core-event.ts
+    │   ├── Database
+    │   │   ├── abstractdb.ts
+    │   │   ├── castor-data-validation.ts
+    │   │   ├── castordb.ts
+    │   │   ├── db-file.ts
+    │   │   ├── db-link.ts
+    │   │   ├── db-object.ts
+    │   │   ├── db-transactions.ts
+    │   │   ├── db-type.ts
+    │   │   ├── db-utils.ts
+    │   │   ├── DB.ts
+    │   │   ├── middleware
+    │   │   │   └── router.ts
+    │   │   ├── project-index-store.ts
+    │   │   ├── schema.ts
+    │   │   └── sessiondb.ts
+    │   ├── DataClasses
+    │   │   ├── application-context.ts
+    │   │   ├── CastorLinkDataclass.ts
+    │   │   ├── CastorObjectDataclass.ts
+    │   │   ├── contenant-dataclass.ts
+    │   │   ├── coupe-dataclass.ts
+    │   │   ├── ensemble-dataclass.ts
+    │   │   ├── fait-dataclass.ts
+    │   │   ├── minute-dataclass.ts
+    │   │   ├── mobilier-dataclass.ts
+    │   │   ├── models
+    │   │   │   ├── castor-abstract-link-data-class.ts
+    │   │   │   ├── castor-abstract-object-data-class.ts
+    │   │   │   ├── db-bound-link-list.ts
+    │   │   │   ├── db-bound-link.ts
+    │   │   │   ├── db-bound-object-list.ts
+    │   │   │   ├── db-bound-object.ts
+    │   │   │   ├── db-user-session.ts
+    │   │   │   └── sync-obj-utilities.ts
+    │   │   ├── photo-dataclass.ts
+    │   │   ├── prelevement-dataclass.ts
+    │   │   ├── project-stats.dataclass.ts
+    │   │   ├── projet-dataclass.ts
+    │   │   ├── sector-dataclass.ts
+    │   │   ├── sondage-dataclass.ts
+    │   │   ├── status-information-dataclass.ts
+    │   │   ├── topo-dataclass.ts
+    │   │   ├── us-dataclass.ts
+    │   │   └── user-dataclass.ts
+    │   ├── directive
+    │   │   ├── click-stop-propagation.directive.ts
+    │   │   ├── directive.module.ts
+    │   │   ├── link-active.directive.ts
+    │   │   └── sort.directive.ts
+    │   ├── LocalDraftArchive.ts
+    │   ├── models
+    │   │   ├── ensemble.model.ts
+    │   │   ├── fait.model.ts
+    │   │   ├── idbEnsemble.model.ts
+    │   │   ├── idbFait.model.ts
+    │   │   ├── idbIdentification.model.ts
+    │   │   ├── idbProjet.model.ts
+    │   │   ├── idbSecteur.model.ts
+    │   │   ├── idbUnite.model.ts
+    │   │   ├── identification.model.ts
+    │   │   ├── linkUsEnsemble.model.ts
+    │   │   ├── minute.model.ts
+    │   │   ├── minute2.model.ts
+    │   │   ├── numerotation.model.ts
+    │   │   ├── projet.model.ts
+    │   │   ├── secteur.model.ts
+    │   │   ├── sondage.model.ts
+    │   │   ├── sondage2.model.ts
+    │   │   ├── tabIsAuth.model.ts
+    │   │   ├── unite.model.ts
+    │   │   ├── unite2.model.ts
+    │   │   ├── uniteminute.model.ts
+    │   │   ├── unitesondage.model.ts
+    │   │   ├── user.model.ts
+    │   │   └── userprojet.model.ts
+    │   ├── pages
+    │   │   ├── contenants
+    │   │   │   ├── contenants-router.module.ts
+    │   │   │   ├── contenants.component.html
+    │   │   │   ├── contenants.component.scss
+    │   │   │   ├── contenants.component.ts
+    │   │   │   ├── contenants.module.ts
+    │   │   │   ├── details-contenant
+    │   │   │   │   ├── details-contenant.component.html
+    │   │   │   │   ├── details-contenant.component.scss
+    │   │   │   │   └── details-contenant.component.ts
+    │   │   │   └── new-contenant
+    │   │   │       ├── new-contenant.component.html
+    │   │   │       ├── new-contenant.component.scss
+    │   │   │       └── new-contenant.component.ts
+    │   │   ├── dashboard
+    │   │   │   ├── dashboard.component.html
+    │   │   │   ├── dashboard.component.scss
+    │   │   │   ├── dashboard.component.spec.ts
+    │   │   │   ├── dashboard.component.ts
+    │   │   │   ├── dashboard.module.ts
+    │   │   │   └── dashboard.router.module.ts
+    │   │   ├── ensembles
+    │   │   │   ├── details-ensemble
+    │   │   │   │   ├── details-ensemble.component.html
+    │   │   │   │   ├── details-ensemble.component.scss
+    │   │   │   │   └── details-ensemble.component.ts
+    │   │   │   ├── ensembles-router.module.ts
+    │   │   │   ├── ensembles.component.html
+    │   │   │   ├── ensembles.component.scss
+    │   │   │   ├── ensembles.component.ts
+    │   │   │   ├── ensembles.module.ts
+    │   │   │   └── new-ensemble
+    │   │   │       ├── new-ensemble.component.html
+    │   │   │       ├── new-ensemble.component.scss
+    │   │   │       └── new-ensemble.component.ts
+    │   │   ├── fait
+    │   │   │   ├── details-fait
+    │   │   │   │   ├── details-fait.component.html
+    │   │   │   │   ├── details-fait.component.scss
+    │   │   │   │   └── details-fait.component.ts
+    │   │   │   ├── fait-router.module.ts
+    │   │   │   ├── fait.component.html
+    │   │   │   ├── fait.component.scss
+    │   │   │   ├── fait.component.ts
+    │   │   │   ├── fait.module.ts
+    │   │   │   └── new-fait
+    │   │   │       ├── new-fait.component.html
+    │   │   │       ├── new-fait.component.scss
+    │   │   │       └── new-fait.component.ts
+    │   │   ├── home-page
+    │   │   │   ├── home-page-router.module.ts
+    │   │   │   ├── home-page.component.html
+    │   │   │   ├── home-page.component.scss
+    │   │   │   ├── home-page.component.spec.ts
+    │   │   │   ├── home-page.component.ts
+    │   │   │   └── home-page.module.ts
+    │   │   ├── minutes
+    │   │   │   ├── details-minute
+    │   │   │   │   ├── details-minute.component.html
+    │   │   │   │   ├── details-minute.component.scss
+    │   │   │   │   └── details-minute.component.ts
+    │   │   │   ├── minutes-router.module.ts
+    │   │   │   ├── minutes.component.html
+    │   │   │   ├── minutes.component.scss
+    │   │   │   ├── minutes.component.ts
+    │   │   │   ├── minutes.module.ts
+    │   │   │   └── new-minute
+    │   │   │       ├── new-minute.component.html
+    │   │   │       ├── new-minute.component.scss
+    │   │   │       └── new-minute.component.ts
+    │   │   ├── mobilier
+    │   │   │   ├── details-mobilier
+    │   │   │   │   ├── details-mobilier.component.html
+    │   │   │   │   ├── details-mobilier.component.scss
+    │   │   │   │   └── details-mobilier.component.ts
+    │   │   │   ├── mobilier-router.module.ts
+    │   │   │   ├── mobilier.component.html
+    │   │   │   ├── mobilier.component.scss
+    │   │   │   ├── mobilier.component.ts
+    │   │   │   ├── mobilier.module.ts
+    │   │   │   └── new-mobilier
+    │   │   │       ├── new-mobilier.component.html
+    │   │   │       ├── new-mobilier.component.scss
+    │   │   │       └── new-mobilier.component.ts
+    │   │   ├── page-navigation-wrapper
+    │   │   │   ├── page-navigation-wrapper.component.html
+    │   │   │   ├── page-navigation-wrapper.component.scss
+    │   │   │   └── page-navigation-wrapper.component.ts
+    │   │   ├── photos
+    │   │   │   ├── details-photo
+    │   │   │   │   ├── details-photo.component.html
+    │   │   │   │   ├── details-photo.component.scss
+    │   │   │   │   └── details-photo.component.ts
+    │   │   │   ├── new-photo
+    │   │   │   │   ├── new-photo.component.html
+    │   │   │   │   ├── new-photo.component.scss
+    │   │   │   │   └── new-photo.component.ts
+    │   │   │   ├── photos-router.module.ts
+    │   │   │   ├── photos.component.html
+    │   │   │   ├── photos.component.scss
+    │   │   │   ├── photos.component.ts
+    │   │   │   └── photos.module.ts
+    │   │   ├── prelevement
+    │   │   │   ├── details-prelevement
+    │   │   │   │   ├── details-prelevement.component.html
+    │   │   │   │   ├── details-prelevement.component.scss
+    │   │   │   │   └── details-prelevement.component.ts
+    │   │   │   ├── new-prelevement
+    │   │   │   │   ├── new-prelevement.component.html
+    │   │   │   │   ├── new-prelevement.component.scss
+    │   │   │   │   └── new-prelevement.component.ts
+    │   │   │   ├── prelevement-router.module.ts
+    │   │   │   ├── prelevement.component.html
+    │   │   │   ├── prelevement.component.scss
+    │   │   │   ├── prelevement.component.ts
+    │   │   │   └── prelevement.module.ts
+    │   │   ├── profile
+    │   │   │   ├── profile-page.module.ts
+    │   │   │   ├── profile.component.html
+    │   │   │   ├── profile.component.scss
+    │   │   │   ├── profile.component.spec.ts
+    │   │   │   └── profile.component.ts
+    │   │   ├── projet
+    │   │   │   ├── edit-projet
+    │   │   │   │   ├── edit-projet.component.html
+    │   │   │   │   ├── edit-projet.component.scss
+    │   │   │   │   └── edit-projet.component.ts
+    │   │   │   ├── new-project
+    │   │   │   │   ├── new-project.component.html
+    │   │   │   │   ├── new-project.component.scss
+    │   │   │   │   └── new-project.component.ts
+    │   │   │   ├── project-configuration
+    │   │   │   │   ├── project-configuration.component.html
+    │   │   │   │   ├── project-configuration.component.scss
+    │   │   │   │   ├── project-configuration.component.spec.ts
+    │   │   │   │   ├── project-configuration.component.ts
+    │   │   │   │   ├── project-tag-configuration
+    │   │   │   │   │   ├── project-tag-configuration.component.html
+    │   │   │   │   │   ├── project-tag-configuration.component.scss
+    │   │   │   │   │   ├── project-tag-configuration.component.spec.ts
+    │   │   │   │   │   └── project-tag-configuration.component.ts
+    │   │   │   │   └── project-type-configuration
+    │   │   │   │       ├── project-type-configuration.component.html
+    │   │   │   │       ├── project-type-configuration.component.scss
+    │   │   │   │       ├── project-type-configuration.component.spec.ts
+    │   │   │   │       └── project-type-configuration.component.ts
+    │   │   │   ├── projet-routing.module.ts
+    │   │   │   ├── projet.component.html
+    │   │   │   ├── projet.component.scss
+    │   │   │   ├── projet.component.ts
+    │   │   │   └── projet.module.ts
+    │   │   ├── secteur
+    │   │   │   ├── details-secteur
+    │   │   │   │   ├── details-secteur.component.html
+    │   │   │   │   ├── details-secteur.component.scss
+    │   │   │   │   └── details-secteur.component.ts
+    │   │   │   ├── new-secteur
+    │   │   │   │   ├── new-secteur.component.html
+    │   │   │   │   ├── new-secteur.component.scss
+    │   │   │   │   └── new-secteur.component.ts
+    │   │   │   ├── secteur-routing.module.ts
+    │   │   │   ├── secteur.component.html
+    │   │   │   ├── secteur.component.scss
+    │   │   │   ├── secteur.component.ts
+    │   │   │   └── secteur.module.ts
+    │   │   ├── sondage
+    │   │   │   ├── details-sondage
+    │   │   │   │   ├── details-sondage.component.html
+    │   │   │   │   ├── details-sondage.component.scss
+    │   │   │   │   └── details-sondage.component.ts
+    │   │   │   ├── new-sondage
+    │   │   │   │   ├── new-sondage.component.html
+    │   │   │   │   ├── new-sondage.component.scss
+    │   │   │   │   └── new-sondage.component.ts
+    │   │   │   ├── section.component.html
+    │   │   │   ├── section.component.scss
+    │   │   │   ├── section.component.ts
+    │   │   │   ├── sondage-router.module.ts
+    │   │   │   └── sondage.module.ts
+    │   │   ├── statistics
+    │   │   │   ├── statistics-router.module.ts
+    │   │   │   ├── statistics.component.html
+    │   │   │   ├── statistics.component.scss
+    │   │   │   ├── statistics.component.spec.ts
+    │   │   │   ├── statistics.component.ts
+    │   │   │   └── statistics.module.ts
+    │   │   ├── stratigraphic-test
+    │   │   │   ├── stratigraphic-test-router.module.ts
+    │   │   │   ├── stratigraphic-test.component.html
+    │   │   │   ├── stratigraphic-test.component.scss
+    │   │   │   ├── stratigraphic-test.component.spec.ts
+    │   │   │   ├── stratigraphic-test.component.ts
+    │   │   │   └── stratigraphic-test.module.ts
+    │   │   ├── topo
+    │   │   │   ├── details-topo
+    │   │   │   │   ├── details-topo.component.html
+    │   │   │   │   ├── details-topo.component.scss
+    │   │   │   │   └── details-topo.component.ts
+    │   │   │   ├── new-topo
+    │   │   │   │   ├── new-topo.component.html
+    │   │   │   │   ├── new-topo.component.scss
+    │   │   │   │   └── new-topo.component.ts
+    │   │   │   ├── topo-router.module.ts
+    │   │   │   ├── topo.component.html
+    │   │   │   ├── topo.component.scss
+    │   │   │   ├── topo.component.ts
+    │   │   │   └── topo.module.ts
+    │   │   └── us
+    │   │       ├── details-us
+    │   │       │   ├── details-us.component.html
+    │   │       │   ├── details-us.component.scss
+    │   │       │   └── details-us.component.ts
+    │   │       ├── new-us
+    │   │       │   ├── new-us.component.html
+    │   │       │   ├── new-us.component.scss
+    │   │       │   └── new-us.component.ts
+    │   │       ├── us-router.module.ts
+    │   │       ├── us.component.html
+    │   │       ├── us.component.scss
+    │   │       ├── us.component.ts
+    │   │       └── us.module.ts
+    │   ├── pipe
+    │   │   ├── api-secteur.pipe.ts
+    │   │   ├── api-sondage.pipe.ts
+    │   │   ├── api-us.pipe.ts
+    │   │   ├── api-user.pipe.ts
+    │   │   ├── castor-tag.pipe.ts
+    │   │   ├── contenant-contenu.pipe.ts
+    │   │   ├── dimension-pipe.pipe.ts
+    │   │   ├── filter
+    │   │   │   ├── filter.pipe.spec.ts
+    │   │   │   └── filter.pipe.ts
+    │   │   ├── filterById
+    │   │   │   ├── filter-by-id.pipe.spec.ts
+    │   │   │   └── filter-by-id.pipe.ts
+    │   │   ├── filterByIdEns
+    │   │   │   ├── filter-by-id-ens.pipe.spec.ts
+    │   │   │   └── filter-by-id-ens.pipe.ts
+    │   │   ├── filterBySondageId
+    │   │   │   ├── filter-by-sondage-id.pipe.spec.ts
+    │   │   │   └── filter-by-sondage-id.pipe.ts
+    │   │   ├── filterByUniteAndMinuteId
+    │   │   │   ├── filter-by-unite-and-minute-id.pipe.spec.ts
+    │   │   │   └── filter-by-unite-and-minute-id.pipe.ts
+    │   │   ├── filterByUniteAndSondageId
+    │   │   │   ├── filter-by-unite-and-sondage-id.pipe.spec.ts
+    │   │   │   └── filter-by-unite-and-sondage-id.pipe.ts
+    │   │   ├── filterByUniteId
+    │   │   │   ├── filter-by-unite-id.pipe.spec.ts
+    │   │   │   └── filter-by-unite-id.pipe.ts
+    │   │   ├── filterIdentif
+    │   │   │   ├── filter-identif.pipe.spec.ts
+    │   │   │   └── filter-identif.pipe.ts
+    │   │   ├── filterLink
+    │   │   │   ├── filter-link.pipe.spec.ts
+    │   │   │   └── filter-link.pipe.ts
+    │   │   ├── getFaitsBySecteur
+    │   │   │   ├── get-faits-by-secteur.pipe.spec.ts
+    │   │   │   └── get-faits-by-secteur.pipe.ts
+    │   │   ├── length
+    │   │   │   ├── length.pipe.spec.ts
+    │   │   │   └── length.pipe.ts
+    │   │   ├── pipes.module.ts
+    │   │   ├── search
+    │   │   │   ├── search.pipe.spec.ts
+    │   │   │   └── search.pipe.ts
+    │   │   ├── sector-synthese.pipe.ts
+    │   │   ├── sort
+    │   │   │   ├── sort.pipe.spec.ts
+    │   │   │   └── sort.pipe.ts
+    │   │   ├── sort-by1-field
+    │   │   │   ├── sort-by1-field.pipe.spec.ts
+    │   │   │   └── sort-by1-field.pipe.ts
+    │   │   ├── sort-by2-fields
+    │   │   │   ├── sort-by2-fields.pipe.spec.ts
+    │   │   │   └── sort-by2-fields.pipe.ts
+    │   │   ├── startsWith
+    │   │   │   ├── starts-with.pipe.spec.ts
+    │   │   │   └── starts-with.pipe.ts
+    │   │   └── truncate.pipe.ts
+    │   ├── RootDataClass.ts
+    │   ├── services
+    │   │   ├── castor
+    │   │   │   ├── projet.service.ts
+    │   │   │   └── stats-project.service.ts
+    │   │   ├── castor-authorization-service.service.spec.ts
+    │   │   ├── castor-authorization-service.service.ts
+    │   │   ├── castor-list-download-helper.service.ts
+    │   │   ├── castor-object-context.service.ts
+    │   │   ├── castor-sync.service.ts
+    │   │   ├── castor-utilities.service.ts
+    │   │   ├── castor-validation.service.spec.ts
+    │   │   ├── castor-validation.service.ts
+    │   │   ├── configuration.service.ts
+    │   │   ├── confirmation.service.ts
+    │   │   ├── file.service.ts
+    │   │   ├── modal.service.ts
+    │   │   ├── navigator.service.ts
+    │   │   ├── toast.service.ts
+    │   │   ├── user.service.ts
+    │   │   ├── worker.service.ts
+    │   │   ├── workers
+    │   │   │   └── strati-validation.worker.ts
+    │   │   ├── zone-sync.service.ts
+    │   │   └── __tests__
+    │   │       └── stratigraphie-validator.spec.ts
+    │   └── util
+    │       ├── castor-object-cast.ts
+    │       ├── castor-object-color-schemes.ts
+    │       ├── CastorDimension.ts
+    │       ├── cator-object-order.ts
+    │       ├── csv-builder.ts
+    │       ├── dev.ts
+    │       ├── network-manager.ts
+    │       ├── sort.ts
+    │       ├── storage-utilities.ts
+    │       ├── ui.ts
+    │       ├── utilitysingletons
+    │       │   └── activity-manager.ts
+    │       └── utils.ts
+    ├── assets
+    │   ├── castorIcons
+    │   │   ├── add-icon.svg
+    │   │   ├── add-link-icon.svg
+    │   │   ├── add-new-icon.svg
+    │   │   ├── add-new-link-icon.svg
+    │   │   ├── calculator-icon.svg
+    │   │   ├── calculator.svg
+    │   │   ├── cancel-icon.svg
+    │   │   ├── castor-logo-icon.svg
+    │   │   ├── chevron-back.svg
+    │   │   ├── chevron-forward.svg
+    │   │   ├── close-outline.svg
+    │   │   ├── contenant-icon.svg
+    │   │   ├── dashboard-icon.svg
+    │   │   ├── download-file.svg
+    │   │   ├── ensemble-icon.svg
+    │   │   ├── espace-icon.svg
+    │   │   ├── exit-icon.svg
+    │   │   ├── eye-icon.svg
+    │   │   ├── fait-icon.svg
+    │   │   ├── gears-icon.svg
+    │   │   ├── minute-icon.svg
+    │   │   ├── mobilier-icon.svg
+    │   │   ├── photo-icon.svg
+    │   │   ├── prelevement-icon.svg
+    │   │   ├── sector-icon.svg
+    │   │   ├── sondage-icon.svg
+    │   │   ├── topo-icon.svg
+    │   │   ├── us-icon.svg
+    │   │   └── valid-icon.svg
+    │   ├── icons
+    │   │   ├── icon-128x128.png
+    │   │   ├── icon-144x144.png
+    │   │   ├── icon-152x152.png
+    │   │   ├── icon-192x192.png
+    │   │   ├── icon-384x384.png
+    │   │   ├── icon-512x512.png
+    │   │   ├── icon-72x72.png
+    │   │   └── icon-96x96.png
+    │   ├── icons V2
+    │   │   ├── android-icon-144x144.png
+    │   │   ├── android-icon-192x192.png
+    │   │   ├── android-icon-256x256.png
+    │   │   ├── android-icon-36x36.png
+    │   │   ├── android-icon-48x48.png
+    │   │   ├── android-icon-512x512.png
+    │   │   ├── android-icon-72x72.png
+    │   │   ├── android-icon-96x96.png
+    │   │   ├── apple-icon-114x114.png
+    │   │   ├── apple-icon-120x120.png
+    │   │   ├── apple-icon-144x144.png
+    │   │   ├── apple-icon-152x152.png
+    │   │   ├── apple-icon-180x180.png
+    │   │   ├── apple-icon-57x57.png
+    │   │   ├── apple-icon-60x60.png
+    │   │   ├── apple-icon-72x72.png
+    │   │   ├── apple-icon-76x76.png
+    │   │   ├── apple-icon-precomposed.png
+    │   │   ├── apple-icon.png
+    │   │   ├── browserconfig.xml
+    │   │   ├── favicon-16x16.png
+    │   │   ├── favicon-32x32.png
+    │   │   ├── favicon-96x96.png
+    │   │   ├── favicon.ico
+    │   │   ├── manifest.json
+    │   │   ├── ms-icon-144x144.png
+    │   │   ├── ms-icon-150x150.png
+    │   │   ├── ms-icon-310x310.png
+    │   │   └── ms-icon-70x70.png
+    │   └── images
+    │       ├── 9HP_Logo.png
+    │       ├── archeo.jpg
+    │       ├── archeo.webp
+    │       ├── image_plan_profile
+    │       │   ├── plan_circulaire.png
+    │       │   ├── plan_ovalaire.png
+    │       │   ├── plan_ovoide.png
+    │       │   ├── plan_polylobe.png
+    │       │   ├── plan_rectangulaire.png
+    │       │   ├── profil_auge.png
+    │       │   ├── profil_bouteille.png
+    │       │   ├── profil_cuvette.png
+    │       │   ├── profil_piriforme.png
+    │       │   ├── profil_U.png
+    │       │   └── profil_V.png
+    │       └── image_type
+    │           ├── densite_faible.png
+    │           ├── densite_forte.png
+    │           ├── densite_moyenne.png
+    │           └── imageNotFound.jpg
+    ├── environments
+    │   ├── environment.prod.ts
+    │   └── environment.ts
+    ├── favicon.ico
+    ├── index.html
+    ├── lib
+    │   └── w-core
+    │       ├── core.module.ts
+    │       ├── CoreDataStore
+    │       │   ├── core-service-object.ts
+    │       │   ├── data-store.ts
+    │       │   ├── oxy-core-behaviour-subject.ts
+    │       │   └── w-core-config.ts
+    │       ├── CoreDecorators
+    │       │   └── worker-data-class.ts
+    │       ├── CoreNetworkingTools
+    │       │   ├── Network.ts
+    │       │   ├── rest-api.ts
+    │       │   └── socket-buffer.ts
+    │       ├── CoreServices
+    │       │   ├── abstract.service.ts
+    │       │   ├── w-core.service.ts
+    │       │   └── worker.service.ts
+    │       ├── system-actions.ts
+    │       └── utils
+    │           ├── logger.ts
+    │           └── w-utils.ts
+    ├── main.ts
+    ├── manifest.webmanifest
+    ├── polyfills.ts
+    ├── service-worker.js
+    ├── spinner.scss
+    ├── styles.scss
+    ├── test.ts
+    └── theme
+        └── variables.scss

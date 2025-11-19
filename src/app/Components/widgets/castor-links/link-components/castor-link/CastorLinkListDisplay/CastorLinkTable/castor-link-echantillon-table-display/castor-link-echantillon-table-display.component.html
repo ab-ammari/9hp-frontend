@@ -1,0 +1,18 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <th *ngIf="this.echantillons[0]?.info?.obj_table === ApiDbTable.echantillon_mobilier" scope="col">Materiau</th>
+    <th *ngIf="this.echantillons[0]?.info?.obj_table === ApiDbTable.echantillon_prelevement" scope="col">Nature</th>
+    <th scope="col">Remarques</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let echantillon of this.echantillons">
+    <th scope="row">{{echantillon.item.tag}}</th>
+    <td *ngIf="echantillon.info?.obj_table === ApiDbTable.echantillon_mobilier">{{echantillon?.item['type_materiaux_uuid'] }}</td>
+    <td *ngIf="echantillon.info?.obj_table === ApiDbTable.echantillon_prelevement">{{echantillon?.item['type_nature_uuid'] }}</td>
+    <td>{{echantillon.item?.echantillon_description}}</td>
+  </tr>
+  </tbody>
+</table>

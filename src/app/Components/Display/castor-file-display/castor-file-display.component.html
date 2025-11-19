@@ -1,0 +1,52 @@
+
+<ion-img
+  *ngIf="url && view === 'full'"
+  [alt]="file_uuid"
+  [src]="url"
+  (click)="openModal($event)"
+  [ngStyle]="{
+  'height': this.height,
+  'width': this.width
+    }"
+></ion-img>
+
+
+<ion-item *ngIf="view === 'thumbnail' && download_button; else NoDownload" [lines]="'none'" class="transparent-item">
+  <ion-thumbnail
+    (click)="openModal($event)"
+    [slot]="'start'">
+    <ion-img
+      class="downloadable-image"
+      *ngIf="url"
+      [alt]="file_uuid"
+      [src]="url"
+    ></ion-img>
+  </ion-thumbnail>
+  <ion-button
+    *ngIf="this.file"
+    click-stop-propagation
+    (click)="download(this.file.file, ((this.tag ?? this.file.file_uuid) + '.jpeg'), 'image/jpeg')"
+    slot="end">
+    <ion-icon name="download"></ion-icon>
+  </ion-button>
+</ion-item>
+
+<ng-template #NoDownload>
+  <ion-thumbnail
+    [slot]="'start'"
+    (click)="openModal($event)"
+    *ngIf="view === 'thumbnail'"
+  >
+    <ion-img
+      class="downloadable-image"
+      *ngIf="url"
+      [alt]="file_uuid"
+      [src]="url"
+    ></ion-img>
+  </ion-thumbnail>
+</ng-template>
+
+
+
+
+

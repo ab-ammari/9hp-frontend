@@ -1,0 +1,17 @@
+.buttons-style {
+  background: var(--castor-main-color, #1B2A3A);
+}
+
+.tab-header {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

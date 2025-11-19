@@ -1,0 +1,93 @@
+.nav {
+  .active-link {
+    background-color: #fafafa;
+    border-left: solid 3px var(--castor-main-color);
+  }
+
+  .hover {
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition-property: transform, border, background-color;
+  }
+
+  mat-list-item,
+  .item-profile {
+      cursor: default !important;
+  }
+
+  mat-list-item,
+  .item-profile:hover {
+    background: transparent;
+    border-left: none !important;
+  }
+
+  mat-list-item,
+  a {
+    border: none;
+    box-sizing: border-box;
+    text-decoration: none;
+    &:hover {
+      cursor: pointer;
+      background-color: #fafafa;
+      border-left: solid 3px var(--castor-main-color);
+    }
+  }
+  mat-icon {
+    color: var(--castor-main-color);
+    border-radius: 0;
+  }
+  .wip-menu {
+    color: darkred;
+  }
+  .mat-line {
+    font-size: 14px;
+  }
+  mat-divider {
+    width: 90%;
+  }
+}
+
+.mat-drawer-content {
+  background: white;
+}
+
+.box {
+  display: flex;
+  flex-flow: column;
+  height: 100%;
+}
+
+.box .box-header {
+  flex: 0 1 auto;
+  /* The above is shorthand for:
+  flex-grow: 0,
+  flex-shrink: 1,
+  flex-basis: auto
+  */
+}
+
+.box .box-content {
+  flex: 1 1 auto;
+}
+
+.svg-custom-style {
+  font-size: 0 !important;
+  padding: 0 !important;
+}
+
+.menu-icon {
+  color: #475B75;
+}
+
+.text-clignote  {
+  animation-duration: .8s;
+  animation-name: clignoter;
+  animation-iteration-count: infinite;
+  transition: none;
+}
+
+@keyframes clignoter {
+  0%   { opacity:1; }
+  40%   {opacity:0; }
+  100% { opacity:1; }
+}

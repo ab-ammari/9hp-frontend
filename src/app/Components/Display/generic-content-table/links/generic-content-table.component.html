@@ -1,0 +1,54 @@
+<table class="table table-striped table-borderless">
+  <thead class="fixed-table-header">
+  <tr>
+    <th *ngFor="let header of generic_table.headers">{{header.label}}</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let item of generic_table.value_list; let index = index">
+    <td *ngFor="let column of generic_table.headers"
+        [ngClass]="{'tag-label' : (column.format === 'tag')}"
+        [ngStyle]="{'background-color': column?.color ? column?.color(generic_table.link_list.list[index][(column.origin.toString())].item) : '',
+         'vertical-align' : 'middle'}">
+      <ng-container [ngSwitch]="column.format">
+        <ng-container *ngSwitchCase="'tag'">
+          <app-castor-tag-display
+            [infoBulle]="true"
+            [mainTag]="true"
+            [object]="generic_table.link_list.list[index][(column.origin.toString())].item"
+          ></app-castor-tag-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'image'">
+          <app-castor-file-display *ngIf="generic_table.link_list.list[index][(column.origin.toString())].item"
+            [view]="'thumbnail'"
+            [file_uuid]="generic_table.link_list.list[index][(column.origin.toString())].item[column.key]"
+            [tag]="generic_table.link_list.list[index][(column.origin.toString())].item['tag']"
+          ></app-castor-file-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'otherTag'">
+          <app-castor-tag-display
+            [infoBulle]="true"
+            [description]="{table: column?.otherTagTable, uuid: item.get(column.key)?.toString()}"
+          ></app-castor-tag-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'date'">
+          {{item.get(column.key)?.toString()  | date:'short'}}
+        </ng-container>
+        <ng-container *ngSwitchCase="'type'">
+          <app-castor-type-display
+            [type]="item.get(column.key)?.toString()"
+            [display_label]="true"
+            [display_prefix]=" true"
+          ></app-castor-type-display>
+        </ng-container>
+        <ng-container *ngSwitchCase="'EditRelation'">
+          <app-castor-generic-link-edit-button
+              [triplet]="item.get(column.key)"
+          ></app-castor-generic-link-edit-button>
+        </ng-container>
+        <ng-container *ngSwitchDefault>{{item.get(column.key)}}</ng-container>
+      </ng-container>
+    </td>
+  </tr>
+  </tbody>
+</table>

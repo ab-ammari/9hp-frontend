@@ -1,0 +1,300 @@
+.stratigraphic-diagram-page {
+  padding: 16px;
+  background-color: var(--ion-background-color, #f5f5f5);
+
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+// En-tête
+.header-section {
+  margin-bottom: 16px;
+
+  .action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .error-message {
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+}
+
+// Statistiques
+.stats-container {
+  margin-top: 20px;
+  padding: 16px;
+  background-color: var(--ion-color-light);
+  border-radius: 8px;
+
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    color: var(--castor-main-color, #1B2A3A);
+  }
+
+  .stat-card {
+    text-align: center;
+    padding: 12px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--ion-color-primary);
+      line-height: 1;
+    }
+
+    .stat-label {
+      margin-top: 4px;
+      font-size: 0.85rem;
+      color: var(--ion-color-medium);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  }
+}
+
+// Configuration
+.config-section {
+  margin-bottom: 16px;
+
+  ion-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  ion-chip {
+    margin-top: 12px;
+  }
+}
+
+// Diagramme
+.diagram-section {
+  margin-bottom: 16px;
+}
+
+.diagram-card {
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  ion-card-header {
+    position: relative;
+    padding-bottom: 8px;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 4px;
+    background: white;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+
+    ion-button {
+      margin: 0;
+      height: 32px;
+      width: 32px;
+      --padding-start: 0;
+      --padding-end: 0;
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+.diagram-content {
+  padding: 0;
+  position: relative;
+}
+
+.diagram-container {
+  width: 100%;
+  min-height: 500px;
+  max-height: 800px;
+  overflow: hidden;
+  background-color: #ffffff;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 4px;
+  position: relative;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  // Styles pour le SVG Mermaid
+  ::ng-deep svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  // Personnalisation des nœuds Mermaid
+  ::ng-deep {
+    .node {
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        filter: brightness(1.1);
+      }
+    }
+
+    // Flèches des relations
+    .edgePath {
+      .path {
+        stroke-width: 2px;
+        fill: none;
+      }
+    }
+
+    // Labels
+    .edgeLabel {
+      background-color: white;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.diagram-instructions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  background-color: var(--ion-color-light);
+  border-top: 1px solid var(--ion-color-light-shade);
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+
+  ion-icon {
+    font-size: 1.2rem;
+  }
+}
+
+// État vide
+.empty-state {
+  margin-top: 40px;
+
+  .empty-icon {
+    font-size: 80px;
+    color: var(--ion-color-medium);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin: 16px 0 8px 0;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+// Overlay de chargement
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+
+  ion-spinner {
+    color: white;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: white;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .stratigraphic-diagram-page {
+    padding: 8px;
+  }
+
+  .header-section .action-buttons {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-container {
+    .stat-card {
+      .stat-value {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .diagram-container {
+    min-height: 400px;
+    max-height: 600px;
+  }
+
+  .zoom-controls {
+    top: 8px !important;
+    right: 8px !important;
+
+    ion-button {
+      height: 28px !important;
+      width: 28px !important;
+
+      ion-icon {
+        font-size: 18px !important;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.diagram-section {
+  animation: fadeIn 0.4s ease;
+}
+
+// Accessibilité
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

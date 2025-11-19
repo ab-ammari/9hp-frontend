@@ -1,0 +1,8 @@
+<ion-row *ngIf="this.us" class="h-100">
+  <ion-col size="auto" class="my-auto tag-label" [ngStyle]="{'background-color' : this.labelBackgroundColor ?? '#E7411B'}">
+    <app-castor-tag-display [object]="this.us"></app-castor-tag-display>
+  </ion-col>
+  <ion-col>
+    <ion-label>{{ this.info.label ?? '- - - -' | uppercase}} </ion-label>
+  </ion-col>
+</ion-row>

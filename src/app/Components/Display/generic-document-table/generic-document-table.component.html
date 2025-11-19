@@ -1,0 +1,27 @@
+
+
+
+<cdk-virtual-scroll-viewport [itemSize]="300 + 48" minBufferPx="900" maxBufferPx="1350" >
+
+  <table>
+    <tbody>
+    <tr *cdkVirtualFor="let item of this.filtered_items" >
+      <td style="text-align: left">
+        <app-castor-file-display
+          [height]="'300px'"
+          [file_uuid]="asDocument(item.item).document_file_uuid"
+          [view]="'full'"
+        ></app-castor-file-display>
+        <ion-list>
+          <ion-item lines="none">
+            <app-castor-tag-display
+              [object]="item.item"
+            ></app-castor-tag-display>
+            <ion-label [slot]="'end'">{{asDocument(item.item).document_name}}</ion-label>
+          </ion-item>
+        </ion-list>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</cdk-virtual-scroll-viewport>

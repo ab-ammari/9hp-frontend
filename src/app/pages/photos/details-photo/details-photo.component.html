@@ -1,0 +1,31 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.document.selected"
+      [labelBackgroundColor]="getPhotoColors(this.docPhoto)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.document.selected?.item else noSelectedPhoto"
+                        [object]="this.w.data().objects.document.selected"
+                        >
+
+        <app-photo-form [document]="this.w.data().objects.document.selected.item"
+
+                        ></app-photo-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+
+
+<ng-template #noSelectedPhoto>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucune photo selectionnée</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

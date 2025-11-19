@@ -1,0 +1,26 @@
+<app-split-pane-menu *ngIf="this.w.data().projet.selected.item?.projet_uuid; else noProject">
+  <ion-content>
+    <div id="main-container">
+      <header>
+        <!-- Header Commune/Lieu dit of Project -->
+        <app-headband-town-display></app-headband-town-display>
+
+        <!-- Navigation par onglets - uniquement visible sur les pages de tableau de bord -->
+        <app-headband-tabs-nav
+          *ngIf="isOnDashboardPage"
+          [tabs]="dashboardTabs"
+        ></app-headband-tabs-nav>
+      </header>
+      <main>
+        <section>
+          <router-outlet></router-outlet>
+        </section>
+      </main>
+    </div>
+  </ion-content>
+</app-split-pane-menu>
+
+
+<ng-template #noProject>
+  No Project
+</ng-template>

@@ -1,0 +1,29 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.secteur.selected"
+      [labelBackgroundColor]="getSectorColors(this.w.data().objects.secteur.selected.item, utils)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links [object]="this.w.data().objects.secteur.selected"
+                        *ngIf="this.w.data().objects.secteur.selected?.item else noSelectedSector">
+
+        <app-secteur-form
+          [secteur]="this.w.data().objects.secteur.selected?.item"
+        ></app-secteur-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+
+<ng-template #noSelectedSector>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun secteur selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

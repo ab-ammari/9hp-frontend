@@ -1,0 +1,82 @@
+<div id="container">
+  <header>
+    <ion-header class="toolbar-style">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-buttons slot="start">
+            <ion-back-button defaultHref="home"></ion-back-button>
+          </ion-buttons>
+        </ion-buttons>
+        <ion-title class="text-center">
+          Configurer le profil
+        </ion-title>
+      </ion-toolbar>
+    </ion-header>
+  </header>
+  <main>
+    <section>
+      <div *ngIf="this.user">
+
+        <ion-grid>
+          <ion-row *ngIf="this.user?.user_picture" class="ion-justify-content-center">
+            <ion-col size="auto">
+              <img
+                [ngSrc]="this.user?.user_picture"
+                alt="User's profile picture"
+                class="rounded-circle img-fluid profile-picture" [height]="150" [width]="150"/>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="6">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">
+                  Prénom
+                  <app-check-sync-icon
+                    [test]="this.user.user_first_name === this.w.data().user.user_first_name"></app-check-sync-icon>
+                </ion-label>
+                <ion-input [(ngModel)]="this.user.user_first_name">
+                </ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="6">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Nom
+                  <app-check-sync-icon
+                    [test]="this.user.user_last_name === this.w.data().user.user_last_name"></app-check-sync-icon>
+                </ion-label>
+                <ion-input [(ngModel)]="this.user.user_last_name"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="6">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Email
+                  <app-check-sync-icon
+                    [test]="this.user.user_email === this.w.data().user.user_email"></app-check-sync-icon>
+                </ion-label>
+                <ion-input [(ngModel)]="this.user.user_email"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="6">
+              <ion-item lines="full">
+                <ion-label position="floating" class="label-placeholder">Téléphone
+                  <app-check-sync-icon
+                    [test]="this.user.user_phone === this.w.data().user.user_phone"></app-check-sync-icon>
+                </ion-label>
+                <ion-input type="number" [(ngModel)]="this.user.user_phone"></ion-input>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+          <ion-row class="justify-content-center">
+            <ion-col size="auto">
+              <ion-button
+                (click)="this.saveProfile()">Sauvegarder
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </section>
+  </main>
+</div>

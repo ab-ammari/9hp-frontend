@@ -1,0 +1,38 @@
+<ion-accordion value="appareil">
+  <ion-item slot="header">
+    <ion-label>Appareil</ion-label>
+  </ion-item>
+
+  <ion-row slot="content">
+    <ion-col size="12" class="background-form-color">
+      <ion-row>
+        <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Structure appareil'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_STRUCTURE_APPAREIL"
+              [(value)]="this.us.us_structure_appareil"
+              [enableClearValue]="true"
+            ></app-castor-type-selector>
+        </ion-col>
+        <ng-container *ngIf="!this.isNoAppareil()">
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Type appareil'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_TYPE_APPAREIL"
+              [(value)]="this.us.us_type_appareil"
+              [enableClearValue]="true"
+            ></app-castor-type-selector>
+          </ion-col>
+          <ion-col size="12">
+            <app-castor-type-selector
+              [title]="'Module appareil'"
+              [category]="ApiTypeCategory.US_CONSTRUITE_MODULE_APPAREIL"
+              [(value)]="this.us.us_module_appareil"
+              [enableClearValue]="true"
+            ></app-castor-type-selector>
+          </ion-col>
+        </ng-container>
+      </ion-row>
+    </ion-col>
+  </ion-row>
+</ion-accordion>

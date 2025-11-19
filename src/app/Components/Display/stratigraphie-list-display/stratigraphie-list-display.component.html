@@ -1,0 +1,152 @@
+<mat-card class="card-list hide-scrollbar">
+  <!-- Barre de contrôle de validation (visible seulement en mode manuel) -->
+  <ion-toolbar *ngIf="this.relationStratiList?.length > 0 && showValidationControls">
+    <ion-row class="ion-align-items-center">
+      <ion-col size="auto">
+        <ion-buttons>
+          <ion-button
+            *ngIf="!isValidating"
+            (click)="validateList()"
+            fill="solid"
+            size="small"
+            color="primary">
+            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+            Valider
+          </ion-button>
+          <ion-button
+            *ngIf="isValidating"
+            (click)="cancelValidation()"
+            fill="solid"
+            color="danger"
+            size="small">
+            <ion-icon slot="start" name="close-circle-outline"></ion-icon>
+            Annuler
+          </ion-button>
+        </ion-buttons>
+      </ion-col>
+      <ion-col *ngIf="!isValidating">
+        <ion-text color="medium" style="font-size: 0.875rem;">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Cliquez sur "Valider" pour détecter les paradoxes stratigraphiques
+        </ion-text>
+      </ion-col>
+      <ion-col *ngIf="validationProgress">
+        <ion-text color="primary" style="font-size: 0.875rem; font-weight: 500;">
+          Validation : {{validationProgress.current}} / {{validationProgress.total}}
+        </ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+
+  <table class="table" *ngIf="this.relationStratiList?.length > 0">
+    <tbody>
+    <ng-container *ngFor="let stratiRelation of this.relationStratiList; let index = index">
+      <ng-container *ngIf="stratiRelation.live">
+        <tr [ngStyle]="{'background-color': stratiRelation.backgroundColor}">
+          <th scope="row" class="type-strati-box">
+            <div class="border-right">
+              <!--<span [title]="stratiRelation.warningLabel" *ngIf="stratiRelation.warningLabel">
+                <ion-icon
+                  style="pointer-events:none"
+                  color="danger"
+                  name="warning-outline">
+                </ion-icon>
+              </span>-->
+
+              <ng-container *ngIf="stratiRelation.paradoxWarningLabel">
+                <span [title]="stratiRelation.paradoxWarningLabel" *ngIf="stratiRelation.paradoxType === 'containment'">
+                  <ion-icon style="pointer-events:none" color="danger" name="cube-outline"></ion-icon>
+                </span>
+                <span [title]="stratiRelation.paradoxWarningLabel" *ngIf="stratiRelation.paradoxType === 'consistency'">
+                  <ion-icon style="pointer-events:none" color="danger" name="git-compare-outline"></ion-icon>
+                </span>
+                <span [title]="stratiRelation.paradoxWarningLabel" *ngIf="stratiRelation.paradoxType === 'temporal'">
+                  <ion-icon style="pointer-events:none" color="danger" name="time-outline"></ion-icon>
+                </span>
+                <span [title]="stratiRelation.paradoxWarningLabel" *ngIf="stratiRelation.paradoxType === 'cycle'">
+                  <ion-icon style="pointer-events:none" color="danger" name="sync-outline"></ion-icon>
+                </span>
+                <!-- Icône par défaut si le type n'est pas reconnu -->
+                <span [title]="stratiRelation.paradoxWarningLabel" *ngIf="!stratiRelation.paradoxType || !['containment', 'consistency', 'temporal', 'cycle'].includes(stratiRelation.paradoxType)">
+                  <ion-icon style="pointer-events:none" color="danger" name="alert-circle-outline"></ion-icon>
+                </span>
+              </ng-container>
+
+            </div>
+
+            <app-castor-type-display
+              [type]="stratiRelation.strati_type_uuid"
+              [display_prefix]="false"></app-castor-type-display>
+
+          </th>
+          <td >
+            <ng-container [ngSwitch]="this.stratiRelationType">
+              <ng-container *ngSwitchCase="'anterieur'">
+                <app-castor-tag-display *ngIf="stratiRelation.fait_anterieur"
+                                        [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_anterieur}"
+                                        [infoBulle]="true"
+                ></app-castor-tag-display>
+                <app-castor-tag-display *ngIf="stratiRelation.us_anterieur"
+                                        [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_anterieur}"
+                                        [infoBulle]="true"
+                ></app-castor-tag-display>
+              </ng-container>
+              <ng-container *ngSwitchCase="'contemporain'">
+                <ng-container *ngIf="this.us_ref">
+                  <ng-container *ngIf="this.us_ref.us_uuid === stratiRelation.us_anterieur">
+                    <app-castor-tag-display *ngIf="stratiRelation.us_posterieur"  [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_posterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                    <app-castor-tag-display *ngIf="stratiRelation.fait_posterieur"  [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_posterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                  </ng-container>
+                  <ng-container *ngIf="this.us_ref.us_uuid === stratiRelation.us_posterieur">
+                    <app-castor-tag-display *ngIf="stratiRelation.us_anterieur"  [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_anterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                    <app-castor-tag-display *ngIf="stratiRelation.fait_anterieur"  [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_anterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                  </ng-container>
+
+                </ng-container>
+                <ng-container *ngIf="this.fait_ref">
+                  <ng-container *ngIf="this.fait_ref.fait_uuid === stratiRelation.fait_anterieur">
+                    <app-castor-tag-display *ngIf="stratiRelation.fait_posterieur"
+                            [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_posterieur}"
+                                            [infoBulle]="true"
+                    ></app-castor-tag-display>
+                    <app-castor-tag-display *ngIf="stratiRelation.us_posterieur"  [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_posterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                  </ng-container>
+                  <ng-container *ngIf="this.fait_ref.fait_uuid === stratiRelation.fait_posterieur">
+                    <app-castor-tag-display *ngIf="stratiRelation.fait_anterieur"  [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_anterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                    <app-castor-tag-display *ngIf="stratiRelation.us_anterieur"  [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_anterieur}"
+                                            [infoBulle]="true"></app-castor-tag-display>
+                  </ng-container>
+
+                </ng-container>
+              </ng-container>
+              <ng-container *ngSwitchCase="'posterieur'">
+                <app-castor-tag-display *ngIf="stratiRelation.fait_posterieur"
+                                        [description]="{table: ApiDbTable.fait, uuid: stratiRelation.fait_posterieur}"
+                                        [infoBulle]="true"
+                ></app-castor-tag-display>
+                <app-castor-tag-display *ngIf="stratiRelation.us_posterieur"
+                                        [description]="{table: ApiDbTable.us, uuid: stratiRelation.us_posterieur}"
+                                        [infoBulle]="true"
+                ></app-castor-tag-display>
+              </ng-container>
+            </ng-container>
+          </td>
+          <td class="text-end align-middle">
+            <mat-icon *ngIf="canDeleteRelation(stratiRelation)"
+                      (click)="this.deleteRelation(stratiRelation)"
+                      svgIcon="castorCloseOutline"
+                      style="width: 25px; height: 25px"></mat-icon>
+          </td>
+        </tr>
+      </ng-container>
+
+    </ng-container>
+    </tbody>
+  </table>
+</mat-card>

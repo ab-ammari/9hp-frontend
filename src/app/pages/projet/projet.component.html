@@ -1,0 +1,64 @@
+<div id="container">
+  <header>
+    <ion-header class="toolbar-style">
+      <ion-toolbar>
+        <ion-buttons slot="start">
+          <ion-buttons slot="start">
+            <ion-back-button defaultHref="home"></ion-back-button>
+          </ion-buttons>
+        </ion-buttons>
+        <ion-button (click)="this.showSyncStats()" [fill]="'clear'" [color]="'light'">
+        <ion-title class="text-center" >
+              Mes projets <ion-icon name="skull-outline" [color]="'danger'" *ngIf="this.w.data().archive.errored"></ion-icon><ion-icon name="time-outline" [color]="'warning'" *ngIf="this.w.data().archive.locked"></ion-icon>
+          </ion-title>
+          <ion-progress-bar [type]="'indeterminate'" *ngIf="w.data().objectsToFetch.length || w.data().archive.pending"></ion-progress-bar>
+        </ion-button>
+        <ion-note slot="end" *ngIf="this.w.hasActionPending(DataActions.RETRIEVE_OBJECTS)">Téléchargement...</ion-note>
+        <ion-note slot="end" *ngIf="this.w.hasActionPending(DataActions.RETRIEVE_PROJET_INDEX)">Validation des index...</ion-note>
+        <ion-note slot="end" *ngIf="this.w.hasActionPending(DataActions.SYNC_OBJECT)">Envoi...</ion-note>
+        <ion-note slot="end" *ngIf="this.w.data().archive?.total > 0 || this.w.data().objectsToFetch?.length > 0">
+          ({{this.w.data().objectsToFetch?.length}}<->{{this.w.data().archive?.total}})
+        </ion-note>
+        <ion-buttons slot="end">
+          <ion-button  [fill]="'clear'"
+                       *ngIf="this.w.data().objectsToFetch?.length === 0 && this.w.data().archive?.total === 0 && !this.w.hasAnyOfPending([DataActions.RETRIEVE_OBJECTS, DataActions.RETRIEVE_PROJET_INDEX, DataActions.SYNC_OBJECT]); else loading"
+                       (click)="this.checkIndex()">
+            <ion-label >Vérifier l'index</ion-label>
+          </ion-button>
+
+          <ion-button [fill]="'clear'" (click)="this.onNewProject()">
+            <mat-icon svgIcon="castorAddNewIcon" class="material-icon-custom-size-create"></mat-icon>
+          </ion-button>
+        </ion-buttons>
+
+      </ion-toolbar>
+    </ion-header>
+  </header>
+  <main  >
+    <section >
+      <ion-row class="ion-justify-content-center" >
+        <ng-container *ngIf="this.w.data().projet.isReady; else loading">
+          <ng-container *ngIf="this.w.data()?.projet?.all && this.w.data()?.projet?.all?.list?.length > 0; else noProject">
+            <ng-container *ngFor="let project of this.w.data().projet.all.list">
+              <ion-col size="12" size-lg="3" size-md="6" *ngIf="project.item?.live">
+               <app-projet-display-card
+                  [project]="project"
+                ></app-projet-display-card>
+              </ion-col>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </ion-row>
+    </section>
+  </main>
+</div>
+
+<ng-template #noProject>
+  <ion-row>
+    <ion-col size="12" >
+      <h3 *ngIf="!this.isLoading" class="text-center">Vous n'avez pas encore de projet</h3>
+      <ion-progress-bar *ngIf="this.isLoading" type="indeterminate"></ion-progress-bar>
+    </ion-col>
+  </ion-row>
+</ng-template>
+<ng-template #loading><ion-spinner name="dots"></ion-spinner></ng-template>

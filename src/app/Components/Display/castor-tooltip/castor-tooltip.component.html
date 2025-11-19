@@ -1,0 +1,26 @@
+<ion-label
+  (mouseover)="buttonHasMouse.next(true)"
+  (mouseout)="buttonHasMouse.next(false)"
+  [id]="id"
+>
+  <ion-icon [name]="'help-circle-outline'" [icon]="'help-circle-outline'"></ion-icon>
+</ion-label>
+
+
+<ion-popover #tagPopover
+             [trigger]="id"
+             [showBackdrop]="false"
+             [side]="'top'"
+             [arrow]="true"
+             class="tooltip-popover"
+             *ngIf="popover">
+  <ng-template>
+    <ion-content
+      (mouseover)="contentHasMouse.next(true)"
+      (mouseout)="contentHasMouse.next(false)"
+    >
+      <ng-content></ng-content>
+    </ion-content>
+  </ng-template>
+</ion-popover>
+

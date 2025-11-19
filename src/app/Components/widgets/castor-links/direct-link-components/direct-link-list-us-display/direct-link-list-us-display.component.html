@@ -1,0 +1,24 @@
+<table class="table table-striped table-borderless" *ngIf="this.usList?.length > 0 else noUsLink">
+  <thead class="fixed-table-header">
+  <tr>
+    <th scope="col">Tag</th>
+    <th scope="col">Fait tag</th>
+    <th scope="col">Us type</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let us of this.usList">
+    <th scope="row">{{ us?.tag }}</th>
+    <td>{{us?.fait_uuid }}</td>
+    <td>{{us?.table}}</td>
+  </tr>
+  </tbody>
+</table>
+
+<ng-template #noUsLink>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Aucun lien d'US</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

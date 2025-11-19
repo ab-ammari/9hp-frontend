@@ -1,0 +1,16 @@
+<ion-row class="justify-content-center">
+  <ion-col size="auto">
+    <ion-button (click)="this.validCallBackBtn.emit($event)"
+                [disabled]="this.disableValidBtn"
+                [fill]="'clear'">
+      <mat-icon svgIcon="castorValidIcon" class="material-icon-custom-size"></mat-icon>
+    </ion-button>
+  </ion-col>
+  <ion-col size="auto">
+    <ion-button (click)="onCancelClick($event)"
+                [disabled]="this.disableCancelBtn"
+                [fill]="'clear'">
+      <mat-icon svgIcon="castorCancelIcon" style="height: 35px; width: 35px"></mat-icon>
+    </ion-button>
+  </ion-col>
+</ion-row>

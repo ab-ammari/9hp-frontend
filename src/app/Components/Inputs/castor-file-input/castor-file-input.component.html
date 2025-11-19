@@ -1,0 +1,14 @@
+
+    <ion-item>
+      <ion-button slot="start" (click)="this.takeNewPhoto()">
+        <ion-icon slot="start" name="image-outline"></ion-icon>
+        <ion-label slot="end">Image</ion-label>
+      </ion-button>
+      <ion-thumbnail *ngIf="file_url">
+        <ion-img
+          [alt]="photoLabel"
+          [src]="file_url"
+        ></ion-img>
+      </ion-thumbnail>
+    </ion-item>
+

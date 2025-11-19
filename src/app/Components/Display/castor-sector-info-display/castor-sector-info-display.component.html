@@ -1,0 +1,6 @@
+<ng-container *ngIf="this.secteur">
+  <ion-row *ngFor="let info of this.secteurInfo">
+    <ion-col size="auto">{{ info.label }} :</ion-col>
+    <ion-col>{{ info.value}}</ion-col>
+  </ion-row>
+</ng-container>

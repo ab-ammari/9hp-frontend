@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/worker",
+    "target": "es2018",
+    "module": "es2020",
+    "lib": ["es2020", "webworker"],
+    "types": []
+  },
+  "include": [
+    "src/app/services/workers/**/*.ts",
+    "shared/validation/strati-worker.ts"
+  ]
+}

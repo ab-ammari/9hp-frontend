@@ -1,0 +1,8 @@
+export enum ExcavationStatus {
+  CANCELED = '009be7ec-7e85-4710-b453-fc239288aae1',
+  UNEXCAVATED = 'cde82d36-4c81-46e6-9613-1435556a948a',
+  PHOTOGRAPHED = 'd14b110e-d2a5-4e07-afee-ea7572f29f06',
+  SONDAGE = '571fb858-0ddc-4d2b-a07b-02dc8883c45e',
+  FIFTY_PERCENT = 'd8bd0bc2-7576-4a1c-b523-bed6ea72e359',
+  HUNDRED_PERCENT = '0140353c-21b3-4a62-9621-01f21c8bebdb',
+}

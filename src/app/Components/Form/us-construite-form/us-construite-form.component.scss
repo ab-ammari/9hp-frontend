@@ -1,0 +1,91 @@
+.construite-modal {
+  --border-radius: 8px;
+  --width: 80%;
+
+}
+.table-elegant {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-collapse: collapse;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  width: 100%;
+
+  th {
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid #dee2e6;
+  }
+
+  tr:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+}
+
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #aaa;
+  }
+}
+
+.dimension-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .dimension-input {
+    flex: 1;
+
+    ion-input {
+      --background: #f8f9fa;
+      --border-radius: 4px;
+      --padding-start: 8px;
+      --placeholder-color: #6c757d;
+      border: 1px solid #ced4da;
+      min-height: 36px;
+
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .table-elegant {
+    th, td {
+      font-size: 0.9rem;
+      padding: 0.5rem;
+    }
+  }
+}

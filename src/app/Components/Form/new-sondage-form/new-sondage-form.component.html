@@ -1,0 +1,64 @@
+<ion-toolbar class="background-new-form-toolbar">
+  <h3 class="px-3" slot="start">Nouveau sondage</h3>
+</ion-toolbar>
+
+<ion-grid class="background-new-form-color">
+  <ng-container
+    *ngIf="this.w.data().objects.secteur.all && this.w.data().objects.secteur.all?.list?.length > 0 else noSector">
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-md="6">
+        <ion-list>
+          <app-castor-object-selector
+            [list]="this.w.data().objects.secteur.all?.list"
+            [disabled]="!!this.sectorUuid"
+            [(selection)]="selected_sector"
+            (selectionChange)="this.selectedSectorUuid = $event?.uuid"
+            [placeholder]="'Sélection du Secteur*'"
+          ></app-castor-object-selector>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center" *ngIf="!this.hideRadioSelector">
+      <ion-col size="12" size-md="6">
+        <ion-list>
+          <ion-radio-group [(ngModel)]="this.createdTypeSelected">
+            <ion-list-header>
+              <ion-label>Créer un sondage ou une coupe*</ion-label>
+            </ion-list-header>
+            <ion-item *ngFor="let radio of this.radioSelections">
+              <ion-label>{{ radio.viewValue }}</ion-label>
+              <ion-radio slot="start" [value]="radio.value" [disabled]="!!this.disableRadioSelector"></ion-radio>
+            </ion-item>
+          </ion-radio-group>
+        </ion-list>
+      </ion-col>
+    </ion-row>
+    <ion-row class="ion-justify-content-center" *ngIf="this.isLink">
+      <ion-col size="12" size-md="6">
+        <app-castor-type-selector
+          [category]="ApiTypeCategory.SONDAGE_TYPE"
+          [title]="'Type'"
+          [showTitle]="true"
+          [(value)]="this.selectedSectionTypeUuid"
+        ></app-castor-type-selector>
+      </ion-col>
+    </ion-row>
+
+    <ng-content></ng-content>
+
+    <app-valid-cancel-grouped-btn
+      (validCallBackBtn)="this.createNewSondage()"
+      (cancelCallbackBtn)="this.onCancelBtnClicked.emit($event)"
+      [disableValidBtn]="!this.isValidForm()"
+    ></app-valid-cancel-grouped-btn>
+
+  </ng-container>
+</ion-grid>
+
+<ng-template #noSector>
+  <ion-row>
+    <ion-col size="12">
+      <h3 class="text-center">Créer un secteur pour pouvoir ajouter un sondage</h3><br/>
+    </ion-col>
+  </ion-row>
+</ng-template>

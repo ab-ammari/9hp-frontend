@@ -1,0 +1,14 @@
+<ng-container *ngIf="this.linkList?.list?.length > 0 else noLinks">
+  <app-generic-content-table
+    [generic_table]="this.table"
+  ></app-generic-content-table>
+</ng-container>
+
+<ng-template #noLinks>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3 class="fw-bold">Aucun lien pour le moment</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>
+

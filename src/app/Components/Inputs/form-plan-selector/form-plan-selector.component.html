@@ -1,0 +1,18 @@
+<!--<mat-form-field class="w-100" appearance="fill">
+  <mat-label>Plan</mat-label>
+  <mat-select [(ngModel)]="this.selectedFormPlan"
+              (ngModelChange)="this.selectedFormPlanChange.emit($event)"
+              name="formPlan">
+    <mat-option *ngFor="let formPlan of this.formPlanSelectionArray" [value]="formPlan">
+      {{formPlan}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>-->
+
+<app-castor-type-selector
+  [title]="'Plan'"
+  [showTitle]="true"
+  [category]="ApiTypeCategory.FAIT_FORME_PLAN"
+  [(value)]="this.selectedFormPlan"
+  (valueChange)="this.selectedFormPlanChange.emit($event)"
+></app-castor-type-selector>

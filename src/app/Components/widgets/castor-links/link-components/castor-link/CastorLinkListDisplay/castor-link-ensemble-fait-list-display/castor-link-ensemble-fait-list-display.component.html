@@ -1,0 +1,23 @@
+<table class="table table-striped">
+  <thead>
+  <tr>
+    <th scope="col">Tag</th>
+    <!--    <th scope="col">Type de lien</th>
+        <th scope="col">Draft</th>-->
+  </tr>
+  </thead>
+  <tbody>
+  <tr *ngFor="let rel of relations">
+    <ng-container [ngSwitch]="isReference">
+      <ng-container *ngSwitchCase="rel.fait.info.ref_table">
+        <th scope="row">{{rel.ensemble.item.tag}}</th>
+      </ng-container>
+      <ng-container *ngSwitchCase="rel.ensemble.info.ref_table">
+        <th scope="row">{{rel.fait.item.tag}}</th>
+      </ng-container>
+    </ng-container>
+    <!--    <td>{{link?.relation?.item?.table }}</td>
+        <td>{{link?.relation?.item?.draft ? 'Brouillon' : 'Sauvegardé'}}</td>-->
+  </tr>
+  </tbody>
+</table>

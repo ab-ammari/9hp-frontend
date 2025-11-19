@@ -1,0 +1,30 @@
+<div id="container">
+  <header>
+    <app-headband-item-header
+      [item]="this.w.data().objects.ensemble.selected"
+      [infoToDisplay]="this.headBandHeaderInfo"
+      [labelBackgroundColor]="getEnsembleColors(this.w.data().objects.ensemble.selected.item, utils)"
+    ></app-headband-item-header>
+  </header>
+  <main>
+    <section>
+      <app-castor-links *ngIf="this.w.data().objects.ensemble.selected?.item else noSelectedEnsemble"
+                        [object]="this.w.data().objects.ensemble.selected"
+      >
+
+        <app-ensemble-form [ensemble]="this.w.data().objects.ensemble.selected.item"
+
+                           ></app-ensemble-form>
+
+      </app-castor-links>
+    </section>
+  </main>
+</div>
+
+<ng-template #noSelectedEnsemble>
+  <ion-row class="ion-justify-content-center">
+    <ion-col size="auto">
+      <h3>Aucun ensemble selectionné</h3>
+    </ion-col>
+  </ion-row>
+</ng-template>

@@ -1,0 +1,55 @@
+<ng-container *ngIf="relations[0]?.topo?.info?.ref_table === isReference">
+
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th scope="col">Tag</th>
+
+      <ng-container *ngIf="relations[0]?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <th scope="col">Sujet</th>
+      </ng-container>
+
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let rel of relations">
+
+      <th scope="row">{{rel.document.item.tag}}</th>
+      <ng-container *ngIf="rel?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <td>{{rel?.document?.item?.document_remarques }}</td>
+      </ng-container>
+
+    </tr>
+    </tbody>
+  </table>
+
+</ng-container>
+
+<ng-container *ngIf="relations[0]?.document?.info?.ref_table === isReference">
+  <table class="table table-striped">
+    <thead>
+    <tr>
+      <th scope="col">Tag</th>
+
+      <ng-container *ngIf="relations[0]?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <th scope="col">Type</th>
+        <th scope="col">Remarques</th>
+        <th scope="col">Levée</th>
+      </ng-container>
+
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let rel of relations">
+
+      <th scope="row">{{rel.topo.item.tag}}</th>
+      <ng-container *ngIf="rel?.document?.info?.obj_table === ApiDbTable.document_minute">
+        <td>{{rel?.topo?.item?.topo_type_uuid }}</td>
+        <td>{{rel?.topo?.item?.topo_note }}</td>
+        <td>{{rel?.topo?.item?.topo_levee}}</td>
+      </ng-container>
+
+    </tr>
+    </tbody>
+  </table>
+</ng-container>

@@ -1,0 +1,43 @@
+<ion-item lines="full" class="align-items-center">
+  <ion-label position="floating" class="label-placeholder" *ngIf="this.titleLabel">{{ this.titleLabel }}</ion-label>
+  <ng-container [ngSwitch]="this.toggleMeterBool">
+    <ion-input *ngSwitchCase="true"
+               type="number"
+               [ngClass]="this.inputClass"
+               [(ngModel)]="this.castor_dimension.meter"
+               (ngModelChange)="syncDimension()"
+    ></ion-input>
+    <ion-input *ngSwitchCase="false"
+               type="number"
+               [ngClass]="this.inputClass"
+               [(ngModel)]="this.castor_dimension.centimeter"
+               (ngModelChange)="syncDimension()"
+    ></ion-input>
+  </ng-container>
+
+  <ion-button (click)="this.toggleMeter()" fill="clear" slot="end">
+    <ng-container [ngSwitch]="this.mode">
+      <ng-container *ngSwitchCase="'classic'">
+        {{ this.toggleMeterBool ? 'm' : 'cm'}}
+      </ng-container>
+      <ng-container *ngSwitchCase="'area'">
+        {{ this.toggleMeterBool ? 'm²' : 'cm²'}}
+      </ng-container>
+      <ng-container *ngSwitchCase="'volume'">
+        {{ this.toggleMeterBool ? 'm³' : 'cm³'}}
+      </ng-container>
+    </ng-container>
+  </ion-button>
+
+  <ion-button *ngIf="this.showBtnGetFaitMeasure"
+              class="mx-0"
+              (click)="this.clickBtnGetFaitMeasure($event)" fill="clear" slot="end">
+    <mat-icon mat-list-icon svgIcon="castorFaitIcon" class="svg-custom-style"></mat-icon>
+  </ion-button>
+
+  <ion-button *ngIf="this.showIconCalculator"
+              class="mx-0"
+              (click)="this.clickBtnCalculator($event)" fill="clear" slot="end">
+    <mat-icon mat-list-icon svgIcon="castorCalculator" class="svg-custom-style"></mat-icon>
+  </ion-button>
+</ion-item>
