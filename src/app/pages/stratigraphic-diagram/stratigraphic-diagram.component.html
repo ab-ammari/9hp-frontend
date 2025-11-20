@@ -1,263 +1,277 @@
 <div id="container" class="stratigraphic-diagram-page">
-  <main>
-    <!-- En-tÃƒÂªte avec titre et actions -->
-    <section class="header-section">
-      <ion-row>
-        <ion-col size="12">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Diagramme Stratigraphique</ion-card-title>
-              <ion-card-subtitle>
-                Visualisation interactive des relations stratigraphiques
-              </ion-card-subtitle>
-            </ion-card-header>
+  <!-- Zone de visualisation du diagramme - plein écran -->
+  <main class="diagram-fullscreen">
+    <!-- Diagramme -->
+    <section class="diagram-display" [hidden]="!currentMermaidCode">
+      <div
+        #diagramContainer
+        id="diagram-container"
+        class="diagram-container">
+        <!-- Le diagramme Mermaid sera rendu ici -->
+      </div>
 
-            <ion-card-content>
-              <!-- Boutons d'action principaux -->
-              <div class="action-buttons">
-                <ion-button
-                  expand="block"
-                  (click)="generateDiagram()"
-                  [disabled]="isGenerating"
-                  color="primary">
-                  <ion-icon name="git-network-outline" slot="start"></ion-icon>
-                  {{ isGenerating ? 'GÃƒÂ©nÃƒÂ©ration en cours...' : 'GÃƒÂ©nÃƒÂ©rer le diagramme' }}
-                </ion-button>
-
-                <ion-button
-                  expand="block"
-                  (click)="exportPNG()"
-                  [disabled]="!currentMermaidCode || isExporting"
-                  color="secondary">
-                  <ion-icon name="image-outline" slot="start"></ion-icon>
-                  Exporter PNG
-                </ion-button>
-
-                <ion-button
-                  expand="block"
-                  (click)="exportPDF()"
-                  [disabled]="!currentMermaidCode || isExporting"
-                  color="secondary">
-                  <ion-icon name="document-outline" slot="start"></ion-icon>
-                  Exporter PDF
-                </ion-button>
-
-                <ion-button
-                  expand="block"
-                  (click)="copyMermaidCode()"
-                  [disabled]="!currentMermaidCode"
-                  color="tertiary">
-                  <ion-icon name="copy-outline" slot="start"></ion-icon>
-                  Copier le code Mermaid
-                </ion-button>
-              </div>
-
-              <!-- Message d'erreur -->
-              <ion-item *ngIf="errorMessage" lines="none" color="danger" class="error-message">
-                <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
-                <ion-label class="ion-text-wrap">{{ errorMessage }}</ion-label>
-              </ion-item>
-
-              <!-- Statistiques -->
-              <div *ngIf="currentMermaidCode" class="stats-container">
-                <h3>Statistiques du diagramme</h3>
-                <ion-grid>
-                  <ion-row>
-                    <ion-col size="6" size-md="3">
-                      <div class="stat-card">
-                        <div class="stat-value">{{ stats.totalNodes }}</div>
-                        <div class="stat-label">NÃ…â€œuds</div>
-                      </div>
-                    </ion-col>
-                    <ion-col size="6" size-md="3">
-                      <div class="stat-card">
-                        <div class="stat-value">{{ stats.totalEdges }}</div>
-                        <div class="stat-label">Relations</div>
-                      </div>
-                    </ion-col>
-                    <ion-col size="6" size-md="3">
-                      <div class="stat-card">
-                        <div class="stat-value">{{ stats.usCount }}</div>
-                        <div class="stat-label">US</div>
-                      </div>
-                    </ion-col>
-                    <ion-col size="6" size-md="3">
-                      <div class="stat-card">
-                        <div class="stat-value">{{ stats.faitCount }}</div>
-                        <div class="stat-label">Faits</div>
-                      </div>
-                    </ion-col>
-                  </ion-row>
-                </ion-grid>
-              </div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
+      <!-- Contrôles de zoom intégrés -->
+      <div class="zoom-controls-overlay">
+        <ion-button size="small" fill="solid" (click)="zoomIn()" color="light">
+          <ion-icon name="add-circle-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" fill="solid" (click)="zoomOut()" color="light">
+          <ion-icon name="remove-circle-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" fill="solid" (click)="centerDiagram()" color="light">
+          <ion-icon name="locate-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" fill="solid" (click)="toggleFullscreen()" color="light">
+          <ion-icon [name]="isFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
+        </ion-button>
+      </div>
     </section>
 
-    <!-- Section de configuration -->
-    <section class="config-section">
-      <ion-row>
-        <ion-col size="12" size-md="6">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-subtitle>Options d'affichage</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
-                <ion-item>
-                  <ion-label>Afficher les US</ion-label>
-                  <ion-toggle
-                    [(ngModel)]="diagramConfig.includeUS"
-                    (ionChange)="toggleConfigOption('includeUS')">
-                  </ion-toggle>
-                </ion-item>
-
-                <ion-item>
-                  <ion-label>Afficher les Faits</ion-label>
-                  <ion-toggle
-                    [(ngModel)]="diagramConfig.includeFaits"
-                    (ionChange)="toggleConfigOption('includeFaits')">
-                  </ion-toggle>
-                </ion-item>
-
-                <ion-item>
-                  <ion-label>Relations contemporaines</ion-label>
-                  <ion-toggle
-                    [(ngModel)]="diagramConfig.includeContemporaryRelations"
-                    (ionChange)="toggleConfigOption('includeContemporaryRelations')">
-                  </ion-toggle>
-                </ion-item>
-
-                <ion-item>
-                  <ion-label>Mettre en ÃƒÂ©vidence les cycles</ion-label>
-                  <ion-toggle
-                    [(ngModel)]="diagramConfig.highlightCycles"
-                    (ionChange)="toggleConfigOption('highlightCycles')">
-                  </ion-toggle>
-                </ion-item>
-              </ion-list>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-
-        <ion-col size="12" size-md="6">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-subtitle>Filtres</ion-card-subtitle>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
-                <ion-item>
-                  <ion-label position="stacked">Profondeur maximale</ion-label>
-                  <ion-input
-                    type="number"
-                    [(ngModel)]="filterOptions.maxDepth"
-                    placeholder="IllimitÃƒÂ©e"
-                    min="1"
-                    max="10">
-                  </ion-input>
-                </ion-item>
-
-                <ion-item>
-                  <ion-label position="stacked">UUID du nÃ…â€œud focal (optionnel)</ion-label>
-                  <ion-input
-                    [(ngModel)]="filterOptions.focusNodeUuid"
-                    placeholder="UUID d'une US ou d'un Fait">
-                  </ion-input>
-                </ion-item>
-
-                <ion-button
-                  expand="block"
-                  (click)="applyDepthFilter()"
-                  [disabled]="!currentMermaidCode"
-                  class="ion-margin-top">
-                  <ion-icon name="filter-outline" slot="start"></ion-icon>
-                  Appliquer les filtres
-                </ion-button>
-
-                <ion-button
-                  expand="block"
-                  fill="outline"
-                  (click)="clearFilters()"
-                  [disabled]="!hasActiveFilters"
-                  class="ion-margin-top">
-                  <ion-icon name="close-circle-outline" slot="start"></ion-icon>
-                  Effacer les filtres
-                </ion-button>
-              </ion-list>
-
-              <ion-chip *ngIf="hasActiveFilters" color="primary">
-                <ion-icon name="funnel-outline"></ion-icon>
-                <ion-label>Filtres actifs</ion-label>
-              </ion-chip>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </section>
-
-    <!-- Section du diagramme -->
-    <section class="diagram-section" [hidden]="!currentMermaidCode">
-      <ion-row>
-        <ion-col size="12">
-          <ion-card class="diagram-card">
-            <ion-card-header>
-              <ion-card-subtitle>Diagramme interactif</ion-card-subtitle>
-
-              <!-- ContrÃƒÂ´les de zoom -->
-              <div class="zoom-controls">
-                <ion-button size="small" fill="clear" (click)="zoomIn()">
-                  <ion-icon name="add-circle-outline"></ion-icon>
-                </ion-button>
-                <ion-button size="small" fill="clear" (click)="zoomOut()">
-                  <ion-icon name="remove-circle-outline"></ion-icon>
-                </ion-button>
-                <ion-button size="small" fill="clear" (click)="centerDiagram()">
-                  <ion-icon name="locate-outline"></ion-icon>
-                </ion-button>
-              </div>
-            </ion-card-header>
-
-            <ion-card-content class="diagram-content">
-              <div
-                #diagramContainer
-                id="diagram-container"
-                class="diagram-container">
-                <!-- Le diagramme Mermaid sera rendu ici -->
-              </div>
-
-              <div class="diagram-instructions">
-                <ion-icon name="information-circle-outline"></ion-icon>
-                <span>Utilisez la souris pour dÃƒÂ©placer et zoomer sur le diagramme</span>
-              </div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </section>
-
-    <!-- Message si pas de diagramme gÃƒÂ©nÃƒÂ©rÃƒÂ© -->
+    <!-- Message si pas de diagramme -->
     <section *ngIf="!currentMermaidCode && !isGenerating" class="empty-state">
-      <ion-row>
-        <ion-col size="12">
-          <ion-card>
-            <ion-card-content class="ion-text-center">
-              <ion-icon name="git-network-outline" class="empty-icon"></ion-icon>
-              <h2>Aucun diagramme gÃƒÂ©nÃƒÂ©rÃƒÂ©</h2>
-              <p>Cliquez sur "GÃƒÂ©nÃƒÂ©rer le diagramme" pour visualiser les relations stratigraphiques</p>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
+      <ion-icon name="git-network-outline" class="empty-icon"></ion-icon>
+      <h2>Aucun diagramme généré</h2>
+      <p>Ouvrez le panneau de contrôle pour générer votre diagramme</p>
+      <ion-button (click)="openControlPanel()" color="primary">
+        <ion-icon name="settings-outline" slot="start"></ion-icon>
+        Ouvrir les contrôles
+      </ion-button>
     </section>
 
     <!-- Overlay de chargement -->
     <div *ngIf="isGenerating || isExporting" class="loading-overlay">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>{{ isGenerating ? 'GÃƒÂ©nÃƒÂ©ration du diagramme...' : 'Export en cours...' }}</p>
+      <p>{{ isGenerating ? 'Génération du diagramme...' : 'Export en cours...' }}</p>
     </div>
   </main>
-</div>
 
+  <!-- Boutons flottants -->
+  <app-floating-action-button
+    icon="settings-outline"
+    [position]="'top-right'"
+    [offsetTop]="'140px'"
+    [offsetRight]="'16px'"
+    (fabClick)="openControlPanel()">
+  </app-floating-action-button>
+
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    icon="stats-chart-outline"
+    [position]="'top-right'"
+    [offsetTop]="'185px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleStatsPanel()">
+  </app-floating-action-button>
+
+  <!-- Panneau de contrôle -->
+  <app-floating-panel
+    [isOpen]="isControlPanelOpen"
+    (isOpenChange)="isControlPanelOpen = $event"
+    title="Contrôles du diagramme"
+    [position]="'right'"
+    [width]="'450px'"
+    (closed)="onControlPanelClosed()">
+
+    <div class="control-panel-content">
+      <!-- Section Génération -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <ion-icon name="git-network-outline"></ion-icon>
+          Génération
+        </h3>
+
+        <ion-button
+          expand="block"
+          (click)="generateDiagram()"
+          [disabled]="isGenerating"
+          color="primary"
+          class="ion-margin-bottom">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          {{ isGenerating ? 'Génération en cours...' : 'Générer le diagramme' }}
+        </ion-button>
+
+        <ion-item *ngIf="errorMessage" lines="none" color="danger" class="error-message">
+          <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
+          <ion-label class="ion-text-wrap">{{ errorMessage }}</ion-label>
+        </ion-item>
+      </div>
+
+      <!-- Section Export -->
+      <div class="control-section" *ngIf="currentMermaidCode">
+        <h3 class="section-title">
+          <ion-icon name="download-outline"></ion-icon>
+          Export
+        </h3>
+
+        <div class="button-grid">
+          <ion-button
+            expand="block"
+            (click)="exportPNG()"
+            [disabled]="isExporting"
+            color="secondary"
+            size="small">
+            <ion-icon name="image-outline" slot="start"></ion-icon>
+            PNG
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            (click)="exportPDF()"
+            [disabled]="isExporting"
+            color="secondary"
+            size="small">
+            <ion-icon name="document-outline" slot="start"></ion-icon>
+            PDF
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            (click)="copyMermaidCode()"
+            color="tertiary"
+            size="small">
+            <ion-icon name="copy-outline" slot="start"></ion-icon>
+            Copier code
+          </ion-button>
+        </div>
+      </div>
+
+      <!-- Section Options d'affichage -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <ion-icon name="eye-outline"></ion-icon>
+          Options d'affichage
+        </h3>
+
+        <ion-list>
+          <ion-item>
+            <ion-label>Afficher les US</ion-label>
+            <ion-toggle
+              [(ngModel)]="diagramConfig.includeUS"
+              (ionChange)="toggleConfigOption('includeUS')">
+            </ion-toggle>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Afficher les Faits</ion-label>
+            <ion-toggle
+              [(ngModel)]="diagramConfig.includeFaits"
+              (ionChange)="toggleConfigOption('includeFaits')">
+            </ion-toggle>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Relations contemporaines</ion-label>
+            <ion-toggle
+              [(ngModel)]="diagramConfig.includeContemporaryRelations"
+              (ionChange)="toggleConfigOption('includeContemporaryRelations')">
+            </ion-toggle>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Mettre en évidence les cycles</ion-label>
+            <ion-toggle
+              [(ngModel)]="diagramConfig.highlightCycles"
+              (ionChange)="toggleConfigOption('highlightCycles')">
+            </ion-toggle>
+          </ion-item>
+        </ion-list>
+      </div>
+
+      <!-- Section Filtres -->
+      <div class="control-section">
+        <h3 class="section-title">
+          <ion-icon name="funnel-outline"></ion-icon>
+          Filtres
+        </h3>
+
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Profondeur maximale</ion-label>
+            <ion-input
+              type="number"
+              [(ngModel)]="filterOptions.maxDepth"
+              placeholder="Illimitée"
+              min="1"
+              max="10">
+            </ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">UUID du nœud focal (optionnel)</ion-label>
+            <ion-input
+              [(ngModel)]="filterOptions.focusNodeUuid"
+              placeholder="UUID d'une US ou d'un Fait">
+            </ion-input>
+          </ion-item>
+        </ion-list>
+
+        <div class="button-grid ion-margin-top">
+          <ion-button
+            expand="block"
+            (click)="applyDepthFilter()"
+            [disabled]="!currentMermaidCode"
+            size="small">
+            <ion-icon name="filter-outline" slot="start"></ion-icon>
+            Appliquer
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="outline"
+            (click)="clearFilters()"
+            [disabled]="!hasActiveFilters"
+            size="small">
+            <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+            Effacer
+          </ion-button>
+        </div>
+
+        <ion-chip *ngIf="hasActiveFilters" color="primary" class="ion-margin-top">
+          <ion-icon name="funnel-outline"></ion-icon>
+          <ion-label>Filtres actifs</ion-label>
+        </ion-chip>
+      </div>
+    </div>
+  </app-floating-panel>
+
+  <!-- Panneau Statistiques -->
+  <app-floating-panel
+    [isOpen]="isStatsPanelOpen"
+    (isOpenChange)="isStatsPanelOpen = $event"
+    title="Statistiques du diagramme"
+    [position]="'right'"
+    [width]="'350px'"
+    (closed)="onStatsPanelClosed()">
+
+    <div class="stats-panel-content" *ngIf="currentMermaidCode">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="6">
+            <div class="stat-card">
+              <div class="stat-value">{{ stats.totalNodes }}</div>
+              <div class="stat-label">Nœuds</div>
+            </div>
+          </ion-col>
+          <ion-col size="6">
+            <div class="stat-card">
+              <div class="stat-value">{{ stats.totalEdges }}</div>
+              <div class="stat-label">Relations</div>
+            </div>
+          </ion-col>
+          <ion-col size="6">
+            <div class="stat-card">
+              <div class="stat-value">{{ stats.usCount }}</div>
+              <div class="stat-label">US</div>
+            </div>
+          </ion-col>
+          <ion-col size="6">
+            <div class="stat-card">
+              <div class="stat-value">{{ stats.faitCount }}</div>
+              <div class="stat-label">Faits</div>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </app-floating-panel>
+</div>

@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inject} from '@angular/core';
 import { WorkerService } from '../../services/worker.service';
 import { StratigraphicDiagramService, DiagramConfig } from '../../services/stratigraphic-diagram.service';
 import { ApiStratigraphie } from '../../../../shared';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import panzoom from 'panzoom';
+import {DOCUMENT} from "@angular/common";
 
 @Component({
   selector: 'app-stratigraphic-diagram',
@@ -16,6 +17,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   private destroyer$ = new Subject<void>();
   private panzoomInstance: any;
+
+  // Gestion des panneaux
+  isControlPanelOpen = false;
+  isStatsPanelOpen = false;
 
   // Configuration du diagramme
   diagramConfig: DiagramConfig = {
@@ -45,9 +50,12 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     focusNodeUuid: null as string | null
   };
 
+  isFullscreen = false;
+
   constructor(
     public w: WorkerService,
-    private diagramService: StratigraphicDiagramService
+    private diagramService: StratigraphicDiagramService,
+    @Inject(DOCUMENT) private document: Document
   ) {}
 
   ngOnInit(): void {
@@ -59,23 +67,15 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
           this.generateDiagram();
         }
       });
+    this.document.addEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
   }
 
   ngAfterViewInit(): void {
-    // Initialiser pan/zoom après le rendu
-    // Attendre que le ViewChild soit disponible
     setTimeout(() => {
       if (this.diagramContainer) {
         this.initializePanZoom();
       }
     }, 100);
-  }
-
-  /**
-   * Vérifie si le conteneur est disponible
-   */
-  private isContainerReady(): boolean {
-    return !!(this.diagramContainer && this.diagramContainer.nativeElement);
   }
 
   ngOnDestroy(): void {
@@ -85,19 +85,77 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     if (this.panzoomInstance) {
       this.panzoomInstance.dispose();
     }
+    this.document.removeEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
   }
 
-  /**
-   * Génère le diagramme stratigraphique
-   */
+  private onFullscreenChange(): void {
+    this.isFullscreen = !!this.document.fullscreenElement;
+    // Optionnel : Recentrer le diagramme après le changement de taille
+    setTimeout(() => {
+      if (this.panzoomInstance) {
+        // On peut vouloir ajuster le zoom ici si nécessaire
+      }
+    }, 100);
+  }
+
+  // 7. Implémentation de la fonction toggleFullscreen
+  toggleFullscreen(): void {
+    if (!this.isFullscreen) {
+      this.enterFullscreen();
+    } else {
+      this.exitFullscreen();
+    }
+  }
+
+  private enterFullscreen(): void {
+    // On cible l'élément parent qui contient le diagramme ET les contrôles
+    // nativeElement est le div#diagram-container, on veut son parent (section.diagram-display)
+    // ou son grand-parent (main.diagram-fullscreen)
+    const elem = this.diagramContainer.nativeElement.closest('.diagram-display');
+
+    if (elem?.requestFullscreen) {
+      elem.requestFullscreen().catch((err: any) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+      });
+    }
+  }
+
+  private exitFullscreen(): void {
+    if (this.document.exitFullscreen) {
+      this.document.exitFullscreen();
+    }
+  }
+
+  // === Gestion des panneaux ===
+
+  openControlPanel(): void {
+    this.isControlPanelOpen = true;
+    this.isStatsPanelOpen = false; // Fermer l'autre panneau
+  }
+
+  onControlPanelClosed(): void {
+    this.isControlPanelOpen = false;
+  }
+
+  toggleStatsPanel(): void {
+    this.isStatsPanelOpen = !this.isStatsPanelOpen;
+    if (this.isStatsPanelOpen) {
+      this.isControlPanelOpen = false; // Fermer l'autre panneau
+    }
+  }
+
+  onStatsPanelClosed(): void {
+    this.isStatsPanelOpen = false;
+  }
+
+  // === Génération du diagramme ===
+
   async generateDiagram(): Promise<void> {
     this.isGenerating = true;
     this.errorMessage = '';
 
     try {
-      // Vérifier que le conteneur est disponible
       if (!this.isContainerReady()) {
-        // Attendre un peu que le DOM soit prêt
         await new Promise(resolve => setTimeout(resolve, 100));
 
         if (!this.isContainerReady()) {
@@ -107,7 +165,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         }
       }
 
-      // Récupérer toutes les relations actives
       const relations = this.w.data().objects.stratigraphie.all.list
         .map(item => item.item)
         .filter(rel => rel && rel.live !== false);
@@ -117,26 +174,22 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         return;
       }
 
-      // Appliquer les filtres
       const config: DiagramConfig = {
         ...this.diagramConfig,
         maxDepth: this.filterOptions.maxDepth || undefined,
         focusNode: this.filterOptions.focusNodeUuid || undefined
       };
 
-      // Générer le code Mermaid
       this.currentMermaidCode = this.diagramService.generateMermaidCode(relations, config);
-
-      // Calculer les statistiques
       this.calculateStats(relations);
-
-      // Rendre le diagramme
       await this.renderDiagram();
 
-      // Réinitialiser le pan/zoom
       setTimeout(() => {
         this.resetPanZoom();
       }, 200);
+
+      // Fermer le panneau de contrôle après génération réussie
+      this.isControlPanelOpen = false;
 
     } catch (error) {
       console.error('Erreur lors de la génération du diagramme:', error);
@@ -146,13 +199,12 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Rend le diagramme dans le conteneur
-   */
+  private isContainerReady(): boolean {
+    return !!(this.diagramContainer && this.diagramContainer.nativeElement);
+  }
+
   private async renderDiagram(): Promise<void> {
-    // Le conteneur devrait être disponible maintenant (avec [hidden] au lieu de *ngIf)
     if (!this.diagramContainer || !this.diagramContainer.nativeElement) {
-      // Une petite attente au cas où
       await new Promise(resolve => setTimeout(resolve, 100));
     }
 
@@ -162,7 +214,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
     const container = this.diagramContainer.nativeElement;
 
-    // S'assurer que le conteneur a un ID unique
     if (!container.id) {
       container.id = 'diagram-container-' + Date.now();
     }
@@ -177,9 +228,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Initialise le pan/zoom sur le diagramme
-   */
+  // === Pan/Zoom ===
+
   private initializePanZoom(): void {
     if (!this.diagramContainer) return;
 
@@ -195,9 +245,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Réinitialise le pan/zoom
-   */
   resetPanZoom(): void {
     if (this.panzoomInstance) {
       this.panzoomInstance.moveTo(0, 0);
@@ -205,34 +252,24 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Zoom avant
-   */
   zoomIn(): void {
     if (this.panzoomInstance) {
       this.panzoomInstance.smoothZoom(0, 0, 1.2);
     }
   }
 
-  /**
-   * Zoom arrière
-   */
   zoomOut(): void {
     if (this.panzoomInstance) {
       this.panzoomInstance.smoothZoom(0, 0, 0.8);
     }
   }
 
-  /**
-   * Recentrer le diagramme
-   */
   centerDiagram(): void {
     this.resetPanZoom();
   }
 
-  /**
-   * Toggle une option de configuration
-   */
+  // === Configuration ===
+
   toggleConfigOption(option: keyof DiagramConfig): void {
     (this.diagramConfig as any)[option] = !(this.diagramConfig as any)[option];
 
@@ -241,35 +278,31 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Applique un filtre de profondeur
-   */
+  // === Filtres ===
+
   applyDepthFilter(): void {
     if (this.currentMermaidCode) {
       this.generateDiagram();
     }
   }
 
-  /**
-   * Sélectionne un nœud de focus
-   */
   selectFocusNode(uuid: string): void {
     this.filterOptions.focusNodeUuid = uuid;
     this.generateDiagram();
   }
 
-  /**
-   * Efface les filtres
-   */
   clearFilters(): void {
     this.filterOptions.maxDepth = null;
     this.filterOptions.focusNodeUuid = null;
     this.generateDiagram();
   }
 
-  /**
-   * Exporte en PNG
-   */
+  get hasActiveFilters(): boolean {
+    return this.filterOptions.maxDepth !== null || this.filterOptions.focusNodeUuid !== null;
+  }
+
+  // === Export ===
+
   async exportPNG(): Promise<void> {
     this.isExporting = true;
     try {
@@ -283,9 +316,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Exporte en PDF
-   */
   async exportPDF(): Promise<void> {
     this.isExporting = true;
     try {
@@ -299,22 +329,17 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  /**
-   * Copie le code Mermaid dans le presse-papier
-   */
   async copyMermaidCode(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.currentMermaidCode);
-      // Afficher un message de succès
       console.log('Code Mermaid copié dans le presse-papier');
     } catch (error) {
       console.error('Erreur lors de la copie:', error);
     }
   }
 
-  /**
-   * Calcule les statistiques du diagramme
-   */
+  // === Statistiques ===
+
   private calculateStats(relations: ApiStratigraphie[]): void {
     const nodes = new Set<string>();
     let usCount = 0;
@@ -345,12 +370,5 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       usCount: Math.floor(usCount / 2),
       faitCount: Math.floor(faitCount / 2)
     };
-  }
-
-  /**
-   * Vérifie si un filtre est actif
-   */
-  get hasActiveFilters(): boolean {
-    return this.filterOptions.maxDepth !== null || this.filterOptions.focusNodeUuid !== null;
   }
 }

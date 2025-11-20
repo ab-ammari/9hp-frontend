@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { StratigraphicDiagramComponent } from './stratigraphic-diagram.component';
 import { StratigraphicDiagramRoutingModule } from './stratigraphic-diagram-routing.module';
+import {FloatingComponentsModule} from "../../Components/widgets/floating-components.module";
 
 @NgModule({
   declarations: [
@@ -13,7 +14,8 @@ import { StratigraphicDiagramRoutingModule } from './stratigraphic-diagram-routi
     CommonModule,
     FormsModule,
     IonicModule,
-    StratigraphicDiagramRoutingModule
+    StratigraphicDiagramRoutingModule,
+    FloatingComponentsModule
   ]
 })
 export class StratigraphicDiagramModule { }
