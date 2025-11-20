@@ -21,9 +21,11 @@ export interface DiagramConfig {
   includeUS: boolean;
   includeFaits: boolean;
   includeContemporaryRelations: boolean;
+  includeContainmentRelations?: boolean;
   maxDepth?: number;
   focusNode?: string;
   highlightCycles?: boolean;
+  groupContemporaries?: boolean;
 }
 
 @Injectable({
