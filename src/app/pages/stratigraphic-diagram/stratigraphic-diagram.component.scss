@@ -1,10 +1,14 @@
 .stratigraphic-diagram-page {
   padding: 16px;
   background-color: var(--ion-background-color, #f5f5f5);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 
   main {
-    max-width: 1400px;
-    margin: 0 auto;
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
   }
 }
 
@@ -237,6 +241,29 @@
   }
 }
 
+// Ajout de règles pour forcer la largeur complète
+#container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+// Override des styles Ionic qui peuvent causer des problèmes de largeur
+ion-content {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+ion-row {
+  margin: 0;
+  padding: 0;
+}
+
+ion-col {
+  padding: 0 8px;
+}
+
 // Responsive
 @media (max-width: 768px) {
   .stratigraphic-diagram-page {
@@ -298,3 +325,4 @@
     transition-duration: 0.01ms !important;
   }
 }
+
