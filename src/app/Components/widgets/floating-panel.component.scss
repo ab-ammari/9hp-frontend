@@ -1,0 +1,118 @@
+.panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.show-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+
+.floating-panel {
+  background: var(--ion-background-color, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+
+  &.panel-right {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &.panel-left {
+    position: fixed;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  &.panel-center {
+    // Déjà centré par flexbox du backdrop
+  }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  background: var(--ion-color-light);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.close-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+
+  // Scrollbar personnalisée
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--ion-color-medium-shade);
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .floating-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100vh;
+    border-radius: 0;
+
+    &.panel-right,
+    &.panel-left {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      transform: none;
+    }
+  }
+
+  .panel-backdrop {
+    background-color: var(--ion-background-color, #ffffff) !important;
+  }
+}
