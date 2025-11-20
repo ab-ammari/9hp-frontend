@@ -1,6 +1,6 @@
 <div id="container" class="stratigraphic-diagram-page">
   <main>
-    <!-- En-tête avec titre et actions -->
+    <!-- En-tÃƒÂªte avec titre et actions -->
     <section class="header-section">
       <ion-row>
         <ion-col size="12">
@@ -21,7 +21,7 @@
                   [disabled]="isGenerating"
                   color="primary">
                   <ion-icon name="git-network-outline" slot="start"></ion-icon>
-                  {{ isGenerating ? 'Génération en cours...' : 'Générer le diagramme' }}
+                  {{ isGenerating ? 'GÃƒÂ©nÃƒÂ©ration en cours...' : 'GÃƒÂ©nÃƒÂ©rer le diagramme' }}
                 </ion-button>
 
                 <ion-button
@@ -66,7 +66,7 @@
                     <ion-col size="6" size-md="3">
                       <div class="stat-card">
                         <div class="stat-value">{{ stats.totalNodes }}</div>
-                        <div class="stat-label">Nœuds</div>
+                        <div class="stat-label">NÃ…â€œuds</div>
                       </div>
                     </ion-col>
                     <ion-col size="6" size-md="3">
@@ -131,7 +131,7 @@
                 </ion-item>
 
                 <ion-item>
-                  <ion-label>Mettre en évidence les cycles</ion-label>
+                  <ion-label>Mettre en ÃƒÂ©vidence les cycles</ion-label>
                   <ion-toggle
                     [(ngModel)]="diagramConfig.highlightCycles"
                     (ionChange)="toggleConfigOption('highlightCycles')">
@@ -154,14 +154,14 @@
                   <ion-input
                     type="number"
                     [(ngModel)]="filterOptions.maxDepth"
-                    placeholder="Illimitée"
+                    placeholder="IllimitÃƒÂ©e"
                     min="1"
                     max="10">
                   </ion-input>
                 </ion-item>
 
                 <ion-item>
-                  <ion-label position="stacked">UUID du nœud focal (optionnel)</ion-label>
+                  <ion-label position="stacked">UUID du nÃ…â€œud focal (optionnel)</ion-label>
                   <ion-input
                     [(ngModel)]="filterOptions.focusNodeUuid"
                     placeholder="UUID d'une US ou d'un Fait">
@@ -206,7 +206,7 @@
             <ion-card-header>
               <ion-card-subtitle>Diagramme interactif</ion-card-subtitle>
 
-              <!-- Contrôles de zoom -->
+              <!-- ContrÃƒÂ´les de zoom -->
               <div class="zoom-controls">
                 <ion-button size="small" fill="clear" (click)="zoomIn()">
                   <ion-icon name="add-circle-outline"></ion-icon>
@@ -230,7 +230,7 @@
 
               <div class="diagram-instructions">
                 <ion-icon name="information-circle-outline"></ion-icon>
-                <span>Utilisez la souris pour déplacer et zoomer sur le diagramme</span>
+                <span>Utilisez la souris pour dÃƒÂ©placer et zoomer sur le diagramme</span>
               </div>
             </ion-card-content>
           </ion-card>
@@ -238,15 +238,15 @@
       </ion-row>
     </section>
 
-    <!-- Message si pas de diagramme généré -->
+    <!-- Message si pas de diagramme gÃƒÂ©nÃƒÂ©rÃƒÂ© -->
     <section *ngIf="!currentMermaidCode && !isGenerating" class="empty-state">
       <ion-row>
         <ion-col size="12">
           <ion-card>
             <ion-card-content class="ion-text-center">
               <ion-icon name="git-network-outline" class="empty-icon"></ion-icon>
-              <h2>Aucun diagramme généré</h2>
-              <p>Cliquez sur "Générer le diagramme" pour visualiser les relations stratigraphiques</p>
+              <h2>Aucun diagramme gÃƒÂ©nÃƒÂ©rÃƒÂ©</h2>
+              <p>Cliquez sur "GÃƒÂ©nÃƒÂ©rer le diagramme" pour visualiser les relations stratigraphiques</p>
             </ion-card-content>
           </ion-card>
         </ion-col>
@@ -256,7 +256,8 @@
     <!-- Overlay de chargement -->
     <div *ngIf="isGenerating || isExporting" class="loading-overlay">
       <ion-spinner name="crescent"></ion-spinner>
-      <p>{{ isGenerating ? 'Génération du diagramme...' : 'Export en cours...' }}</p>
+      <p>{{ isGenerating ? 'GÃƒÂ©nÃƒÂ©ration du diagramme...' : 'Export en cours...' }}</p>
     </div>
   </main>
 </div>
+
