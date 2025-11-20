@@ -1,0 +1,11 @@
+<div class="fab-container" [ngStyle]="getPositionStyles()">
+  <ion-fab-button
+    [color]="color"
+    [disabled]="disabled"
+    (click)="onClick()"
+    class="fab-button">
+    <ion-icon [name]="icon"></ion-icon>
+  </ion-fab-button>
+
+  <span *ngIf="label" class="fab-label">{{ label }}</span>
+</div>
