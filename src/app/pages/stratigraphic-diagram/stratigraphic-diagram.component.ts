@@ -27,7 +27,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     includeUS: true,
     includeFaits: true,
     includeContemporaryRelations: true,
-    highlightCycles: false
+    highlightCycles: true,
   };
 
   // État
@@ -71,11 +71,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      if (this.diagramContainer) {
-        this.initializePanZoom();
-      }
-    }, 100);
+    // Ne pas initialiser panzoom ici car le SVG n'existe pas encore
+    // Il sera initialisé après le premier rendu du diagramme
   }
 
   ngOnDestroy(): void {
@@ -90,15 +87,15 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   private onFullscreenChange(): void {
     this.isFullscreen = !!this.document.fullscreenElement;
-    // Optionnel : Recentrer le diagramme après le changement de taille
     setTimeout(() => {
       if (this.panzoomInstance) {
-        // On peut vouloir ajuster le zoom ici si nécessaire
+        // Réinitialiser le panzoom après le changement de taille
+        this.disposePanZoom();
+        this.initializePanZoom();
       }
     }, 100);
   }
 
-  // 7. Implémentation de la fonction toggleFullscreen
   toggleFullscreen(): void {
     if (!this.isFullscreen) {
       this.enterFullscreen();
@@ -108,9 +105,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   private enterFullscreen(): void {
-    // On cible l'élément parent qui contient le diagramme ET les contrôles
-    // nativeElement est le div#diagram-container, on veut son parent (section.diagram-display)
-    // ou son grand-parent (main.diagram-fullscreen)
     const elem = this.diagramContainer.nativeElement.closest('.diagram-display');
 
     if (elem?.requestFullscreen) {
@@ -130,7 +124,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   openControlPanel(): void {
     this.isControlPanelOpen = true;
-    this.isStatsPanelOpen = false; // Fermer l'autre panneau
+    this.isStatsPanelOpen = false;
   }
 
   onControlPanelClosed(): void {
@@ -140,7 +134,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   toggleStatsPanel(): void {
     this.isStatsPanelOpen = !this.isStatsPanelOpen;
     if (this.isStatsPanelOpen) {
-      this.isControlPanelOpen = false; // Fermer l'autre panneau
+      this.isControlPanelOpen = false;
     }
   }
 
@@ -184,9 +178,12 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       this.calculateStats(relations);
       await this.renderDiagram();
 
+      // IMPORTANT : Attendre que le SVG soit bien dans le DOM avant d'initialiser panzoom
       setTimeout(() => {
-        this.resetPanZoom();
-      }, 200);
+        this.disposePanZoom(); // Supprimer l'ancienne instance si elle existe
+        this.initializePanZoom(); // Créer une nouvelle instance
+        this.centerDiagram(); // Centrer le diagramme
+      }, 300);
 
       // Fermer le panneau de contrôle après génération réussie
       this.isControlPanelOpen = false;
@@ -230,19 +227,46 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   // === Pan/Zoom ===
 
-  private initializePanZoom(): void {
-    if (!this.diagramContainer) return;
+  private disposePanZoom(): void {
+    if (this.panzoomInstance) {
+      this.panzoomInstance.dispose();
+      this.panzoomInstance = null;
+    }
+  }
 
+  private initializePanZoom(): void {
+    if (!this.diagramContainer) {
+      console.warn('Container not available for panzoom');
+      return;
+    }
+
+    // Chercher le SVG dans le conteneur
     const element = this.diagramContainer.nativeElement.querySelector('svg');
 
-    if (element && !this.panzoomInstance) {
-      this.panzoomInstance = panzoom(element, {
-        maxZoom: 5,
-        minZoom: 0.1,
-        bounds: true,
-        boundsPadding: 0.1
-      });
+    if (!element) {
+      console.warn('SVG element not found for panzoom');
+      return;
     }
+
+    // S'assurer qu'il n'y a pas déjà une instance
+    if (this.panzoomInstance) {
+      this.disposePanZoom();
+    }
+
+    // Créer une nouvelle instance de panzoom
+    this.panzoomInstance = panzoom(element, {
+      maxZoom: 5,
+      minZoom: 0.1,
+      bounds: true,
+      boundsPadding: 0.1,
+      zoomDoubleClickSpeed: 1,
+      smoothScroll: false,
+      // Configuration importante pour le pan
+      filterKey: () => true, // Permettre le pan sans touche de modification
+      // Enlever les restrictions beforeWheel et beforeMouseDown
+    });
+
+    console.log('Panzoom initialized successfully');
   }
 
   resetPanZoom(): void {
@@ -254,18 +278,53 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   zoomIn(): void {
     if (this.panzoomInstance) {
-      this.panzoomInstance.smoothZoom(0, 0, 1.2);
+      const container = this.diagramContainer.nativeElement;
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      this.panzoomInstance.smoothZoom(centerX, centerY, 1.2);
     }
   }
 
   zoomOut(): void {
     if (this.panzoomInstance) {
-      this.panzoomInstance.smoothZoom(0, 0, 0.8);
+      const container = this.diagramContainer.nativeElement;
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      this.panzoomInstance.smoothZoom(centerX, centerY, 0.8);
     }
   }
 
   centerDiagram(): void {
-    this.resetPanZoom();
+    if (this.panzoomInstance) {
+      // Obtenir les dimensions du conteneur et du SVG
+      const container = this.diagramContainer.nativeElement;
+      const svg = container.querySelector('svg');
+
+      if (svg) {
+        const containerRect = container.getBoundingClientRect();
+        const svgRect = svg.getBoundingClientRect();
+
+        // Calculer le zoom pour que le SVG soit visible en entier
+        const scaleX = containerRect.width / svgRect.width;
+        const scaleY = containerRect.height / svgRect.height;
+        const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 pour laisser un peu de marge
+
+        // Réinitialiser puis appliquer le zoom
+        this.panzoomInstance.moveTo(0, 0);
+        this.panzoomInstance.zoomAbs(0, 0, scale);
+
+        // Centrer le diagramme
+        const transform = this.panzoomInstance.getTransform();
+        const offsetX = (containerRect.width - svgRect.width * scale) / 2;
+        const offsetY = (containerRect.height - svgRect.height * scale) / 2;
+        this.panzoomInstance.moveTo(offsetX, offsetY);
+      } else {
+        // Fallback si pas de SVG
+        this.resetPanZoom();
+      }
+    }
   }
 
   // === Configuration ===
