@@ -17,6 +17,12 @@ export interface DiagramEdge {
   relation: ApiStratigraphie;
 }
 
+export interface ContemporaryGroup {
+  id: string;
+  nodes: DiagramNode[];
+  level: number;
+}
+
 export interface DiagramConfig {
   includeUS: boolean;
   includeFaits: boolean;
@@ -55,7 +61,12 @@ export class StratigraphicDiagramService {
    */
   public generateMermaidCode(
     relations: ApiStratigraphie[],
-    config: DiagramConfig = { includeUS: true, includeFaits: true, includeContemporaryRelations: true }
+    config: DiagramConfig = {
+      includeUS: true,
+      includeFaits: true,
+      includeContemporaryRelations: true,
+      groupContemporaries: false
+    }
   ): string {
     const nodes = this.extractNodes(relations, config);
     const edges = this.extractEdges(relations, config);
@@ -71,6 +82,98 @@ export class StratigraphicDiagramService {
     }
 
     return this.buildMermaidDiagram(filteredNodes, filteredEdges, config);
+  }
+
+  /**
+   * Identifie les groupes d'entités contemporaines
+   */
+  private identifyContemporaryGroups(
+    nodes: DiagramNode[],
+    edges: DiagramEdge[]
+  ): ContemporaryGroup[] {
+    const contemporaryEdges = edges.filter(edge => edge.type === 'contemporain');
+    const groups: ContemporaryGroup[] = [];
+    const visited = new Set<string>();
+
+    nodes.forEach(node => {
+      if (visited.has(node.id)) return;
+
+      // Recherche en largeur pour trouver tous les nœuds contemporains connectés
+      const group: DiagramNode[] = [node];
+      const queue = [node.id];
+      visited.add(node.id);
+
+      while (queue.length > 0) {
+        const currentId = queue.shift()!;
+
+        // Trouver tous les nœuds contemporains connectés
+        contemporaryEdges.forEach(edge => {
+          let neighborId: string | null = null;
+
+          if (edge.from === currentId && !visited.has(edge.to)) {
+            neighborId = edge.to;
+          } else if (edge.to === currentId && !visited.has(edge.from)) {
+            neighborId = edge.from;
+          }
+
+          if (neighborId && !visited.has(neighborId)) {
+            const neighborNode = nodes.find(n => n.id === neighborId);
+            if (neighborNode) {
+              group.push(neighborNode);
+              queue.push(neighborId);
+              visited.add(neighborId);
+            }
+          }
+        });
+      }
+
+      if (group.length > 0) {
+        groups.push({
+          id: `group_${groups.length}`,
+          nodes: group,
+          level: this.calculateGroupLevel(group, edges)
+        });
+      }
+    });
+
+    return groups;
+  }
+
+  /**
+   * Calcule le niveau d'un groupe dans la hiérarchie
+   */
+  private calculateGroupLevel(groupNodes: DiagramNode[], allEdges: DiagramEdge[]): number {
+    let maxLevel = 0;
+
+    groupNodes.forEach(node => {
+      // Compter le nombre de nœuds antérieurs (profondeur depuis les feuilles)
+      const level = this.calculateNodeDepth(node.id, allEdges, new Set());
+      maxLevel = Math.max(maxLevel, level);
+    });
+
+    return maxLevel;
+  }
+
+  /**
+   * Calcule la profondeur d'un nœud
+   */
+  private calculateNodeDepth(nodeId: string, edges: DiagramEdge[], visited: Set<string>): number {
+    if (visited.has(nodeId)) return 0;
+    visited.add(nodeId);
+
+    const anteriorEdges = edges.filter(edge =>
+      edge.to === nodeId && edge.type !== 'contemporain'
+    );
+
+    if (anteriorEdges.length === 0) return 0;
+
+    let maxDepth = 0;
+    anteriorEdges.forEach(edge => {
+      const depth = 1 + this.calculateNodeDepth(edge.from, edges, visited);
+      maxDepth = Math.max(maxDepth, depth);
+    });
+
+    return maxDepth;
   }
 
   /**
@@ -196,7 +299,7 @@ export class StratigraphicDiagramService {
     const includedNodeIds = new Set<string>([focusId]);
     const includedEdges: DiagramEdge[] = [];
 
-    // BFS pour trouver les nœuds à distance <= maxDepth (BFS = Breadth-First Search)
+    // BFS pour trouver les nœuds à distance <= maxDepth
     const queue: Array<{ id: string, depth: number }> = [{ id: focusId, depth: 0 }];
     const visited = new Set<string>([focusId]);
 
@@ -238,9 +341,13 @@ export class StratigraphicDiagramService {
   }
 
   /**
-   * Construit le code Mermaid complet
+   * Construit le code Mermaid complet avec support des groupes contemporains
    */
-  private buildMermaidDiagram(nodes: DiagramNode[], edges: DiagramEdge[], config: DiagramConfig): string {
+  private buildMermaidDiagram(
+    nodes: DiagramNode[],
+    edges: DiagramEdge[],
+    config: DiagramConfig
+  ): string {
     let mermaidCode = 'flowchart TB\n';
 
     // Définir les styles
@@ -248,21 +355,87 @@ export class StratigraphicDiagramService {
     mermaidCode += '  classDef faitStyle fill:#FFF3E0,stroke:#F57C00,stroke-width:2px,color:#000\n';
     mermaidCode += '  classDef focusStyle fill:#C8E6C9,stroke:#388E3C,stroke-width:3px,color:#000\n';
     mermaidCode += '  classDef cycleStyle fill:#FFCDD2,stroke:#D32F2F,stroke-width:3px,color:#000\n';
+    mermaidCode += '  classDef groupStyle fill:#F5F5F5,stroke:#9E9E9E,stroke-width:1px,stroke-dasharray: 5 5\n';
 
-    // Ajouter les nœuds
-    nodes.forEach(node => {
-      const sanitizedLabel = this.sanitizeLabel(node.label);
-      mermaidCode += `  ${node.id}["${sanitizedLabel}"]\n`;
-    });
+    if (config.groupContemporaries) {
+      const groups = this.identifyContemporaryGroups(nodes, edges);
+      const groupedNodes = new Set<string>();
 
-    // Ajouter les arêtes
-    edges.forEach(edge => {
-      if (edge.type === 'contemporain') {
-        mermaidCode += `  ${edge.from} -.->|contemporain| ${edge.to}\n`;
-      } else {
-        mermaidCode += `  ${edge.from} --> ${edge.to}\n`;
-      }
-    });
+      // Trier les groupes par niveau (du plus profond au plus superficiel)
+      groups.sort((a, b) => b.level - a.level);
+
+      groups.forEach(group => {
+        if (group.nodes.length > 1) {
+          // Créer un sous-graphe horizontal pour les groupes contemporains
+          mermaidCode += `  subgraph ${group.id} [" "]\n`;
+          mermaidCode += `    direction LR\n`;
+
+          group.nodes.forEach(node => {
+            const sanitizedLabel = this.sanitizeLabel(node.label);
+            mermaidCode += `    ${node.id}["${sanitizedLabel}"]\n`;
+            groupedNodes.add(node.id);
+          });
+
+          mermaidCode += `  end\n`;
+          mermaidCode += `  class ${group.id} groupStyle\n`;
+        }
+      });
+
+      // Ajouter les nœuds non groupés
+      nodes.forEach(node => {
+        if (!groupedNodes.has(node.id)) {
+          const sanitizedLabel = this.sanitizeLabel(node.label);
+          mermaidCode += `  ${node.id}["${sanitizedLabel}"]\n`;
+        }
+      });
+    } else {
+      // Ajouter les nœuds normalement
+      nodes.forEach(node => {
+        const sanitizedLabel = this.sanitizeLabel(node.label);
+        mermaidCode += `  ${node.id}["${sanitizedLabel}"]\n`;
+      });
+    }
+
+    // Ajouter les arêtes (exclure les relations contemporaines entre nœuds du même groupe)
+    if (config.groupContemporaries) {
+      const groups = this.identifyContemporaryGroups(nodes, edges);
+      const sameGroupPairs = new Set<string>();
+
+      // Identifier les paires dans le même groupe
+      groups.forEach(group => {
+        if (group.nodes.length > 1) {
+          for (let i = 0; i < group.nodes.length; i++) {
+            for (let j = i + 1; j < group.nodes.length; j++) {
+              sameGroupPairs.add(`${group.nodes[i].id}-${group.nodes[j].id}`);
+              sameGroupPairs.add(`${group.nodes[j].id}-${group.nodes[i].id}`);
+            }
+          }
+        }
+      });
+
+      edges.forEach(edge => {
+        const pairKey = `${edge.from}-${edge.to}`;
+
+        if (edge.type === 'contemporain' && sameGroupPairs.has(pairKey)) {
+          // Skip les relations contemporaines dans le même groupe
+          return;
+        }
+
+        if (edge.type === 'contemporain') {
+          mermaidCode += `  ${edge.from} -.->|contemporain| ${edge.to}\n`;
+        } else {
+          mermaidCode += `  ${edge.from} --> ${edge.to}\n`;
+        }
+      });
+    } else {
+      edges.forEach(edge => {
+        if (edge.type === 'contemporain') {
+          mermaidCode += `  ${edge.from} -.->|contemporain| ${edge.to}\n`;
+        } else {
+          mermaidCode += `  ${edge.from} --> ${edge.to}\n`;
+        }
+      });
+    }
 
     // Appliquer les styles
     nodes.forEach(node => {
