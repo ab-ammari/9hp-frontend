@@ -28,6 +28,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     includeFaits: true,
     includeContemporaryRelations: true,
     highlightCycles: true,
+    groupContemporaries: true,
   };
 
   // État
@@ -430,4 +431,12 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       faitCount: Math.floor(faitCount / 2)
     };
   }
+
+  toggleGroupContemporaries(): void {
+    this.diagramConfig.groupContemporaries = !this.diagramConfig.groupContemporaries;
+    if (this.currentMermaidCode) {
+      this.generateDiagram();
+    }
+  }
+
 }
