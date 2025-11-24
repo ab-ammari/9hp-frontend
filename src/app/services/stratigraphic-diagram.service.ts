@@ -42,8 +42,8 @@ export class StratigraphicDiagramService {
         useMaxWidth: true,
         htmlLabels: true,
         curve: 'basis',
-        rankSpacing: 80,
-        nodeSpacing: 50,
+        rankSpacing: 30,
+        nodeSpacing: 30,
         padding: 15
       },
       securityLevel: 'loose'
