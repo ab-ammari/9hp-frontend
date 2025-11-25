@@ -50,7 +50,7 @@ export class StratigraphicDiagramService {
         curve: 'basis',
         rankSpacing: 30,
         nodeSpacing: 30,
-        padding: 15
+        padding: 40
       },
       securityLevel: 'loose'
     });
@@ -148,7 +148,9 @@ export class StratigraphicDiagramService {
     groupNodes.forEach(node => {
       // Compter le nombre de nœuds antérieurs (profondeur depuis les feuilles)
       const level = this.calculateNodeDepth(node.id, allEdges, new Set());
-      maxLevel = Math.max(maxLevel, level);
+      if (maxLevel===0)
+        maxLevel = Math.max(maxLevel, level);
+      else maxLevel = Math.min(maxLevel, level);
     });
 
     return maxLevel;
