@@ -63,6 +63,25 @@
     (fabClick)="toggleStatsPanel()">
   </app-floating-action-button>
 
+  <!-- Nouveau bouton: Recherche d'entités -->
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    icon="search-outline"
+    [position]="'top-right'"
+    [offsetTop]="'230px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleSearchPanel()">
+  </app-floating-action-button>
+
+  <!-- Nouveau bouton: Mode de layout -->
+  <app-floating-action-button
+    icon="grid-outline"
+    [position]="'top-right'"
+    [offsetTop]="'275px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleLayoutPanel()">
+  </app-floating-action-button>
+
   <!-- Panneau de contrôle -->
   <app-floating-panel
     [isOpen]="isControlPanelOpen"
@@ -280,6 +299,104 @@
           </ion-col>
         </ion-row>
       </ion-grid>
+    </div>
+  </app-floating-panel>
+
+  <!-- Nouveau Panneau: Recherche d'entités -->
+  <app-floating-panel
+    [isOpen]="isSearchPanelOpen"
+    (isOpenChange)="isSearchPanelOpen = $event"
+    title="Rechercher une entité"
+    [position]="'right'"
+    [width]="'400px'"
+    (closed)="onSearchPanelClosed()">
+
+    <div class="search-panel-content">
+      <!-- Barre de recherche -->
+      <div class="search-input-container">
+        <ion-searchbar
+          [(ngModel)]="searchQuery"
+          (ionInput)="onSearchQueryChange()"
+          placeholder="Rechercher par nom ou UUID..."
+          [debounce]="300"
+          showCancelButton="never">
+        </ion-searchbar>
+      </div>
+
+      <!-- Résultats de recherche -->
+      <div class="search-results">
+        <ion-list *ngIf="searchResults.length > 0">
+          <ion-item
+            *ngFor="let node of searchResults"
+            button
+            (click)="zoomToEntity(node)"
+            class="search-result-item">
+            <ion-icon
+              slot="start"
+              [name]="node.type === 'us' ? 'layers-outline' : 'cube-outline'"
+              [color]="node.type === 'us' ? 'primary' : 'warning'">
+            </ion-icon>
+            <ion-label>
+              <h3>{{ node.label }}</h3>
+              <p class="entity-type">{{ node.type === 'us' ? 'Unité Stratigraphique' : 'Fait' }}</p>
+              <p class="entity-uuid">{{ node.uuid }}</p>
+            </ion-label>
+            <ion-icon slot="end" name="locate-outline" color="medium"></ion-icon>
+          </ion-item>
+        </ion-list>
+
+        <div *ngIf="searchResults.length === 0 && searchQuery" class="no-results">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Aucune entité trouvée pour "{{ searchQuery }}"</p>
+        </div>
+
+        <div *ngIf="allNodes.length === 0" class="no-data">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>Générez d'abord un diagramme pour rechercher des entités</p>
+        </div>
+      </div>
+    </div>
+  </app-floating-panel>
+
+  <!-- Nouveau Panneau: Mode de layout -->
+  <app-floating-panel
+    [isOpen]="isLayoutPanelOpen"
+    (isOpenChange)="isLayoutPanelOpen = $event"
+    title="Mode d'affichage"
+    [position]="'right'"
+    [width]="'380px'"
+    (closed)="onLayoutPanelClosed()">
+
+    <div class="layout-panel-content">
+      <p class="layout-description">
+        Choisissez l'algorithme de disposition du diagramme
+      </p>
+
+      <ion-list>
+        <ion-item
+          *ngFor="let mode of layoutModes"
+          button
+          (click)="selectLayoutMode(mode.value)"
+          [class.selected]="currentLayoutMode === mode.value"
+          class="layout-option">
+          <ion-icon
+            slot="start"
+            [name]="mode.value === 'default' ? 'git-network-outline' :
+                   mode.value === 'elk' ? 'apps-outline' : 'analytics-outline'"
+            [color]="currentLayoutMode === mode.value ? 'primary' : 'medium'">
+          </ion-icon>
+          <ion-label>
+            <h3>{{ mode.label }}</h3>
+            <p>{{ mode.description }}</p>
+          </ion-label>
+          <ion-icon
+            *ngIf="currentLayoutMode === mode.value"
+            slot="end"
+            name="checkmark-circle"
+            color="primary">
+          </ion-icon>
+        </ion-item>
+      </ion-list>
     </div>
   </app-floating-panel>
 </div>

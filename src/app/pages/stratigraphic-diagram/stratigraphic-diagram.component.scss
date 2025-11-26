@@ -350,3 +350,287 @@
     right: 30px;
   }
 }
+
+// === Styles pour le panneau de recherche ===
+.search-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.search-input-container {
+  margin-bottom: 16px;
+
+  ion-searchbar {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    --box-shadow: none;
+    padding: 0;
+  }
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .search-result-item {
+    --background: var(--ion-color-light);
+    --border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      transform: translateX(-4px);
+      --background: var(--ion-color-light-shade);
+    }
+
+    h3 {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .entity-type {
+      font-size: 0.85rem;
+      color: var(--ion-color-medium);
+    }
+
+    .entity-uuid {
+      font-size: 0.75rem;
+      color: var(--ion-color-medium-tint);
+      font-family: monospace;
+    }
+  }
+}
+
+.no-results,
+.no-data {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+// === Styles pour le panneau de layout ===
+.layout-panel-content {
+  .layout-description {
+    color: var(--ion-color-medium);
+    margin: 0 0 16px 0;
+    font-size: 0.9rem;
+  }
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .layout-option {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      --background: var(--ion-color-light-shade);
+    }
+
+    &.selected {
+      --background: #8ec9ff;
+    }
+
+    h3 {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 0.85rem;
+      color: var(--ion-color-medium);
+    }
+  }
+}
+
+// === Style pour la surbrillance des nœuds ===
+::ng-deep .highlighted-node {
+  animation: pulse-highlight 0.5s ease-in-out 3;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px #4CAF50);
+  }
+  50% {
+    filter: drop-shadow(0 0 25px #4CAF50) drop-shadow(0 0 35px #4CAF50);
+  }
+}
+
+// === Styles pour le survol des arêtes ===
+.diagram-container {
+  ::ng-deep {
+    // Style de base pour les arêtes
+    .edgePath {
+      path {
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      &:hover path {
+        stroke-width: 3px;
+      }
+    }
+
+    // Classes pour la surbrillance au survol
+    .edge-hover-source {
+      rect, polygon, circle, ellipse {
+        filter: drop-shadow(0 0 8px #4CAF50) drop-shadow(0 0 16px #4CAF50) !important;
+        stroke: #2E7D32 !important;
+        stroke-width: 3px !important;
+      }
+
+      text {
+        font-weight: bold !important;
+      }
+    }
+
+    .edge-hover-target {
+      rect, polygon, circle, ellipse {
+        filter: drop-shadow(0 0 8px #2196F3) drop-shadow(0 0 16px #2196F3) !important;
+        stroke: #1565C0 !important;
+        stroke-width: 3px !important;
+      }
+
+      text {
+        font-weight: bold !important;
+      }
+    }
+
+    .edge-hover-active {
+      path {
+        stroke: #FF5722 !important;
+        stroke-width: 4px !important;
+        filter: drop-shadow(0 0 4px #FF5722) !important;
+      }
+    }
+
+    // Tooltip pour afficher les infos de la relation
+    .edge-tooltip {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.85);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      pointer-events: none;
+      z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      max-width: 300px;
+
+      .tooltip-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding-bottom: 8px;
+      }
+
+      .tooltip-source {
+        color: #81C784;
+
+        &::before {
+          content: '●';
+          margin-right: 6px;
+        }
+      }
+
+      .tooltip-arrow {
+        color: #FF8A65;
+        font-size: 1.2rem;
+      }
+
+      .tooltip-target {
+        color: #64B5F6;
+
+        &::before {
+          content: '●';
+          margin-right: 6px;
+        }
+      }
+
+      .tooltip-relation-type {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+  }
+}
+
+// Légende des couleurs (optionnel - à ajouter dans le HTML si souhaité)
+.edge-hover-legend {
+  position: absolute;
+  bottom: 80px;
+  left: 20px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  font-size: 0.85rem;
+  z-index: 100;
+
+  .legend-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--ion-color-dark);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .legend-color {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+
+      &.source {
+        background: #4CAF50;
+        box-shadow: 0 0 6px #4CAF50;
+      }
+
+      &.target {
+        background: #2196F3;
+        box-shadow: 0 0 6px #2196F3;
+      }
+
+      &.edge {
+        background: #FF5722;
+        box-shadow: 0 0 6px #FF5722;
+      }
+    }
+  }
+}

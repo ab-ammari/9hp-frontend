@@ -1,11 +1,13 @@
 import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inject} from '@angular/core';
 import { WorkerService } from '../../services/worker.service';
-import { StratigraphicDiagramService, DiagramConfig } from '../../services/stratigraphic-diagram.service';
+import { StratigraphicDiagramService, DiagramConfig, DiagramNode } from '../../services/stratigraphic-diagram.service';
 import { ApiStratigraphie } from '../../../../shared';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import panzoom from 'panzoom';
 import {DOCUMENT} from "@angular/common";
+
+export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
 
 @Component({
   selector: 'app-stratigraphic-diagram',
@@ -21,6 +23,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   // Gestion des panneaux
   isControlPanelOpen = false;
   isStatsPanelOpen = false;
+  isSearchPanelOpen = false;
+  isLayoutPanelOpen = false;
 
   // Configuration du diagramme
   diagramConfig: DiagramConfig = {
@@ -36,6 +40,19 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   isExporting = false;
   currentMermaidCode = '';
   errorMessage = '';
+
+  // Recherche d'entités
+  searchQuery = '';
+  searchResults: DiagramNode[] = [];
+  allNodes: DiagramNode[] = [];
+
+  // Mode de layout Mermaid
+  currentLayoutMode: MermaidLayoutMode = 'default';
+  layoutModes: { value: MermaidLayoutMode; label: string; description: string }[] = [
+    { value: 'default', label: 'Par défaut', description: 'Layout flowchart standard de Mermaid' },
+    { value: 'elk', label: 'ELK', description: 'Eclipse Layout Kernel - meilleur pour les grands graphes' },
+    { value: 'dagre-d3', label: 'Dagre-D3', description: 'Layout hiérarchique optimisé' }
+  ];
 
   // Statistiques
   stats = {
@@ -60,7 +77,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   ) {}
 
   ngOnInit(): void {
-    // S'abonner aux changements de données
     this.w.data().objects.stratigraphie.all.onValueChange()
       .pipe(takeUntil(this.destroyer$))
       .subscribe(() => {
@@ -73,7 +89,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   ngAfterViewInit(): void {
     // Ne pas initialiser panzoom ici car le SVG n'existe pas encore
-    // Il sera initialisé après le premier rendu du diagramme
   }
 
   ngOnDestroy(): void {
@@ -90,7 +105,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.isFullscreen = !!this.document.fullscreenElement;
     setTimeout(() => {
       if (this.panzoomInstance) {
-        // Réinitialiser le panzoom après le changement de taille
         this.disposePanZoom();
         this.initializePanZoom();
       }
@@ -126,6 +140,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   openControlPanel(): void {
     this.isControlPanelOpen = true;
     this.isStatsPanelOpen = false;
+    this.isSearchPanelOpen = false;
+    this.isLayoutPanelOpen = false;
   }
 
   onControlPanelClosed(): void {
@@ -136,11 +152,150 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.isStatsPanelOpen = !this.isStatsPanelOpen;
     if (this.isStatsPanelOpen) {
       this.isControlPanelOpen = false;
+      this.isSearchPanelOpen = false;
+      this.isLayoutPanelOpen = false;
     }
   }
 
   onStatsPanelClosed(): void {
     this.isStatsPanelOpen = false;
+  }
+
+  // === Recherche d'entités ===
+
+  toggleSearchPanel(): void {
+    this.isSearchPanelOpen = !this.isSearchPanelOpen;
+    if (this.isSearchPanelOpen) {
+      this.isControlPanelOpen = false;
+      this.isStatsPanelOpen = false;
+      this.isLayoutPanelOpen = false;
+      this.updateSearchResults();
+    }
+  }
+
+  onSearchPanelClosed(): void {
+    this.isSearchPanelOpen = false;
+  }
+
+  onSearchQueryChange(): void {
+    this.updateSearchResults();
+  }
+
+  private updateSearchResults(): void {
+    if (!this.searchQuery.trim()) {
+      this.searchResults = this.allNodes.slice(0, 20); // Afficher les 20 premiers par défaut
+      return;
+    }
+
+    const query = this.searchQuery.toLowerCase().trim();
+    this.searchResults = this.allNodes.filter(node =>
+      node.label.toLowerCase().includes(query) ||
+      node.uuid.toLowerCase().includes(query)
+    ).slice(0, 50); // Limiter à 50 résultats
+  }
+
+  zoomToEntity(node: DiagramNode): void {
+    if (!this.panzoomInstance || !this.diagramContainer) {
+      return;
+    }
+
+    const container = this.diagramContainer.nativeElement;
+    const svg = container.querySelector('svg');
+
+    if (!svg) {
+      return;
+    }
+
+    // Trouver l'élément du nœud dans le SVG
+    const nodeId = 'node_' + node.uuid.replace(/-/g, '_');
+    const nodeElement = svg.querySelector(`[id*="${nodeId}"]`) ||
+      svg.querySelector(`g.node[id*="${nodeId}"]`) ||
+      this.findNodeByLabel(svg, node.label);
+
+    if (nodeElement) {
+      // Obtenir les coordonnées du nœud
+      const nodeRect = (nodeElement as Element).getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      // Calculer la position pour centrer le nœud
+      const transform = this.panzoomInstance.getTransform();
+      const scale = 1.5; // Zoom légèrement pour mettre en évidence
+
+      // Calculer le décalage pour centrer le nœud
+      const targetX = containerRect.width / 2 - (nodeRect.left - containerRect.left + nodeRect.width / 2);
+      const targetY = containerRect.height / 2 - (nodeRect.top - containerRect.top + nodeRect.height / 2);
+
+      // Appliquer le zoom et le déplacement
+      this.panzoomInstance.zoomAbs(containerRect.width / 2, containerRect.height / 2, scale);
+
+      setTimeout(() => {
+        this.panzoomInstance.moveTo(targetX * scale, targetY * scale);
+      }, 100);
+
+      // Mettre en surbrillance temporaire
+      this.highlightNode(nodeElement as Element);
+
+      // Fermer le panneau de recherche
+      this.isSearchPanelOpen = false;
+    } else {
+      console.warn('Nœud non trouvé dans le SVG:', nodeId);
+    }
+  }
+
+  private findNodeByLabel(svg: SVGElement, label: string): Element | null {
+    // Rechercher par texte du label
+    const textElements = svg.querySelectorAll('text');
+    for (const textEl of Array.from(textElements)) {
+      if (textEl.textContent?.includes(label)) {
+        // Remonter au groupe parent du nœud
+        return textEl.closest('g.node') || textEl.parentElement;
+      }
+    }
+    return null;
+  }
+
+  private highlightNode(nodeElement: Element): void {
+    // Ajouter une classe de surbrillance temporaire
+    nodeElement.classList.add('highlighted-node');
+
+    // Créer un effet de pulsation
+    const originalStyle = (nodeElement as HTMLElement).style.cssText;
+    (nodeElement as HTMLElement).style.filter = 'drop-shadow(0 0 10px #4CAF50) drop-shadow(0 0 20px #4CAF50)';
+    (nodeElement as HTMLElement).style.transition = 'filter 0.3s ease';
+
+    // Retirer la surbrillance après 3 secondes
+    setTimeout(() => {
+      (nodeElement as HTMLElement).style.filter = '';
+      nodeElement.classList.remove('highlighted-node');
+    }, 3000);
+  }
+
+  // === Mode de layout ===
+
+  toggleLayoutPanel(): void {
+    this.isLayoutPanelOpen = !this.isLayoutPanelOpen;
+    if (this.isLayoutPanelOpen) {
+      this.isControlPanelOpen = false;
+      this.isStatsPanelOpen = false;
+      this.isSearchPanelOpen = false;
+    }
+  }
+
+  onLayoutPanelClosed(): void {
+    this.isLayoutPanelOpen = false;
+  }
+
+  selectLayoutMode(mode: MermaidLayoutMode): void {
+    if (this.currentLayoutMode !== mode) {
+      this.currentLayoutMode = mode;
+      this.diagramService.setLayoutMode(mode);
+
+      // Régénérer le diagramme avec le nouveau layout
+      if (this.currentMermaidCode) {
+        this.generateDiagram();
+      }
+    }
+    this.isLayoutPanelOpen = false;
   }
 
   // === Génération du diagramme ===
@@ -175,18 +330,20 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         focusNode: this.filterOptions.focusNodeUuid || undefined
       };
 
-      this.currentMermaidCode = this.diagramService.generateMermaidCode(relations, config);
+      // Générer le code et récupérer les nœuds pour la recherche
+      const result = this.diagramService.generateMermaidCodeWithNodes(relations, config);
+      this.currentMermaidCode = result.code;
+      this.allNodes = result.nodes;
+
       this.calculateStats(relations);
       await this.renderDiagram();
 
-      // IMPORTANT : Attendre que le SVG soit bien dans le DOM avant d'initialiser panzoom
       setTimeout(() => {
-        this.disposePanZoom(); // Supprimer l'ancienne instance si elle existe
-        this.initializePanZoom(); // Créer une nouvelle instance
-        this.centerDiagram(); // Centrer le diagramme
+        this.disposePanZoom();
+        this.initializePanZoom();
+        this.centerDiagram();
       }, 300);
 
-      // Fermer le panneau de contrôle après génération réussie
       this.isControlPanelOpen = false;
 
     } catch (error) {
@@ -241,7 +398,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       return;
     }
 
-    // Chercher le SVG dans le conteneur
     const element = this.diagramContainer.nativeElement.querySelector('svg');
 
     if (!element) {
@@ -249,12 +405,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       return;
     }
 
-    // S'assurer qu'il n'y a pas déjà une instance
     if (this.panzoomInstance) {
       this.disposePanZoom();
     }
 
-    // Créer une nouvelle instance de panzoom
     this.panzoomInstance = panzoom(element, {
       maxZoom: 5,
       minZoom: 0.1,
@@ -262,9 +416,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       boundsPadding: 0.1,
       zoomDoubleClickSpeed: 1,
       smoothScroll: false,
-      // Configuration importante pour le pan
-      filterKey: () => true, // Permettre le pan sans touche de modification
-      // Enlever les restrictions beforeWheel et beforeMouseDown
+      filterKey: () => true,
     });
 
     console.log('Panzoom initialized successfully');
@@ -299,7 +451,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   centerDiagram(): void {
     if (this.panzoomInstance) {
-      // Obtenir les dimensions du conteneur et du SVG
       const container = this.diagramContainer.nativeElement;
       const svg = container.querySelector('svg');
 
@@ -307,22 +458,18 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         const containerRect = container.getBoundingClientRect();
         const svgRect = svg.getBoundingClientRect();
 
-        // Calculer le zoom pour que le SVG soit visible en entier
         const scaleX = containerRect.width / svgRect.width;
         const scaleY = containerRect.height / svgRect.height;
-        const scale = Math.min(scaleX, scaleY, 1) * 0.9; // 0.9 pour laisser un peu de marge
+        const scale = Math.min(scaleX, scaleY, 1) * 0.9;
 
-        // Réinitialiser puis appliquer le zoom
         this.panzoomInstance.moveTo(0, 0);
         this.panzoomInstance.zoomAbs(0, 0, scale);
 
-        // Centrer le diagramme
         const transform = this.panzoomInstance.getTransform();
         const offsetX = (containerRect.width - svgRect.width * scale) / 2;
         const offsetY = (containerRect.height - svgRect.height * scale) / 2;
         this.panzoomInstance.moveTo(offsetX, offsetY);
       } else {
-        // Fallback si pas de SVG
         this.resetPanZoom();
       }
     }
@@ -438,5 +585,4 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       this.generateDiagram();
     }
   }
-
 }
