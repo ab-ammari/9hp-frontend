@@ -473,10 +473,10 @@
 
 @keyframes pulse-highlight {
   0%, 100% {
-    filter: drop-shadow(0 0 10px #4CAF50);
+    filter: drop-shadow(0 0 10px #ff0000);
   }
   50% {
-    filter: drop-shadow(0 0 25px #4CAF50) drop-shadow(0 0 35px #4CAF50);
+    filter: drop-shadow(0 0 25px #ff2323) drop-shadow(0 0 35px #ff0000);
   }
 }
 
@@ -498,8 +498,8 @@
     // Classes pour la surbrillance au survol
     .edge-hover-source {
       rect, polygon, circle, ellipse {
-        filter: drop-shadow(0 0 8px #4CAF50) drop-shadow(0 0 16px #4CAF50) !important;
-        stroke: #2E7D32 !important;
+        filter: drop-shadow(0 0 8px #ff3838) drop-shadow(0 0 16px #ff0000) !important;
+        stroke: #ff0000 !important;
         stroke-width: 3px !important;
       }
 
@@ -579,57 +579,6 @@
         color: rgba(255, 255, 255, 0.7);
         text-transform: uppercase;
         letter-spacing: 0.5px;
-      }
-    }
-  }
-}
-
-// Légende des couleurs (optionnel - à ajouter dans le HTML si souhaité)
-.edge-hover-legend {
-  position: absolute;
-  bottom: 80px;
-  left: 20px;
-  background: white;
-  border-radius: 8px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  font-size: 0.85rem;
-  z-index: 100;
-
-  .legend-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--ion-color-dark);
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    .legend-color {
-      width: 16px;
-      height: 16px;
-      border-radius: 4px;
-
-      &.source {
-        background: #4CAF50;
-        box-shadow: 0 0 6px #4CAF50;
-      }
-
-      &.target {
-        background: #2196F3;
-        box-shadow: 0 0 6px #2196F3;
-      }
-
-      &.edge {
-        background: #FF5722;
-        box-shadow: 0 0 6px #FF5722;
       }
     }
   }

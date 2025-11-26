@@ -328,7 +328,6 @@
         <ion-list *ngIf="searchResults.length > 0">
           <ion-item
             *ngFor="let node of searchResults"
-            button
             (click)="zoomToEntity(node)"
             class="search-result-item">
             <ion-icon
@@ -375,7 +374,6 @@
       <ion-list>
         <ion-item
           *ngFor="let mode of layoutModes"
-          button
           (click)="selectLayoutMode(mode.value)"
           [class.selected]="currentLayoutMode === mode.value"
           class="layout-option">
