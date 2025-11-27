@@ -46,6 +46,11 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   searchResults: DiagramNode[] = [];
   allNodes: DiagramNode[] = [];
 
+  // autocomplétion du nœud focal
+  focusNodeSearchQuery = '';
+  focusNodeSearchResults: DiagramNode[] = [];
+  showFocusNodeSuggestions = false;
+
   // Mode de layout Mermaid
   currentLayoutMode: MermaidLayoutMode = 'default';
   layoutModes: { value: MermaidLayoutMode; label: string; description: string }[] = [
@@ -69,6 +74,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   };
 
   isFullscreen = false;
+
 
   constructor(
     public w: WorkerService,
@@ -559,9 +565,55 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
+  onFocusNodeSearchChange(event: any): void {
+    const query = event.target.value || '';
+    this.focusNodeSearchQuery = query;
+
+    if (! query.trim()) {
+      this.focusNodeSearchResults = [];
+      this.showFocusNodeSuggestions = false;
+      return;
+    }
+
+    this.showFocusNodeSuggestions = true;
+    const searchQuery = query.toLowerCase(). trim();
+
+    this.focusNodeSearchResults = this.allNodes.filter(node =>
+      node.label.toLowerCase().includes(searchQuery) ||
+      node.uuid.toLowerCase().includes(searchQuery)
+    ). slice(0, 10); // Limiter à 10 résultats
+  }
+
+  selectFocusNode(node: DiagramNode): void {
+    this.filterOptions.focusNodeUuid = node.uuid;
+    this.focusNodeSearchQuery = `${node.label} (${node.type. toUpperCase()})`;
+    this.showFocusNodeSuggestions = false;
+  }
+
+  clearFocusNodeSelection(): void {
+    this. filterOptions.focusNodeUuid = null;
+    this.focusNodeSearchQuery = '';
+    this. focusNodeSearchResults = [];
+    this.showFocusNodeSuggestions = false;
+  }
+
+  onFocusNodeInputFocus(): void {
+    if (this.focusNodeSearchQuery && this.focusNodeSearchResults. length > 0) {
+      this.showFocusNodeSuggestions = true;
+    }
+  }
+
+  onFocusNodeInputBlur(): void {
+    setTimeout(() => {
+      this.showFocusNodeSuggestions = false;
+    }, 200);
+  }
+
+
+
   clearFilters(): void {
     this.filterOptions.maxDepth = null;
-    this.filterOptions.focusNodeUuid = null;
+    this.clearFocusNodeSelection();
     this.generateDiagram();
   }
 

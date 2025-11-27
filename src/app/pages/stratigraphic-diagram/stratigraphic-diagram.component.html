@@ -54,33 +54,36 @@
     (fabClick)="openControlPanel()">
   </app-floating-action-button>
 
+  <!-- Mode de layout -->
+  <app-floating-action-button
+    icon="grid-outline"
+    [position]="'top-right'"
+    [offsetTop]="'185px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleLayoutPanel()">
+  </app-floating-action-button>
+
   <app-floating-action-button
     *ngIf="currentMermaidCode"
     icon="stats-chart-outline"
     [position]="'top-right'"
-    [offsetTop]="'185px'"
+    [offsetTop]="'230px'"
     [offsetRight]="'16px'"
     (fabClick)="toggleStatsPanel()">
   </app-floating-action-button>
 
-  <!-- Nouveau bouton: Recherche d'entités -->
+  <!-- Recherche d'entités -->
   <app-floating-action-button
     *ngIf="currentMermaidCode"
     icon="search-outline"
     [position]="'top-right'"
-    [offsetTop]="'230px'"
+    [offsetTop]="'275px'"
     [offsetRight]="'16px'"
     (fabClick)="toggleSearchPanel()">
   </app-floating-action-button>
 
-  <!-- Nouveau bouton: Mode de layout -->
-  <app-floating-action-button
-    icon="grid-outline"
-    [position]="'top-right'"
-    [offsetTop]="'275px'"
-    [offsetRight]="'16px'"
-    (fabClick)="toggleLayoutPanel()">
-  </app-floating-action-button>
+
+
 
   <!-- Panneau de contrôle -->
   <app-floating-panel
@@ -162,29 +165,6 @@
         </h3>
 
         <ion-list>
-          <ion-item>
-            <ion-label>Afficher les US</ion-label>
-            <ion-toggle
-              [(ngModel)]="diagramConfig.includeUS"
-              (ionChange)="toggleConfigOption('includeUS')">
-            </ion-toggle>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Afficher les Faits</ion-label>
-            <ion-toggle
-              [(ngModel)]="diagramConfig.includeFaits"
-              (ionChange)="toggleConfigOption('includeFaits')">
-            </ion-toggle>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Relations contemporaines</ion-label>
-            <ion-toggle
-              [(ngModel)]="diagramConfig.includeContemporaryRelations"
-              (ionChange)="toggleConfigOption('includeContemporaryRelations')">
-            </ion-toggle>
-          </ion-item>
 
           <ion-item>
             <ion-label>Mettre en évidence les cycles</ion-label>
@@ -223,13 +203,60 @@
             </ion-input>
           </ion-item>
 
-          <ion-item>
-            <ion-label position="stacked">UUID du nœud focal (optionnel)</ion-label>
-            <ion-input
-              [(ngModel)]="filterOptions.focusNodeUuid"
-              placeholder="UUID d'une US ou d'un Fait">
-            </ion-input>
+          <ion-item lines="none">
+            <ion-label position="stacked">Nœud focal</ion-label>
+            <div class="focus-node-input-wrapper">
+              <ion-input
+                [(ngModel)]="focusNodeSearchQuery"
+                (ionInput)="onFocusNodeSearchChange($event)"
+                (ionFocus)="onFocusNodeInputFocus()"
+                (ionBlur)="onFocusNodeInputBlur()"
+                placeholder="Rechercher par nom ou UUID..."
+                class="focus-node-input">
+              </ion-input>
+
+              <ion-button
+                *ngIf="filterOptions.focusNodeUuid"
+                fill="clear"
+                size="small"
+                (click)="clearFocusNodeSelection()"
+                class="clear-focus-button">
+                <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
           </ion-item>
+
+          <!-- Liste de suggestions -->
+          <div *ngIf="showFocusNodeSuggestions" class="focus-node-suggestions">
+            <ion-list *ngIf="focusNodeSearchResults. length > 0">
+              <ion-item
+                *ngFor="let node of focusNodeSearchResults"
+                (click)="selectFocusNode(node)"
+                class="suggestion-item"
+                button>
+                <ion-icon
+                  slot="start"
+                  [name]="node.type === 'us' ? 'layers-outline' : 'cube-outline'"
+                  [color]="node.type === 'us' ? 'primary' : 'warning'">
+                </ion-icon>
+                <ion-label>
+                  <h3>{{ node.label }}</h3>
+                  <p class="entity-type">{{ node.type === 'us' ? 'Unité Stratigraphique' : 'Fait' }}</p>
+                  <p class="entity-uuid">{{ node.uuid }}</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+
+            <div *ngIf="focusNodeSearchResults.length === 0 && focusNodeSearchQuery" class="no-suggestions">
+              <ion-icon name="search-outline"></ion-icon>
+              <p>Aucune entité trouvée pour "{{ focusNodeSearchQuery }}"</p>
+            </div>
+
+            <div *ngIf="allNodes.length === 0" class="no-data-suggestions">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>Générez d'abord un diagramme</p>
+            </div>
+          </div>
         </ion-list>
 
         <div class="button-grid ion-margin-top">
@@ -302,7 +329,7 @@
     </div>
   </app-floating-panel>
 
-  <!-- Nouveau Panneau: Recherche d'entités -->
+  <!-- Recherche d'entités -->
   <app-floating-panel
     [isOpen]="isSearchPanelOpen"
     (isOpenChange)="isSearchPanelOpen = $event"
@@ -357,7 +384,7 @@
     </div>
   </app-floating-panel>
 
-  <!-- Nouveau Panneau: Mode de layout -->
+  <!--Mode de layout -->
   <app-floating-panel
     [isOpen]="isLayoutPanelOpen"
     (isOpenChange)="isLayoutPanelOpen = $event"

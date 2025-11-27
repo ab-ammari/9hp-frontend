@@ -583,3 +583,145 @@
     }
   }
 }
+
+// === Styles pour l'autocomplétion du nœud focal ===
+.focus-node-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.focus-node-input {
+  flex: 1;
+}
+
+.clear-focus-button {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  margin: 0;
+  height: 32px;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.focus-node-suggestions {
+  position: relative;
+  margin-top: 8px;
+  background: var(--ion-background-color, #ffffff);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .suggestion-item {
+    --background: var(--ion-color-light);
+    --border-radius: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:first-child {
+      --border-radius: 8px 8px 0 0;
+    }
+
+    &:last-child {
+      --border-radius: 0 0 8px 8px;
+    }
+
+    &:only-child {
+      --border-radius: 8px;
+    }
+
+    &:hover {
+      --background: var(--ion-color-light-shade);
+    }
+
+    h3 {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.95rem;
+    }
+
+    .entity-type {
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      margin-bottom: 2px;
+    }
+
+    .entity-uuid {
+      font-size: 0.7rem;
+      color: var(--ion-color-medium-tint);
+      font-family: monospace;
+    }
+  }
+
+  // Scrollbar pour la liste de suggestions
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--ion-color-medium-shade);
+    }
+  }
+}
+
+.no-suggestions,
+.no-data-suggestions {
+  text-align: center;
+  padding: 20px;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+  }
+}
+
+// Animation pour l'apparition des suggestions
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.focus-node-suggestions {
+  animation: slideDownFade 0.2s ease-out;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .focus-node-suggestions {
+    max-height: 250px;
+  }
+}
