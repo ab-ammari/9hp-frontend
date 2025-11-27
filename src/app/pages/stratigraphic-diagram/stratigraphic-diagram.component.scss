@@ -498,8 +498,8 @@
     // Classes pour la surbrillance au survol
     .edge-hover-source {
       rect, polygon, circle, ellipse {
-        filter: drop-shadow(0 0 8px #ff3838) drop-shadow(0 0 16px #ff0000) !important;
-        stroke: #ff0000 !important;
+        filter: drop-shadow(0 0 8px #ff3838) drop-shadow(0 0 16px #4CAF50) !important;
+        stroke: #2E7D32 !important;
         stroke-width: 3px !important;
       }
 

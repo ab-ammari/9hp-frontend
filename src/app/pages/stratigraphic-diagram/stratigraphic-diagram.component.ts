@@ -195,11 +195,11 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   zoomToEntity(node: DiagramNode): void {
-    if (!this.panzoomInstance || !this.diagramContainer) {
+    if (! this.panzoomInstance || !this.diagramContainer) {
       return;
     }
 
-    const container = this.diagramContainer.nativeElement;
+    const container = this.diagramContainer. nativeElement;
     const svg = container.querySelector('svg');
 
     if (!svg) {
@@ -207,67 +207,133 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
 
     // Trouver l'élément du nœud dans le SVG
-    const nodeId = 'node_' + node.uuid.replace(/-/g, '_');
-    const nodeElement = svg.querySelector(`[id*="${nodeId}"]`) ||
-      svg.querySelector(`g.node[id*="${nodeId}"]`) ||
-      this.findNodeByLabel(svg, node.label);
+    const nodeElement = this.findNodeElementInSVG(svg, node);
 
     if (nodeElement) {
-      // Obtenir les coordonnées du nœud
-      const nodeRect = (nodeElement as Element).getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
+      // Centrer sur le nœud SANS zoom
+      this.centerOnNode(nodeElement);
 
-      // Calculer la position pour centrer le nœud
-      const transform = this.panzoomInstance.getTransform();
-      const scale = 1.5; // Zoom légèrement pour mettre en évidence
-
-      // Calculer le décalage pour centrer le nœud
-      const targetX = containerRect.width / 2 - (nodeRect.left - containerRect.left + nodeRect.width / 2);
-      const targetY = containerRect.height / 2 - (nodeRect.top - containerRect.top + nodeRect.height / 2);
-
-      // Appliquer le zoom et le déplacement
-      this.panzoomInstance.zoomAbs(containerRect.width / 2, containerRect.height / 2, scale);
-
-      setTimeout(() => {
-        this.panzoomInstance.moveTo(targetX * scale, targetY * scale);
-      }, 100);
-
-      // Mettre en surbrillance temporaire
-      this.highlightNode(nodeElement as Element);
+      // Mettre en surbrillance uniquement le nœud
+      this.highlightNode(nodeElement);
 
       // Fermer le panneau de recherche
       this.isSearchPanelOpen = false;
     } else {
-      console.warn('Nœud non trouvé dans le SVG:', nodeId);
+      console.warn('Nœud non trouvé dans le SVG:', node);
     }
   }
 
-  private findNodeByLabel(svg: SVGElement, label: string): Element | null {
-    // Rechercher par texte du label
-    const textElements = svg.querySelectorAll('text');
+  private findNodeElementInSVG(svg: SVGElement, node: DiagramNode): Element | null {
+    const sanitizedId = 'node_' + node.uuid.replace(/-/g, '_');
+
+    // Stratégie 1: Recherche par ID exact du groupe <g>
+    let nodeElement = svg.querySelector(`g.node#${sanitizedId}`);
+    if (nodeElement) {
+      console.log('Nœud trouvé par ID exact:', sanitizedId);
+      return nodeElement;
+    }
+
+    // Stratégie 2: Recherche par ID partiel
+    nodeElement = svg. querySelector(`g.node[id*="${sanitizedId}"]`);
+    if (nodeElement) {
+      console.log('Nœud trouvé par ID partiel:', sanitizedId);
+      return nodeElement;
+    }
+
+    // Stratégie 3: Recherche par contenu textuel exact
+    const textElements = svg.querySelectorAll('g.node text');
     for (const textEl of Array.from(textElements)) {
-      if (textEl.textContent?.includes(label)) {
-        // Remonter au groupe parent du nœud
-        return textEl.closest('g.node') || textEl.parentElement;
+      const textContent = textEl. textContent?.trim() || '';
+
+      // Vérifier si le texte correspond exactement au label
+      if (textContent === node.label) {
+        const parentNode = textEl.closest('g.node');
+        if (parentNode) {
+          console.log('Nœud trouvé par label exact:', node.label);
+          return parentNode;
+        }
       }
     }
+
+    // Stratégie 4: Recherche par UUID dans le texte
+    for (const textEl of Array.from(textElements)) {
+      const textContent = textEl.textContent || '';
+      if (textContent. includes(node.uuid)) {
+        const parentNode = textEl.closest('g.node');
+        if (parentNode) {
+          console. log('Nœud trouvé par UUID dans le texte:', node.uuid);
+          return parentNode;
+        }
+      }
+    }
+
+    console.error('Nœud introuvable avec:', { uuid: node.uuid, label: node.label, sanitizedId });
     return null;
   }
 
+  private centerOnNode(nodeElement: Element): void {
+    if (!this.panzoomInstance || !this.diagramContainer) {
+      return;
+    }
+
+    const container = this.diagramContainer. nativeElement;
+    const containerRect = container.getBoundingClientRect();
+    const nodeRect = nodeElement.getBoundingClientRect();
+
+    // Calculer la transformation actuelle
+    const currentTransform = this.panzoomInstance.getTransform();
+    const currentScale = currentTransform.scale;
+
+    // Calculer le centre du conteneur
+    const containerCenterX = containerRect.width / 2;
+    const containerCenterY = containerRect.height / 2;
+
+    // Calculer le centre du nœud dans le viewport
+    const nodeCenterX = nodeRect.left - containerRect.left + nodeRect.width / 2;
+    const nodeCenterY = nodeRect.top - containerRect.top + nodeRect. height / 2;
+
+    // Calculer le déplacement nécessaire pour centrer
+    const offsetX = containerCenterX - nodeCenterX;
+    const offsetY = containerCenterY - nodeCenterY;
+
+    // Appliquer uniquement le déplacement, SANS changer le zoom
+    const newX = currentTransform.x + offsetX;
+    const newY = currentTransform.y + offsetY;
+
+    this.panzoomInstance.moveTo(newX, newY);
+
+    console.log('nœud centré:', { offsetX, offsetY, scale: currentScale });
+  }
+
   private highlightNode(nodeElement: Element): void {
-    // Ajouter une classe de surbrillance temporaire
+    // Retirer toutes les anciennes surbrillances
+    const svg = nodeElement.closest('svg');
+    if (svg) {
+      svg.querySelectorAll('.highlighted-node').forEach(el => {
+        el.classList.remove('highlighted-node');
+        (el as HTMLElement).style.filter = '';
+      });
+    }
+
+    // Ajouter la classe de surbrillance
     nodeElement.classList.add('highlighted-node');
 
-    // Créer un effet de pulsation
-    const originalStyle = (nodeElement as HTMLElement).style.cssText;
-    (nodeElement as HTMLElement).style.filter = 'drop-shadow(0 0 10px #4CAF50) drop-shadow(0 0 20px #4CAF50)';
-    (nodeElement as HTMLElement).style.transition = 'filter 0.3s ease';
+    // Appliquer le style de surbrillance uniquement sur les formes du nœud
+    const shapes = nodeElement.querySelectorAll('rect, polygon, circle, ellipse, path');
+    shapes.forEach(shape => {
+      (shape as HTMLElement).style.filter = 'drop-shadow(0 0 10px #4CAF50) drop-shadow(0 0 20px #4CAF50) drop-shadow(0 0 30px #4CAF50)';
+      (shape as HTMLElement).style. transition = 'filter 0.3s ease';
+    });
 
     // Retirer la surbrillance après 3 secondes
     setTimeout(() => {
-      (nodeElement as HTMLElement).style.filter = '';
-      nodeElement.classList.remove('highlighted-node');
+      nodeElement.classList. remove('highlighted-node');
+      shapes.forEach(shape => {
+        (shape as HTMLElement).style. filter = '';
+      });
     }, 3000);
+
+    console.log('Surbrillance appliquée sur:', nodeElement);
   }
 
   // === Mode de layout ===
@@ -493,11 +559,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
   }
 
-  selectFocusNode(uuid: string): void {
-    this.filterOptions.focusNodeUuid = uuid;
-    this.generateDiagram();
-  }
-
   clearFilters(): void {
     this.filterOptions.maxDepth = null;
     this.filterOptions.focusNodeUuid = null;
@@ -577,12 +638,5 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       usCount: Math.floor(usCount / 2),
       faitCount: Math.floor(faitCount / 2)
     };
-  }
-
-  toggleGroupContemporaries(): void {
-    this.diagramConfig.groupContemporaries = !this.diagramConfig.groupContemporaries;
-    if (this.currentMermaidCode) {
-      this.generateDiagram();
-    }
   }
 }
