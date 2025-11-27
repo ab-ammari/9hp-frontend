@@ -439,6 +439,8 @@ export class StratigraphicDiagramService {
       });
     }
 
+
+
     // Ajouter les arêtes (exclure les relations contemporaines entre nœuds du même groupe)
     if (config.groupContemporaries) {
       const groups = this.identifyContemporaryGroups(nodes, edges);
