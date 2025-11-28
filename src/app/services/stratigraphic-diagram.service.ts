@@ -400,33 +400,70 @@ export class StratigraphicDiagramService {
     mermaidCode += '  classDef cycleStyle fill:#FFCDD2,stroke:#D32F2F,stroke-width:3px,color:#000\n';
     mermaidCode += '  classDef groupStyle fill:#F5F5F5,stroke:#9E9E9E,stroke-width:1px,stroke-dasharray: 5 5\n';
 
+    const faitToUS = this.buildFaitToUSMap([]);
+
+    const faitNodes = nodes.filter(n => n.type === 'fait');
+    const usNodes = nodes.filter(n => n.type === 'us');
+    const usInFaits = new Set<string>();
+
+    faitNodes.forEach(fait => {
+      const usUuids = faitToUS.get(fait.uuid);
+
+      if (usUuids && usUuids.size > 0) {
+        // Créer un subgraph pour ce Fait
+        const sanitizedLabel = this.sanitizeLabel(fait.label);
+        mermaidCode += `  subgraph ${fait.id}["${sanitizedLabel}"]\n`;
+        mermaidCode += `    direction TB\n`;
+
+        // Ajouter tous les US contenus
+        usUuids.forEach(usUuid => {
+          const usNode = usNodes.find(n => n. uuid === usUuid);
+          if (usNode) {
+            const usLabel = this.sanitizeLabel(usNode.label);
+            mermaidCode += `    ${usNode.id}["${usLabel}"]\n`;
+            usInFaits.add(usNode.id);
+          }
+        });
+
+        mermaidCode += `  end\n`;
+        mermaidCode += `  class ${fait.id} faitStyle\n`;
+      } else {
+        // Fait sans US : nœud simple
+        const sanitizedLabel = this.sanitizeLabel(fait.label);
+        mermaidCode += `  ${fait.id}["${sanitizedLabel}"]\n`;
+      }
+    });
+
     if (config.groupContemporaries) {
       const groups = this.identifyContemporaryGroups(nodes, edges);
       const groupedNodes = new Set<string>();
 
-      // Trier les groupes par niveau (du plus profond au plus superficiel)
       groups.sort((a, b) => b.level - a.level);
 
       groups.forEach(group => {
         if (group.nodes.length > 1) {
-          // Créer un sous-graphe horizontal pour les groupes contemporains
-          mermaidCode += `  subgraph ${group.id} [" "]\n`;
-          mermaidCode += `    direction LR\n`;
+          // 🆕 Filtrer les US déjà dans des Faits
+          const nodesToGroup = group.nodes.filter(node => !usInFaits.has(node.id));
 
-          group.nodes.forEach(node => {
-            const sanitizedLabel = this.sanitizeLabel(node.label);
-            mermaidCode += `    ${node.id}["${sanitizedLabel}"]\n`;
-            groupedNodes.add(node.id);
-          });
+          if (nodesToGroup.length > 1) {
+            mermaidCode += `  subgraph ${group.id} [" "]\n`;
+            mermaidCode += `    direction LR\n`;
 
-          mermaidCode += `  end\n`;
-          mermaidCode += `  class ${group.id} groupStyle\n`;
+            nodesToGroup.forEach(node => {
+              const sanitizedLabel = this.sanitizeLabel(node.label);
+              mermaidCode += `    ${node.id}["${sanitizedLabel}"]\n`;
+              groupedNodes.add(node. id);
+            });
+
+            mermaidCode += `  end\n`;
+            mermaidCode += `  class ${group.id} groupStyle\n`;
+          }
         }
       });
 
-      // Ajouter les nœuds non groupés
-      nodes.forEach(node => {
-        if (!groupedNodes.has(node.id)) {
+      // Ajouter les nœuds non groupés ET non dans des Faits
+      nodes. forEach(node => {
+        if (!groupedNodes.has(node.id) && !usInFaits. has(node.id) && node.type !== 'fait') {
           const sanitizedLabel = this.sanitizeLabel(node.label);
           mermaidCode += `  ${node.id}["${sanitizedLabel}"]\n`;
         }
@@ -651,5 +688,25 @@ export class StratigraphicDiagramService {
     const code = this.buildMermaidDiagram(filteredNodes, filteredEdges, config);
 
     return { code, nodes: filteredNodes };
+  }
+
+  /**
+   * Construit une map Fait UUID -> liste des US UUIDs contenus
+   */
+  private buildFaitToUSMap(relations: ApiStratigraphie[]): Map<string, Set<string>> {
+    const faitToUS = new Map<string, Set<string>>();
+
+    // Parcourir toutes les US pour trouver leur Fait parent
+    this.w.data().objects.us.all.list.forEach(usWrapper => {
+      const us = usWrapper.item;
+      if (us && us.live !== false && us.fait_uuid) {
+        if (!faitToUS.has(us.fait_uuid)) {
+          faitToUS.set(us.fait_uuid, new Set<string>());
+        }
+        faitToUS.get(us.fait_uuid)!.add(us.us_uuid);
+      }
+    });
+
+    return faitToUS;
   }
 }
