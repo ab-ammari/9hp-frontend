@@ -725,3 +725,31 @@
     max-height: 250px;
   }
 }
+.diagram-container {
+  ::ng-deep {
+    // Style pour les subgraphs de Faits
+    .cluster[id*="flowchart-"] {
+      rect {
+        fill: #FFF3E0 !important;
+        stroke: #F57C00 !important;
+        stroke-width: 2px !important;
+        rx: 8px !important;
+        ry: 8px !important;
+      }
+
+      .cluster-label {
+        fill: #E65100 !important;
+        font-weight: 600 !important;
+        font-size: 1rem !important;
+      }
+    }
+
+    // US à l'intérieur des Faits
+    .cluster .node {
+      rect {
+        fill: #E3F2FD !important;
+        stroke: #1976D2 !important;
+      }
+    }
+  }
+}
