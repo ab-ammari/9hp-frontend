@@ -82,6 +82,16 @@
     (fabClick)="toggleSearchPanel()">
   </app-floating-action-button>
 
+  <!-- Bouton pour afficher les entités isolées -->
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    icon="file-tray-outline"
+    [position]="'top-right'"
+    [offsetTop]="'325px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleIsolatedPanel()">
+  </app-floating-action-button>
+
 
 
 
@@ -165,15 +175,6 @@
         </h3>
 
         <ion-list>
-
-          <ion-item>
-            <ion-label>Mettre en évidence les cycles</ion-label>
-            <ion-toggle
-              [(ngModel)]="diagramConfig.highlightCycles"
-              (ionChange)="toggleConfigOption('highlightCycles')">
-            </ion-toggle>
-          </ion-item>
-
           <ion-item>
             <ion-label>Grouper les contemporains</ion-label>
             <ion-toggle
@@ -324,6 +325,16 @@
               <div class="stat-label">Faits</div>
             </div>
           </ion-col>
+
+          <ion-col size="12">
+            <div class="stat-card isolated-card clickable" (click)="openIsolatedPanelFromStats()">
+              <div class="stat-value">{{ stats.isolatedCount }}</div>
+              <div class="stat-label">
+                Entités isolées
+                <ion-icon name="open-outline" class="open-icon"></ion-icon>
+              </div>
+            </div>
+          </ion-col>
         </ion-row>
       </ion-grid>
     </div>
@@ -422,6 +433,125 @@
           </ion-icon>
         </ion-item>
       </ion-list>
+    </div>
+  </app-floating-panel>
+
+  <!-- Panneau des entités isolées -->
+  <app-floating-panel
+    [isOpen]="isIsolatedPanelOpen"
+    (isOpenChange)="isIsolatedPanelOpen = $event"
+    title="Entités isolées"
+    [position]="'right'"
+    [width]="'400px'"
+    [showBackdrop]="false"
+    [allowBackgroundInteractions]="true"
+    (closed)="onIsolatedPanelClosed()">
+
+    <div class="isolated-panel-content">
+      <!-- Filtres avec boutons -->
+      <div class="filter-section">
+        <div class="filter-buttons">
+          <ion-button
+            [fill]="isolatedFilters.showFaits ? 'solid' : 'outline'"
+            [color]="isolatedFilters. showFaits ? 'warning' : 'medium'"
+            expand="block"
+            (click)="toggleIsolatedFilter('faits')"
+            class="filter-button">
+            <ion-icon name="cube-outline" slot="start"></ion-icon>
+            Faits
+          </ion-button>
+
+          <ion-button
+            [fill]="isolatedFilters. showUS ? 'solid' : 'outline'"
+            [color]="isolatedFilters.showUS ? 'primary' : 'medium'"
+            expand="block"
+            (click)="toggleIsolatedFilter('us')"
+            class="filter-button">
+            <ion-icon name="layers-outline" slot="start"></ion-icon>
+            US
+          </ion-button>
+        </div>
+
+        <!-- Barre de recherche -->
+        <div class="search-bar-container">
+          <ion-searchbar
+            [(ngModel)]="isolatedSearchQuery"
+            (ionInput)="onIsolatedSearchChange()"
+            placeholder="Rechercher..."
+            [debounce]="300"
+            showCancelButton="never">
+          </ion-searchbar>
+        </div>
+      </div>
+
+      <!-- Liste des entités isolées -->
+      <div class="isolated-list">
+        <ion-list *ngIf="filteredIsolatedEntities.length > 0">
+          <ng-container *ngFor="let entity of filteredIsolatedEntities">
+            <!-- US isolée -->
+            <ion-item
+              *ngIf="entity.type === 'us'"
+              class="isolated-item us-item"
+              lines="none">
+              <ion-icon slot="start" name="layers-outline" color="primary"></ion-icon>
+              <ion-label>
+                <h3>{{ entity.label }}</h3>
+                <p class="entity-uuid">{{ entity.uuid }}</p>
+              </ion-label>
+            </ion-item>
+
+            <!-- Fait isolé -->
+            <ion-item
+              *ngIf="entity.type === 'fait'"
+              class="isolated-item fait-item"
+              lines="none">
+              <ion-icon slot="start" name="cube-outline" color="warning"></ion-icon>
+              <ion-label>
+                <h3>{{ entity.label }}</h3>
+                <p class="entity-uuid">{{ entity.uuid }}</p>
+              </ion-label>
+              <ion-button
+                *ngIf="entity.childrenUS && entity.childrenUS. length > 0"
+                fill="clear"
+                size="small"
+                (click)="toggleFaitExpansion(entity. uuid)"
+                slot="end">
+                <ion-icon
+                  [name]="expandedFaits.has(entity.uuid) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                  slot="icon-only">
+                </ion-icon>
+              </ion-button>
+            </ion-item>
+
+            <!-- US enfants du Fait (si étendu) -->
+            <div *ngIf="entity.type === 'fait' && expandedFaits.has(entity.uuid) && entity.childrenUS" class="fait-children">
+              <ion-item
+                *ngFor="let childUS of entity.childrenUS"
+                class="isolated-item us-child-item"
+                lines="none">
+                <div class="child-connector"></div>
+                <ion-icon slot="start" name="layers-outline" color="primary" size="small"></ion-icon>
+                <ion-label>
+                  <h4>{{ childUS.label }}</h4>
+                  <p class="entity-uuid">{{ childUS. uuid }}</p>
+                </ion-label>
+              </ion-item>
+            </div>
+          </ng-container>
+        </ion-list>
+
+        <!-- Message si aucune entité isolée -->
+        <div *ngIf="filteredIsolatedEntities.length === 0 && ! isolatedSearchQuery" class="no-isolated">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <p>Aucune entité isolée</p>
+        </div>
+
+        <!-- Message si aucun résultat de recherche -->
+        <div *ngIf="filteredIsolatedEntities.length === 0 && isolatedSearchQuery" class="no-isolated">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Aucun résultat pour "{{ isolatedSearchQuery }}"</p>
+        </div>
+      </div>
     </div>
   </app-floating-panel>
 </div>

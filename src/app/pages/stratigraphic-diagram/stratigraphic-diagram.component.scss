@@ -242,6 +242,39 @@
       letter-spacing: 1px;
       font-weight: 500;
     }
+
+    &.clickable {
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      &:active {
+        transform: translateY(-2px);
+      }
+    }
+
+    &.isolated-card {
+      .stat-value {
+        font-size: 3rem;
+      }
+
+      .stat-label {
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+
+        .open-icon {
+          font-size: 1.2rem;
+          animation: pulse 2s infinite;
+        }
+      }
+    }
   }
 }
 
@@ -749,6 +782,202 @@
       rect {
         fill: #E3F2FD !important;
         stroke: #1976D2 !important;
+      }
+    }
+  }
+}
+
+.isolated-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.filter-section {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  margin-bottom: 16px;
+
+  .filter-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    .filter-button {
+      margin: 0;
+      height: 44px;
+      font-weight: 600;
+      text-transform: none;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+
+  .search-bar-container {
+    ion-searchbar {
+      --background: var(--ion-color-light);
+      --border-radius: 12px;
+      --box-shadow: none;
+      padding: 0;
+
+      --placeholder-color: var(--ion-color-medium);
+      --icon-color: var(--ion-color-medium);
+    }
+  }
+}
+.isolated-list {
+  flex: 1;
+  overflow-y: auto;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .isolated-item {
+    --background: var(--ion-color-light);
+    --border-radius: 8px;
+    margin-bottom: 8px;
+    --padding-start: 12px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      --background: var(--ion-color-light-shade);
+      transform: translateX(-4px);
+    }
+
+    h3, h4 {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--ion-color-dark);
+    }
+
+    .entity-uuid {
+      font-size: 0.7rem;
+      color: var(--ion-color-medium-tint);
+      font-family: monospace;
+    }
+  }
+
+  .us-item {
+    border-left: 4px solid var(--ion-color-primary);
+  }
+
+  .fait-item {
+    border-left: 4px solid var(--ion-color-warning);
+  }
+
+  .fait-children {
+    margin-left: 20px;
+    padding-left: 16px;
+    border-left: 2px solid var(--ion-color-light-shade);
+    margin-bottom: 8px;
+
+    .us-child-item {
+      position: relative;
+      margin-bottom: 6px;
+      --background: var(--ion-color-light-tint);
+      border-left: 2px solid var(--ion-color-primary-tint);
+
+      h4 {
+        font-size: 0.9rem;
+      }
+
+      .entity-uuid {
+        font-size: 0.65rem;
+      }
+    }
+
+    .child-connector {
+      position: absolute;
+      left: -16px;
+      top: 50%;
+      width: 12px;
+      height: 1px;
+      background: var(--ion-color-light-shade);
+    }
+  }
+
+  // Scrollbar personnalisée
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--ion-color-medium-shade);
+    }
+  }
+}
+.no-isolated {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ion-color-medium);
+
+  ion-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+
+    &[name="checkmark-circle-outline"] {
+      color: var(--ion-color-success);
+    }
+
+    &[name="search-outline"] {
+      color: var(--ion-color-medium);
+    }
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+// Animation pour les boutons de filtre
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.filter-button[fill="solid"] {
+  animation: pulse 0.3s ease;
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .filter-section {
+    .filter-buttons {
+      gap: 8px;
+
+      .filter-button {
+        height: 40px;
+        font-size: 0.9rem;
+
+        ion-icon {
+          font-size: 18px;
+        }
       }
     }
   }

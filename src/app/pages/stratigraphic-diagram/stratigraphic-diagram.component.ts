@@ -9,6 +9,13 @@ import {DOCUMENT} from "@angular/common";
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
 
+interface IsolatedEntity {
+  uuid: string;
+  label: string;
+  type: 'us' | 'fait';
+  childrenUS?: IsolatedEntity[];
+}
+
 @Component({
   selector: 'app-stratigraphic-diagram',
   templateUrl: './stratigraphic-diagram.component.html',
@@ -20,13 +27,11 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   private destroyer$ = new Subject<void>();
   private panzoomInstance: any;
 
-  // Gestion des panneaux
   isControlPanelOpen = false;
   isStatsPanelOpen = false;
   isSearchPanelOpen = false;
   isLayoutPanelOpen = false;
 
-  // Configuration du diagramme
   diagramConfig: DiagramConfig = {
     includeUS: true,
     includeFaits: true,
@@ -35,23 +40,19 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     groupContemporaries: true,
   };
 
-  // État
   isGenerating = false;
   isExporting = false;
   currentMermaidCode = '';
   errorMessage = '';
 
-  // Recherche d'entités
   searchQuery = '';
   searchResults: DiagramNode[] = [];
   allNodes: DiagramNode[] = [];
 
-  // autocomplétion du nœud focal
   focusNodeSearchQuery = '';
   focusNodeSearchResults: DiagramNode[] = [];
   showFocusNodeSuggestions = false;
 
-  // Mode de layout Mermaid
   currentLayoutMode: MermaidLayoutMode = 'default';
   layoutModes: { value: MermaidLayoutMode; label: string; description: string }[] = [
     { value: 'default', label: 'Par défaut', description: 'Layout flowchart standard de Mermaid' },
@@ -59,15 +60,14 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     { value: 'dagre-d3', label: 'Dagre-D3', description: 'Layout hiérarchique optimisé' }
   ];
 
-  // Statistiques
   stats = {
     totalNodes: 0,
     totalEdges: 0,
     usCount: 0,
-    faitCount: 0
+    faitCount: 0,
+    isolatedCount: 0
   };
 
-  // Options de filtrage
   filterOptions = {
     maxDepth: null as number | null,
     focusNodeUuid: null as string | null
@@ -75,6 +75,16 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   isFullscreen = false;
 
+  isIsolatedPanelOpen = false;
+  isolatedFilters = {
+    showFaits: true,
+    showUS: true
+  };
+
+  isolatedEntities: IsolatedEntity[] = [];
+  filteredIsolatedEntities: IsolatedEntity[] = [];
+  expandedFaits = new Set<string>();
+  isolatedSearchQuery = '';
 
   constructor(
     public w: WorkerService,
@@ -94,7 +104,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   ngAfterViewInit(): void {
-    // Ne pas initialiser panzoom ici car le SVG n'existe pas encore
   }
 
   ngOnDestroy(): void {
@@ -212,17 +221,13 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       return;
     }
 
-    // Trouver l'élément du nœud dans le SVG
     const nodeElement = this.findNodeElementInSVG(svg, node);
 
     if (nodeElement) {
-      // Centrer sur le nœud SANS zoom
       this.centerOnNode(nodeElement);
 
-      // Mettre en surbrillance uniquement le nœud
       this.highlightNode(nodeElement);
 
-      // Fermer le panneau de recherche
       this.isSearchPanelOpen = false;
     } else {
       console.warn('Nœud non trouvé dans le SVG:', node);
@@ -232,26 +237,22 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   private findNodeElementInSVG(svg: SVGElement, node: DiagramNode): Element | null {
     const sanitizedId = 'node_' + node.uuid.replace(/-/g, '_');
 
-    // Stratégie 1: Recherche par ID exact du groupe <g>
     let nodeElement = svg.querySelector(`g.node#${sanitizedId}`);
     if (nodeElement) {
       console.log('Nœud trouvé par ID exact:', sanitizedId);
       return nodeElement;
     }
 
-    // Stratégie 2: Recherche par ID partiel
     nodeElement = svg. querySelector(`g.node[id*="${sanitizedId}"]`);
     if (nodeElement) {
       console.log('Nœud trouvé par ID partiel:', sanitizedId);
       return nodeElement;
     }
 
-    // Stratégie 3: Recherche par contenu textuel exact
     const textElements = svg.querySelectorAll('g.node text');
     for (const textEl of Array.from(textElements)) {
       const textContent = textEl. textContent?.trim() || '';
 
-      // Vérifier si le texte correspond exactement au label
       if (textContent === node.label) {
         const parentNode = textEl.closest('g.node');
         if (parentNode) {
@@ -261,7 +262,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       }
     }
 
-    // Stratégie 4: Recherche par UUID dans le texte
     for (const textEl of Array.from(textElements)) {
       const textContent = textEl.textContent || '';
       if (textContent. includes(node.uuid)) {
@@ -286,23 +286,18 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     const containerRect = container.getBoundingClientRect();
     const nodeRect = nodeElement.getBoundingClientRect();
 
-    // Calculer la transformation actuelle
     const currentTransform = this.panzoomInstance.getTransform();
     const currentScale = currentTransform.scale;
 
-    // Calculer le centre du conteneur
     const containerCenterX = containerRect.width / 2;
     const containerCenterY = containerRect.height / 2;
 
-    // Calculer le centre du nœud dans le viewport
     const nodeCenterX = nodeRect.left - containerRect.left + nodeRect.width / 2;
     const nodeCenterY = nodeRect.top - containerRect.top + nodeRect. height / 2;
 
-    // Calculer le déplacement nécessaire pour centrer
     const offsetX = containerCenterX - nodeCenterX;
     const offsetY = containerCenterY - nodeCenterY;
 
-    // Appliquer uniquement le déplacement, SANS changer le zoom
     const newX = currentTransform.x + offsetX;
     const newY = currentTransform.y + offsetY;
 
@@ -312,7 +307,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   private highlightNode(nodeElement: Element): void {
-    // Retirer toutes les anciennes surbrillances
     const svg = nodeElement.closest('svg');
     if (svg) {
       svg.querySelectorAll('.highlighted-node').forEach(el => {
@@ -321,17 +315,14 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       });
     }
 
-    // Ajouter la classe de surbrillance
     nodeElement.classList.add('highlighted-node');
 
-    // Appliquer le style de surbrillance uniquement sur les formes du nœud
     const shapes = nodeElement.querySelectorAll('rect, polygon, circle, ellipse, path');
     shapes.forEach(shape => {
       (shape as HTMLElement).style.filter = 'drop-shadow(0 0 10px #4CAF50) drop-shadow(0 0 20px #4CAF50) drop-shadow(0 0 30px #4CAF50)';
       (shape as HTMLElement).style. transition = 'filter 0.3s ease';
     });
 
-    // Retirer la surbrillance après 3 secondes
     setTimeout(() => {
       nodeElement.classList. remove('highlighted-node');
       shapes.forEach(shape => {
@@ -362,7 +353,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       this.currentLayoutMode = mode;
       this.diagramService.setLayoutMode(mode);
 
-      // Régénérer le diagramme avec le nouveau layout
       if (this.currentMermaidCode) {
         this.generateDiagram();
       }
@@ -688,7 +678,189 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       totalNodes: nodes.size,
       totalEdges: relations.length,
       usCount: Math.floor(usCount / 2),
-      faitCount: Math.floor(faitCount / 2)
+      faitCount: Math.floor(faitCount / 2),
+      isolatedCount: this. calculateIsolatedEntities(relations)
     };
+  }
+
+  toggleIsolatedPanel(): void {
+    this.isIsolatedPanelOpen = ! this.isIsolatedPanelOpen;
+    if (this.isIsolatedPanelOpen) {
+      this.isControlPanelOpen = false;
+      this.isStatsPanelOpen = false;
+      this.isSearchPanelOpen = false;
+      this.isLayoutPanelOpen = false;
+      this.updateIsolatedEntities();
+    }
+  }
+
+  onIsolatedPanelClosed(): void {
+    this.isIsolatedPanelOpen = false;
+    this.isolatedSearchQuery = '';
+  }
+
+  toggleIsolatedFilter(filterType: 'faits' | 'us'): void {
+    if (filterType === 'faits') {
+      this.isolatedFilters.showFaits = !this.isolatedFilters.showFaits;
+    } else {
+      this.isolatedFilters.showUS = !this.isolatedFilters.showUS;
+    }
+    this.updateIsolatedEntities();
+  }
+
+  toggleFaitExpansion(faitUuid: string): void {
+    if (this.expandedFaits.has(faitUuid)) {
+      this.expandedFaits.delete(faitUuid);
+    } else {
+      this.expandedFaits.add(faitUuid);
+    }
+  }
+
+  onIsolatedSearchChange(): void {
+    this.filterIsolatedEntities();
+  }
+
+  private filterIsolatedEntities(): void {
+    if (!this.isolatedSearchQuery. trim()) {
+      this.filteredIsolatedEntities = this.isolatedEntities;
+      return;
+    }
+
+    const query = this.isolatedSearchQuery. toLowerCase(). trim();
+
+    this.filteredIsolatedEntities = this.isolatedEntities.filter(entity => {
+      const matchesEntity = entity.label.toLowerCase().includes(query) ||
+        entity.uuid.toLowerCase().includes(query);
+
+      if (entity.type === 'fait' && entity.childrenUS) {
+        const matchesChildren = entity.childrenUS.some(child =>
+          child.label.toLowerCase(). includes(query) ||
+          child.uuid.toLowerCase().includes(query)
+        );
+        return matchesEntity || matchesChildren;
+      }
+
+      return matchesEntity;
+    });
+  }
+
+  updateIsolatedEntities(): void {
+    const relations = this.w. data().objects.stratigraphie.all.list
+      .map(item => item.item)
+      .filter(rel => rel && rel.live !== false);
+
+    const connectedUUIDs = new Set<string>();
+
+    relations.forEach(rel => {
+      if (rel. us_anterieur) connectedUUIDs.add(rel.us_anterieur);
+      if (rel.us_posterieur) connectedUUIDs.add(rel.us_posterieur);
+      if (rel.fait_anterieur) connectedUUIDs.add(rel.fait_anterieur);
+      if (rel.fait_posterieur) connectedUUIDs.add(rel.fait_posterieur);
+    });
+
+    const isolated: IsolatedEntity[] = [];
+
+    if (this.isolatedFilters. showFaits) {
+      this.w.data().objects.fait.all.list.forEach(faitWrapper => {
+        const fait = faitWrapper.item;
+        if (fait && fait.live !== false && !connectedUUIDs.has(fait.fait_uuid)) {
+          const childrenUS: IsolatedEntity[] = [];
+
+          this.w.data().objects.us.all.list.forEach(usWrapper => {
+            const us = usWrapper.item;
+            if (us && us.live !== false && us.fait_uuid === fait.fait_uuid) {
+              if (!connectedUUIDs.has(us.us_uuid)) {
+                childrenUS.push({
+                  uuid: us.us_uuid,
+                  label: us.tag || us.us_uuid.substring(0, 8),
+                  type: 'us'
+                });
+              }
+            }
+          });
+
+          isolated. push({
+            uuid: fait. fait_uuid,
+            label: fait.tag || fait.fait_uuid.substring(0, 8),
+            type: 'fait',
+            childrenUS: childrenUS.length > 0 ? childrenUS : undefined
+          });
+        }
+      });
+    }
+
+    if (this. isolatedFilters.showUS) {
+      this.w.data().objects.us.all.list.forEach(usWrapper => {
+        const us = usWrapper.item;
+        if (us && us.live !== false && !connectedUUIDs.has(us. us_uuid)) {
+          // Vérifier si l'US n'est pas déjà dans un Fait isolé
+          const isInIsolatedFait = isolated.some(
+            entity => entity.type === 'fait' &&
+              entity.childrenUS?.some(child => child.uuid === us. us_uuid)
+          );
+
+          if (!isInIsolatedFait) {
+            isolated. push({
+              uuid: us. us_uuid,
+              label: us.tag || us.us_uuid.substring(0, 8),
+              type: 'us'
+            });
+          }
+        }
+      });
+    }
+
+    isolated.sort((a, b) => {
+      if (a.type === b.type) {
+        return a.label.localeCompare(b.label);
+      }
+      return a. type === 'fait' ? -1 : 1;
+    });
+
+    this.isolatedEntities = isolated;
+    this.filterIsolatedEntities();
+  }
+
+  /**
+   * Calcule le nombre d'entités isolées (US + Faits sans relations)
+   */
+  private calculateIsolatedEntities(relations: ApiStratigraphie[]): number {
+    const connectedUUIDs = new Set<string>();
+
+    relations.forEach(rel => {
+      if (rel. us_anterieur) connectedUUIDs.add(rel.us_anterieur);
+      if (rel.us_posterieur) connectedUUIDs. add(rel.us_posterieur);
+      if (rel.fait_anterieur) connectedUUIDs.add(rel.fait_anterieur);
+      if (rel. fait_posterieur) connectedUUIDs.add(rel.fait_posterieur);
+    });
+
+    let isolatedCount = 0;
+
+    this.w.data(). objects.fait.all. list.forEach(faitWrapper => {
+      const fait = faitWrapper.item;
+      if (fait && fait.live !== false && ! connectedUUIDs.has(fait.fait_uuid)) {
+        isolatedCount++;
+      }
+    });
+
+    this.w.data().objects.us.all. list.forEach(usWrapper => {
+      const us = usWrapper.item;
+      if (us && us.live !== false && !connectedUUIDs. has(us.us_uuid)) {
+        if (us.fait_uuid) {
+          const parentFait = this.w.data().objects.fait.all.findByUuid(us.fait_uuid);
+          if (parentFait && parentFait.item. live !== false && !connectedUUIDs.has(us.fait_uuid)) {
+            return;
+          }
+        }
+        isolatedCount++;
+      }
+    });
+
+    return isolatedCount;
+  }
+
+  openIsolatedPanelFromStats(): void {
+    this.isStatsPanelOpen = false;
+    this.toggleIsolatedPanel();
   }
 }
