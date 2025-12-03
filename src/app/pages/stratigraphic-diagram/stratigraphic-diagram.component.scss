@@ -421,22 +421,30 @@
     &:hover {
       transform: translateX(-4px);
       --background: var(--ion-color-light-shade);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    h3 {
-      font-weight: 600;
-      margin-bottom: 4px;
+    ion-icon[slot="end"] {
+      font-size: 20px;
+      margin-left: 8px;
     }
+  }
 
-    .entity-type {
-      font-size: 0.85rem;
-      color: var(--ion-color-medium);
-    }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
-    .entity-uuid {
-      font-size: 0.75rem;
-      color: var(--ion-color-medium-tint);
-      font-family: monospace;
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--ion-color-medium-shade);
     }
   }
 }
@@ -979,6 +987,265 @@
           font-size: 18px;
         }
       }
+    }
+  }
+}
+
+// === Styles pour le panneau de gestion des relations ===
+.relations-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .search-bar-container {
+    margin-bottom: 16px;
+
+    ion-searchbar {
+      --background: var(--ion-color-light);
+      --border-radius: 12px;
+      --box-shadow: none;
+      padding: 0;
+    }
+  }
+
+  .relations-list {
+    flex: 1;
+    overflow-y: auto;
+
+    .strati-relation-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+
+      tbody tr {
+        background: var(--ion-color-light);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--ion-color-light-shade);
+          transform: translateX(-4px);
+        }
+      }
+
+      td {
+        padding: 12px;
+        vertical-align: middle;
+      }
+
+      .type-strati-box {
+        width: 120px;
+        font-weight: 600;
+        border-left: 3px solid var(--ion-color-primary);
+        border-radius: 8px 0 0 8px;
+      }
+
+      .relation-entities {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .relation-separator {
+          font-size: 1.2rem;
+          color: var(--ion-color-medium);
+          font-weight: bold;
+        }
+      }
+
+      .action-column {
+        width: 50px;
+        text-align: right;
+        border-radius: 0 8px 8px 0;
+
+        .delete-icon {
+          font-size: 24px;
+          color: var(--ion-color-danger);
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover:not(.disabled) {
+            color: var(--ion-color-danger-shade);
+            transform: scale(1.1);
+          }
+
+          &.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--ion-color-light);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--ion-color-medium-shade);
+      }
+    }
+  }
+
+  .no-relations {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+// === Styles pour le panneau des entités isolées ===
+.isolated-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .filter-section {
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--ion-color-light-shade);
+    margin-bottom: 16px;
+
+    .filter-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .filter-button {
+        margin: 0;
+        height: 44px;
+        font-weight: 600;
+        text-transform: none;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .search-bar-container {
+      ion-searchbar {
+        --background: var(--ion-color-light);
+        --border-radius: 12px;
+        --box-shadow: none;
+        padding: 0;
+      }
+    }
+  }
+
+  .isolated-list {
+    flex: 1;
+    overflow-y: auto;
+
+    ion-list {
+      background: transparent;
+      padding: 0;
+    }
+
+    .isolated-item {
+      --background: var(--ion-color-light);
+      --border-radius: 8px;
+      margin-bottom: 8px;
+      --padding-start: 12px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        --background: var(--ion-color-light-shade);
+      }
+    }
+
+    .us-item {
+      border-left: 4px solid var(--ion-color-primary);
+    }
+
+    .fait-item {
+      border-left: 4px solid var(--ion-color-warning);
+    }
+
+    .fait-children {
+      margin-left: 20px;
+      padding-left: 16px;
+      border-left: 2px solid var(--ion-color-light-shade);
+      margin-bottom: 8px;
+
+      .us-child-item {
+        position: relative;
+        margin-bottom: 6px;
+        --background: var(--ion-color-light-tint);
+        border-left: 2px solid var(--ion-color-primary-tint);
+      }
+
+      .child-connector {
+        position: absolute;
+        left: -16px;
+        top: 50%;
+        width: 12px;
+        height: 1px;
+        background: var(--ion-color-light-shade);
+      }
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--ion-color-light);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--ion-color-medium-shade);
+      }
+    }
+  }
+
+  .no-isolated {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+
+      &[name="checkmark-circle-outline"] {
+        color: var(--ion-color-success);
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.95rem;
     }
   }
 }

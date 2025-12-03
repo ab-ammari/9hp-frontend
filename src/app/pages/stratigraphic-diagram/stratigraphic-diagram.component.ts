@@ -1,11 +1,14 @@
 import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inject} from '@angular/core';
 import { WorkerService } from '../../services/worker.service';
 import { StratigraphicDiagramService, DiagramConfig, DiagramNode } from '../../services/stratigraphic-diagram.service';
-import { ApiStratigraphie } from '../../../../shared';
+import {ApiDbTable, ApiStratigraphie} from '../../../../shared';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import panzoom from 'panzoom';
 import {DOCUMENT} from "@angular/common";
+import {ConfirmationService} from "../../services/confirmation.service";
+import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
+
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
 
@@ -14,6 +17,15 @@ interface IsolatedEntity {
   label: string;
   type: 'us' | 'fait';
   childrenUS?: IsolatedEntity[];
+}
+
+interface RelationDisplay {
+  relation: ApiStratigraphie;
+  leftLabel: string;
+  leftType: 'us' | 'fait';
+  rightLabel: string;
+  rightType: 'us' | 'fait';
+  type: string;
 }
 
 @Component({
@@ -86,10 +98,18 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   expandedFaits = new Set<string>();
   isolatedSearchQuery = '';
 
+  isRelationsPanelOpen = false;
+  relationsSearchQuery = '';
+  allRelations: RelationDisplay[] = [];
+  filteredRelations: RelationDisplay[] = [];
+  isDeletingRelation = false;
+
   constructor(
     public w: WorkerService,
     private diagramService: StratigraphicDiagramService,
-    @Inject(DOCUMENT) private document: Document
+    @Inject(DOCUMENT) private document: Document,
+    private authService: CastorAuthorizationService,
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit(): void {
@@ -850,4 +870,123 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.isStatsPanelOpen = false;
     this.toggleIsolatedPanel();
   }
+
+  toggleRelationsPanel(): void {
+    this.isRelationsPanelOpen = !this.isRelationsPanelOpen;
+    if (this.isRelationsPanelOpen) {
+      this.isControlPanelOpen = false;
+      this.isStatsPanelOpen = false;
+      this.isSearchPanelOpen = false;
+      this.isLayoutPanelOpen = false;
+      this.isIsolatedPanelOpen = false;
+      this.loadRelations();
+    }
+  }
+
+  onRelationsPanelClosed(): void {
+    this.isRelationsPanelOpen = false;
+    this.relationsSearchQuery = '';
+  }
+
+  loadRelations(): void {
+    const relations = this.w.data().objects.stratigraphie.all.list
+      .map(item => item.item)
+      .filter(rel => rel && rel.live !== false);
+
+    this.allRelations = relations.map(rel => ({
+      relation: rel,
+      leftLabel: '',
+      leftType: 'us' as 'us' | 'fait',
+      rightLabel: '',
+      rightType: 'us' as 'us' | 'fait',
+      type: ''
+    }));
+
+    this.filteredRelations = [...this.allRelations];
+  }
+
+  onRelationsSearchChange(): void {
+    if (!this.relationsSearchQuery.trim()) {
+      this.filteredRelations = [...this.allRelations];
+      return;
+    }
+
+    const query = this.relationsSearchQuery.toLowerCase().trim();
+    this.filteredRelations = this.allRelations.filter(rel => {
+      const relation = rel.relation;
+
+      // Recherche dans les UUIDs et tags des entités
+      const searchInEntity = (uuid: string | null, table: ApiDbTable) => {
+        if (!uuid) return false;
+        const entity = table === ApiDbTable.us
+          ? this.w.data().objects.us.all.findByUuid(uuid)
+          : this.w.data().objects.fait.all.findByUuid(uuid);
+        const tag = entity?.item?.tag || '';
+        return tag.toLowerCase().includes(query) || uuid.toLowerCase().includes(query);
+      };
+
+      return searchInEntity(relation.us_anterieur, ApiDbTable.us) ||
+        searchInEntity(relation.us_posterieur, ApiDbTable.us) ||
+        searchInEntity(relation.fait_anterieur, ApiDbTable.fait) ||
+        searchInEntity(relation.fait_posterieur, ApiDbTable.fait);
+    });
+  }
+
+  deleteRelation(relDisplay: RelationDisplay, event?: Event): void {
+    if (this.isDeletingRelation) {
+      return;
+    }
+
+    if (event) {
+      event.stopPropagation();
+    }
+
+    const relation = relDisplay.relation;
+
+    if (this.authService.canDeleteRelation(relation)) {
+      this.confirmationService.showConfirmDialog(
+        'Supprimer la relation',
+        `Êtes-vous sûr de vouloir supprimer la relation : "${relDisplay.leftLabel} → ${relDisplay.rightLabel}" ?`,
+        () => {
+          this.isDeletingRelation = true;
+          relation.live = false;
+
+          this.w.data().objects.stratigraphie.selected.commit(relation).subscribe(
+            () => {
+              console.log('Relation supprimée avec succès');
+              setTimeout(() => {
+                this.loadRelations();
+                if (this.currentMermaidCode) {
+                  this.generateDiagram();
+                }
+                this.isDeletingRelation = false;
+              }, 100);
+            },
+            error => {
+              console.error('Erreur lors de la suppression de la relation', error);
+              this.isDeletingRelation = false;
+              this.confirmationService.showConfirmDialog(
+                'Erreur',
+                'Une erreur est survenue lors de la suppression de la relation.',
+                () => {},
+                () => {},
+                'OK',
+                null
+              );
+            }
+          );
+        },
+        () => {
+          console.log('Suppression annulée');
+        }
+      );
+    } else {
+      this.confirmationService.showInfoDialog(
+        'Accès refusé',
+        'Seul le propriétaire du projet ou le créateur de cette relation peut la supprimer.'
+      );
+    }
+  }
+
+  protected readonly ApiDbTable = ApiDbTable;
 }
