@@ -67,6 +67,8 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     isActive: false
   };
 
+  private readonly paradoxDisplayOrder = ['cycle', 'consistency', 'containment', 'temporal'];
+
   constructor(
     public w: WorkerService,
     private validationService: CastorValidationService,
@@ -482,5 +484,17 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  /**
+   * Comparateur pour ordonner les paradoxes selon notre ordre personnalisé
+   */
+  paradoxKeyValueComparator = (a: any, b: any): number => {
+    const orderA = this.paradoxDisplayOrder.indexOf(a.key);
+    const orderB = this.paradoxDisplayOrder.indexOf(b.key);
 
+    // Si le type n'est pas dans l'ordre défini, le mettre à la fin
+    const indexA = orderA === -1 ? this.paradoxDisplayOrder.length : orderA;
+    const indexB = orderB === -1 ? this.paradoxDisplayOrder.length : orderB;
+
+    return indexA - indexB;
+  };
 }

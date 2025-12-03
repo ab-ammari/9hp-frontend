@@ -37,8 +37,8 @@
           </ion-label>
         </ion-item>
 
-        <div *ngFor="let entry of groupedParadoxes | keyvalue" class="paradox-group">
-          <div class="group-header" (click)="toggleGroupExpand(entry.key)">
+        <div *ngFor="let entry of groupedParadoxes | keyvalue:paradoxKeyValueComparator" class="paradox-group">
+        <div class="group-header" (click)="toggleGroupExpand(entry.key)">
             <ion-item lines="none" detail="false" button>
               <ion-icon name="chevron-down" *ngIf="expandedGroups[entry.key]"></ion-icon>
               <ion-icon name="chevron-forward" *ngIf="!expandedGroups[entry.key]"></ion-icon>
