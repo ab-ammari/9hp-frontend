@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { WorkerService } from './worker.service';
 import { ApiStratigraphie, ApiDbTable } from '../../../shared';
 import mermaid from 'mermaid';
+import { saveAs } from 'file-saver';
 
 export interface DiagramNode {
   id: string;
@@ -578,46 +579,214 @@ export class StratigraphicDiagramService {
       throw new Error(`Container with id ${containerId} not found`);
     }
 
-    const html2canvas = (await import('html2canvas')).default;
+    const svgElement = container.querySelector('svg');
+    if (!svgElement) {
+      throw new Error('SVG element not found in container');
+    }
 
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#ffffff',
-      scale: 2
-    });
+    try {
+      // Méthode 1 : Conversion SVG → Canvas → PNG
+      const canvas = await this.svgToCanvas(svgElement);
 
-    const link = document.createElement('a');
-    link.download = `stratigraphic-diagram-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
+      // Télécharger le PNG
+      canvas.toBlob((blob) => {
+        if (blob) {
+          saveAs(blob, `stratigraphic-diagram-${Date.now()}.png`);
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Error in PNG export:', error);
+
+      // Fallback : utiliser html2canvas sur l'élément parent
+      try {
+        const html2canvas = (await import('html2canvas')). default;
+        const canvas = await html2canvas(container, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          logging: false,
+          useCORS: true,
+          allowTaint: true,
+          foreignObjectRendering: false,
+          imageTimeout: 0
+        });
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            saveAs(blob, `stratigraphic-diagram-${Date.now()}.png`);
+          }
+        }, 'image/png');
+      } catch (fallbackError) {
+        console. error('Fallback PNG export failed:', fallbackError);
+        throw new Error('Impossible d\'exporter en PNG.  Essayez l\'export SVG.');
+      }
+    }
   }
 
   /**
-   * Exporte le diagramme en PDF
+   * Exporte le diagramme en SVG
    */
-  public async exportToPDF(containerId: string): Promise<void> {
+  public async exportToSVG(containerId: string): Promise<void> {
     const container = document.getElementById(containerId);
     if (!container) {
       throw new Error(`Container with id ${containerId} not found`);
     }
 
-    const html2canvas = (await import('html2canvas')).default;
-    const jsPDF = (await import('jspdf')).jsPDF;
+    const svgElement = container.querySelector('svg');
+    if (!svgElement) {
+      throw new Error('SVG element not found in container');
+    }
 
-    const canvas = await html2canvas(container, {
-      backgroundColor: '#ffffff',
-      scale: 2
-    });
+    try {
+      // Cloner le SVG pour ne pas modifier l'original
+      const svgClone = svgElement.cloneNode(true) as SVGElement;
 
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF({
-      orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-      unit: 'px',
-      format: [canvas.width, canvas.height]
-    });
+      // Ajouter le namespace XML si absent
+      if (!svgClone.hasAttribute('xmlns')) {
+        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      }
+      if (!svgClone.hasAttribute('xmlns:xlink')) {
+        svgClone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+      }
 
-    pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-    pdf.save(`stratigraphic-diagram-${Date.now()}.pdf`);
+      // Récupérer tous les styles inline et CSS
+      const styleSheets = this.extractStyles(svgElement);
+
+      // Injecter les styles dans le SVG
+      if (styleSheets) {
+        const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+        styleElement. textContent = styleSheets;
+        svgClone.insertBefore(styleElement, svgClone.firstChild);
+      }
+
+      // Sérialiser le SVG
+      const serializer = new XMLSerializer();
+      let svgString = serializer.serializeToString(svgClone);
+
+      // Ajouter la déclaration XML
+      svgString = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + svgString;
+
+      // Créer un Blob et télécharger
+      const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      saveAs(blob, `stratigraphic-diagram-${Date.now()}.svg`);
+    } catch (error) {
+      console.error('Error in SVG export:', error);
+      throw new Error('Impossible d\'exporter en SVG.');
+    }
   }
+
+  /**
+   * Convertit un SVG en Canvas
+   */
+  private async svgToCanvas(svgElement: SVGElement): Promise<HTMLCanvasElement> {
+    return new Promise((resolve, reject) => {
+      try {
+        // Cloner le SVG
+        const svgClone = svgElement.cloneNode(true) as SVGElement;
+
+        // S'assurer que le SVG a les bons attributs
+        const bbox = svgElement.getBoundingClientRect();
+        const width = bbox.width || parseInt(svgElement.getAttribute('width') || '800');
+        const height = bbox. height || parseInt(svgElement. getAttribute('height') || '600');
+
+        svgClone.setAttribute('width', width.toString());
+        svgClone.setAttribute('height', height. toString());
+        svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+        // Extraire et injecter les styles
+        const styles = this.extractStyles(svgElement);
+        if (styles) {
+          const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+          styleElement.textContent = styles;
+          svgClone.insertBefore(styleElement, svgClone.firstChild);
+        }
+
+        // Sérialiser le SVG
+        const serializer = new XMLSerializer();
+        const svgString = serializer.serializeToString(svgClone);
+        const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        // Créer une image
+        const img = new Image();
+        img.width = width;
+        img.height = height;
+
+        img.onload = () => {
+          // Créer un canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = width * 2; // 2x pour meilleure qualité
+          canvas.height = height * 2;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Cannot get canvas context'));
+            return;
+          }
+
+          // Fond blanc
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Dessiner l'image
+          ctx.scale(2, 2);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          URL.revokeObjectURL(url);
+          resolve(canvas);
+        };
+
+        img.onerror = (error) => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Failed to load SVG image: ' + error));
+        };
+
+        img.src = url;
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  /**
+   * Extrait tous les styles CSS appliqués au SVG
+   */
+  private extractStyles(svgElement: SVGElement): string {
+    const styleSheets: string[] = [];
+
+    // Récupérer les styles inline
+    const allElements = svgElement.querySelectorAll('*');
+    allElements.forEach((element) => {
+      const computedStyle = window.getComputedStyle(element);
+      const styleString = computedStyle.cssText;
+      if (styleString) {
+        element.setAttribute('style', styleString);
+      }
+    });
+
+    // Récupérer les classes CSS du document
+    for (let i = 0; i < document.styleSheets.length; i++) {
+      try {
+        const sheet = document.styleSheets[i];
+        if (sheet.cssRules) {
+          for (let j = 0; j < sheet.cssRules.length; j++) {
+            const rule = sheet.cssRules[j];
+            if (rule instanceof CSSStyleRule) {
+              // Vérifier si la règle s'applique au SVG
+              if (svgElement.querySelector(rule.selectorText)) {
+                styleSheets.push(rule.cssText);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        // Ignorer les erreurs CORS
+        console.warn('Cannot access stylesheet:', e);
+      }
+    }
+
+    return styleSheets.join('\n');
+  }
+
 
   /**
    * Définit le mode de layout Mermaid
