@@ -571,58 +571,6 @@ export class StratigraphicDiagramService {
   }
 
   /**
-   * Exporte le diagramme en PNG
-   */
-  public async exportToPNG(containerId: string): Promise<void> {
-    const container = document.getElementById(containerId);
-    if (!container) {
-      throw new Error(`Container with id ${containerId} not found`);
-    }
-
-    const svgElement = container.querySelector('svg');
-    if (!svgElement) {
-      throw new Error('SVG element not found in container');
-    }
-
-    try {
-      // Méthode 1 : Conversion SVG → Canvas → PNG
-      const canvas = await this.svgToCanvas(svgElement);
-
-      // Télécharger le PNG
-      canvas.toBlob((blob) => {
-        if (blob) {
-          saveAs(blob, `stratigraphic-diagram-${Date.now()}.png`);
-        }
-      }, 'image/png');
-    } catch (error) {
-      console.error('Error in PNG export:', error);
-
-      // Fallback : utiliser html2canvas sur l'élément parent
-      try {
-        const html2canvas = (await import('html2canvas')). default;
-        const canvas = await html2canvas(container, {
-          backgroundColor: '#ffffff',
-          scale: 2,
-          logging: false,
-          useCORS: true,
-          allowTaint: true,
-          foreignObjectRendering: false,
-          imageTimeout: 0
-        });
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            saveAs(blob, `stratigraphic-diagram-${Date.now()}.png`);
-          }
-        }, 'image/png');
-      } catch (fallbackError) {
-        console. error('Fallback PNG export failed:', fallbackError);
-        throw new Error('Impossible d\'exporter en PNG.  Essayez l\'export SVG.');
-      }
-    }
-  }
-
-  /**
    * Exporte le diagramme en SVG
    */
   public async exportToSVG(containerId: string): Promise<void> {
