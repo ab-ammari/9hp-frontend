@@ -138,22 +138,12 @@
         <div class="button-grid">
           <ion-button
             expand="block"
-            (click)="exportPNG()"
+            (click)="exportSVG()"
             [disabled]="isExporting"
             color="secondary"
             size="small">
-            <ion-icon name="image-outline" slot="start"></ion-icon>
-            PNG
-          </ion-button>
-
-          <ion-button
-            expand="block"
-            (click)="exportPDF()"
-            [disabled]="isExporting"
-            color="secondary"
-            size="small">
-            <ion-icon name="document-outline" slot="start"></ion-icon>
-            PDF
+            <ion-icon name="code-outline" slot="start"></ion-icon>
+            SVG
           </ion-button>
 
           <ion-button

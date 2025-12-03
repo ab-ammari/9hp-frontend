@@ -613,38 +613,25 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   // === Export ===
 
-  async exportPNG(): Promise<void> {
-    this.isExporting = true;
-    try {
-      const containerId = this.diagramContainer.nativeElement.id || 'diagram-container';
-      await this.diagramService.exportToPNG(containerId);
-    } catch (error) {
-      console.error('Erreur lors de l\'export PNG:', error);
-      this.errorMessage = 'Erreur lors de l\'export PNG';
-    } finally {
-      this.isExporting = false;
-    }
-  }
-
-  async exportPDF(): Promise<void> {
-    this.isExporting = true;
-    try {
-      const containerId = this.diagramContainer.nativeElement.id || 'diagram-container';
-      await this.diagramService.exportToPDF(containerId);
-    } catch (error) {
-      console.error('Erreur lors de l\'export PDF:', error);
-      this.errorMessage = 'Erreur lors de l\'export PDF';
-    } finally {
-      this.isExporting = false;
-    }
-  }
-
   async copyMermaidCode(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.currentMermaidCode);
       console.log('Code Mermaid copié dans le presse-papier');
     } catch (error) {
       console.error('Erreur lors de la copie:', error);
+    }
+  }
+
+  async exportSVG(): Promise<void> {
+    this.isExporting = true;
+    try {
+      const containerId = this.diagramContainer.nativeElement.id || 'diagram-container';
+      await this.diagramService.exportToSVG(containerId);
+    } catch (error) {
+      console. error('Erreur lors de l\'export SVG:', error);
+      this.errorMessage = 'Erreur lors de l\'export SVG';
+    } finally {
+      this.isExporting = false;
     }
   }
 
