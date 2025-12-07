@@ -237,16 +237,16 @@ export class StratigraphicDiagramService {
       let to: string | null = null;
 
       // Déterminer les nœuds source et destination
-      if (rel.us_posterieur && config.includeUS) {
-        from = rel.us_posterieur;
-      } else if (rel.fait_posterieur && config.includeFaits) {
-        from = rel.fait_posterieur;
+      if (rel.us_anterieur && config.includeUS) {
+        from = rel.us_anterieur;
+      } else if (rel.fait_anterieur && config.includeFaits) {
+        from = rel.fait_anterieur;
       }
 
-      if (rel.us_anterieur && config.includeUS) {
-        to = rel.us_anterieur;
-      } else if (rel.fait_anterieur && config.includeFaits) {
-        to = rel.fait_anterieur;
+      if (rel.us_posterieur && config.includeUS) {
+        to = rel.us_posterieur;
+      } else if (rel.fait_posterieur && config.includeFaits) {
+        to = rel.fait_posterieur;
       }
 
       if (from && to) {
