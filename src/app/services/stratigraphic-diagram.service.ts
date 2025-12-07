@@ -307,6 +307,24 @@ export class StratigraphicDiagramService {
     // Étape 2: Étendre pour inclure TOUS les nœuds contemporains de façon transitive
     this.expandContemporaryNodes(includedNodeIds, allNodes, allEdges);
 
+    // Ajouter les US enfants des Faits inclus
+    const faitToUS = this.buildFaitToUSMap([]);
+    const faitsIncluded = Array.from(includedNodeIds)
+      .map(id => allNodes.find(n => n.id === id && n.type === 'fait'))
+      .filter(n => n !== undefined) as DiagramNode[];
+
+    faitsIncluded.forEach(fait => {
+      const usUuids = faitToUS.get(fait.uuid);
+      if (usUuids) {
+        usUuids.forEach(usUuid => {
+          const usNode = allNodes.find(n => n.uuid === usUuid);
+          if (usNode) {
+            includedNodeIds.add(usNode.id);
+          }
+        });
+      }
+    });
+
     // Étape 3: Filtrer les nœuds et les arêtes
     const filteredNodes = allNodes.filter(node => includedNodeIds.has(node.id));
 
@@ -411,23 +429,29 @@ export class StratigraphicDiagramService {
       const usUuids = faitToUS.get(fait.uuid);
 
       if (usUuids && usUuids.size > 0) {
-        // Créer un subgraph pour ce Fait
-        const sanitizedLabel = this.sanitizeLabel(fait.label);
-        mermaidCode += `  subgraph ${fait.id}["${sanitizedLabel}"]\n`;
-        mermaidCode += `    direction TB\n`;
+        //vérifier qu'au moins une US est présente dans les nœuds filtrés
+        const usNodesInFait = usNodes.filter(n => usUuids.has(n.uuid));
 
-        // Ajouter tous les US contenus
-        usUuids.forEach(usUuid => {
-          const usNode = usNodes.find(n => n. uuid === usUuid);
-          if (usNode) {
+        if (usNodesInFait.length > 0) {
+          // Créer un subgraph pour ce Fait
+          const sanitizedLabel = this.sanitizeLabel(fait.label);
+          mermaidCode += `  subgraph ${fait.id}["${sanitizedLabel}"]\n`;
+          mermaidCode += `    direction TB\n`;
+
+          // Ajouter tous les US contenus
+          usNodesInFait.forEach(usNode => {
             const usLabel = this.sanitizeLabel(usNode.label);
             mermaidCode += `    ${usNode.id}["${usLabel}"]\n`;
             usInFaits.add(usNode.id);
-          }
-        });
+          });
 
-        mermaidCode += `  end\n`;
-        mermaidCode += `  class ${fait.id} faitStyle\n`;
+          mermaidCode += `  end\n`;
+          mermaidCode += `  class ${fait.id} faitStyle\n`;
+        } else {
+          // Fait sans US dans le graphe filtré : nœud simple
+          const sanitizedLabel = this.sanitizeLabel(fait.label);
+          mermaidCode += `  ${fait.id}["${sanitizedLabel}"]\n`;
+        }
       } else {
         // Fait sans US : nœud simple
         const sanitizedLabel = this.sanitizeLabel(fait.label);
