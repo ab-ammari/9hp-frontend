@@ -796,7 +796,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       });
     }
 
-    if (this. isolatedFilters.showUS) {
+    if (this.isolatedFilters.showUS) {
       this.w.data().objects.us.all.list.forEach(usWrapper => {
         const us = usWrapper.item;
         if (us && us.live !== false && !connectedUUIDs.has(us. us_uuid)) {
