@@ -1,0 +1,32 @@
+<div
+  *ngIf="isVisible"
+  class="edit-mode-indicator"
+  [class.minimized]="isMinimized"
+  [@slideAnimation]>
+
+  <div class="indicator-content">
+    <ion-icon [name]="icon"></ion-icon>
+    <span class="indicator-text" *ngIf="!isMinimized">{{ message }}</span>
+  </div>
+
+  <div class="indicator-actions">
+    <!-- Bouton minimiser/maximiser -->
+    <ion-button
+      fill="clear"
+      size="small"
+      (click)="toggleMinimize()"
+      class="minimize-btn">
+      <ion-icon [name]="isMinimized ? 'chevron-forward' : 'chevron-back'" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <!-- Bouton fermer (quitter le mode) -->
+    <ion-button
+      fill="clear"
+      size="small"
+      (click)="onClose()"
+      class="close-btn"
+      *ngIf="!isMinimized">
+      <ion-icon name="close" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+</div>
