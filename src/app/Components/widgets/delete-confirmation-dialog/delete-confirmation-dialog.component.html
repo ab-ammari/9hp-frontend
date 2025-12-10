@@ -1,0 +1,84 @@
+<!-- Overlay -->
+<div
+  *ngIf="isVisible"
+  class="dialog-overlay"
+  (click)="onCancel()"
+  [@fadeAnimation]>
+</div>
+
+<!-- Dialog -->
+<div
+  *ngIf="isVisible"
+  class="delete-confirmation-dialog"
+  [ngStyle]="getPositionStyle()"
+  [@dialogAnimation]
+  (click)="$event.stopPropagation()">
+
+  <!-- Header -->
+  <div class="dialog-header">
+    <ion-icon name="trash-outline" color="danger"></ion-icon>
+    <h4>{{ title }}</h4>
+  </div>
+
+  <!-- Content -->
+  <div class="dialog-content">
+    <!-- Relation Info -->
+    <div class="relation-info" *ngIf="sourceEntity && targetEntity">
+      <!-- Source Entity -->
+      <div class="entity source">
+        <ion-icon
+          [name]="sourceEntity.type === 'us' ? 'layers-outline' : 'cube-outline'"
+          [color]="sourceEntity. type === 'us' ? 'primary' : 'warning'">
+        </ion-icon>
+        <span>{{ sourceEntity.label }}</span>
+      </div>
+
+      <!-- Arrow -->
+      <ion-icon
+        [name]="isContemporary ? 'swap-horizontal' : 'arrow-forward'"
+        class="arrow-icon">
+      </ion-icon>
+
+      <!-- Target Entity -->
+      <div class="entity target">
+        <ion-icon
+          [name]="targetEntity.type === 'us' ?  'layers-outline' : 'cube-outline'"
+          [color]="targetEntity.type === 'us' ? 'primary' : 'warning'">
+        </ion-icon>
+        <span>{{ targetEntity.label }}</span>
+      </div>
+    </div>
+
+    <!-- Relation Type Badge -->
+    <div class="relation-type" *ngIf="isContemporary">
+      <ion-chip color="tertiary" size="small">
+        <ion-icon name="git-compare-outline"></ion-icon>
+        <ion-label>Contemporain</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Custom Message -->
+    <p class="custom-message" *ngIf="message">{{ message }}</p>
+  </div>
+
+  <!-- Actions -->
+  <div class="dialog-actions">
+    <ion-button
+      fill="outline"
+      size="small"
+      (click)="onCancel()"
+      [disabled]="isLoading">
+      {{ cancelText }}
+    </ion-button>
+
+    <ion-button
+      color="danger"
+      size="small"
+      (click)="onConfirm()"
+      [disabled]="isLoading">
+      <ion-spinner *ngIf="isLoading" name="crescent" slot="start"></ion-spinner>
+      <ion-icon *ngIf="! isLoading" name="trash-outline" slot="start"></ion-icon>
+      {{ isLoading ? loadingText : confirmText }}
+    </ion-button>
+  </div>
+</div>
