@@ -102,6 +102,49 @@
     (fabClick)="toggleRelationsPanel()">
   </app-floating-action-button>
 
+  <!-- Bouton Mode Édition -->
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    [icon]="isEditMode ? 'create' : 'create-outline'"
+    [color]="isEditMode ? 'warning' : 'secondary'"
+    [position]="'top-right'"
+    [offsetTop]="'415px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleEditMode()">
+  </app-floating-action-button>
+
+  <!-- Bouton Mode Édition -->
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    [icon]="isEditMode ? 'create' : 'create-outline'"
+    [color]="isEditMode ? 'warning' : 'secondary'"
+    [position]="'top-right'"
+    [offsetTop]="'415px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleEditMode()">
+  </app-floating-action-button>
+
+  <!-- Indicateur Mode Édition -->
+  <app-edit-mode-indicator
+    [isVisible]="isEditMode"
+    [message]="'Mode Édition - Cliquez sur une flèche pour la supprimer'"
+    [icon]="'create'"
+    (closed)="toggleEditMode()">
+  </app-edit-mode-indicator>
+
+  <!-- Dialog de confirmation de suppression -->
+  <app-delete-confirmation-dialog
+    [isVisible]="showDeleteConfirmation"
+    [isLoading]="isDeletingRelation"
+    [positionX]="deleteConfirmationPosition. x"
+    [positionY]="deleteConfirmationPosition.y"
+    [sourceEntity]="pendingDeletionSource"
+    [targetEntity]="pendingDeletionTarget"
+    [isContemporary]="pendingDeletionIsContemporary"
+    (confirmed)="confirmDeleteRelation()"
+    (cancelled)="cancelDeleteConfirmation()">
+  </app-delete-confirmation-dialog>
+
   <!-- Panneau de contrôle -->
   <app-floating-panel
     [isOpen]="isControlPanelOpen"

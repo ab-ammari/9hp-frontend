@@ -2,12 +2,15 @@ import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inje
 import { WorkerService } from '../../services/worker.service';
 import { StratigraphicDiagramService, DiagramConfig, DiagramNode } from '../../services/stratigraphic-diagram.service';
 import {ApiDbTable, ApiStratigraphie} from '../../../../shared';
-import { Subject } from 'rxjs';
+import {Subject, Subscription} from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import panzoom from 'panzoom';
 import {DOCUMENT} from "@angular/common";
 import {ConfirmationService} from "../../services/confirmation.service";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
+import { DiagramEditModeService, EdgeClickEvent } from '../../services/diagram-edit-mode.service';
+import { EdgeRelationResolverService } from '../../services/edge-relation-resolver.service';
+import { EntityInfo } from '../../Components/widgets/delete-confirmation-dialog/delete-confirmation-dialog.component';
 
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
@@ -104,12 +107,30 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   filteredRelations: RelationDisplay[] = [];
   isDeletingRelation = false;
 
+  // Mode édition
+  isEditMode: boolean = false;
+  showDeleteConfirmation:  boolean = false;
+  deleteConfirmationPosition = { x: 0, y: 0 };
+
+  // Données pour le dialog de confirmation
+  pendingDeletionEvent: EdgeClickEvent | null = null;
+  pendingDeletionSource:  EntityInfo | null = null;
+  pendingDeletionTarget: EntityInfo | null = null;
+  pendingDeletionIsContemporary:  boolean = false;
+
+  private editModeSubscription: Subscription | null = null;
+  private edgeClickSubscription: Subscription | null = null;
+
+  private relations: ApiStratigraphie[];
+
   constructor(
     public w: WorkerService,
     private diagramService: StratigraphicDiagramService,
     @Inject(DOCUMENT) private document: Document,
     private authService: CastorAuthorizationService,
-    private confirmationService: ConfirmationService
+    private confirmationService: ConfirmationService,
+    private diagramEditModeService: DiagramEditModeService,
+    private edgeRelationResolver: EdgeRelationResolverService,
   ) {}
 
   ngOnInit(): void {
@@ -121,9 +142,22 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         }
       });
     this.document.addEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
+
+    // Souscrire aux événements du mode édition
+    this.editModeSubscription = this.diagramEditModeService.isEditMode$.subscribe(
+      isEdit => this.isEditMode = isEdit
+    );
+
+    this.edgeClickSubscription = this.diagramEditModeService.edgeClicked$.subscribe(
+      event => this.onEdgeClicked(event)
+    );
   }
 
   ngAfterViewInit(): void {
+    // Initialiser le service d'édition
+    if (this.diagramContainer?. nativeElement) {
+      this.diagramEditModeService.initialize(this. diagramContainer.nativeElement);
+    }
   }
 
   ngOnDestroy(): void {
@@ -134,6 +168,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       this.panzoomInstance.dispose();
     }
     this.document.removeEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
+
+    this.editModeSubscription?.unsubscribe();
+    this.edgeClickSubscription?.unsubscribe();
+    this.diagramEditModeService.destroy();
   }
 
   private onFullscreenChange(): void {
@@ -168,6 +206,131 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     if (this.document.exitFullscreen) {
       this.document.exitFullscreen();
     }
+  }
+
+  // ==========================================
+  // MODE ÉDITION
+  // ==========================================
+
+  toggleEditMode(): void {
+    this.isEditMode = this.diagramEditModeService.toggleEditMode();
+
+    if (this.isEditMode) {
+      this.diagramEditModeService.updateRelations(this.relations);
+    }
+  }
+
+  private onEdgeClicked(event: EdgeClickEvent): void {
+    console.log('[Component] Edge clicked:', event. resolvedRelation);
+
+    this.pendingDeletionEvent = event;
+
+    // Préparer les données pour le dialog
+    const { edgeIdentifier, relation } = event. resolvedRelation;
+
+    this.pendingDeletionSource = {
+      uuid:  edgeIdentifier. sourceUuid,
+      label: this.getEntityLabel(edgeIdentifier.sourceUuid, edgeIdentifier.sourceType),
+      type: edgeIdentifier. sourceType
+    };
+
+    this.pendingDeletionTarget = {
+      uuid: edgeIdentifier.targetUuid,
+      label: this.getEntityLabel(edgeIdentifier.targetUuid, edgeIdentifier.targetType),
+      type: edgeIdentifier.targetType
+    };
+
+    this.pendingDeletionIsContemporary = relation.is_contemporain || false;
+
+    // Position du dialog
+    this.deleteConfirmationPosition = {
+      x: event.mouseEvent.clientX,
+      y: event.mouseEvent.clientY
+    };
+
+    this.showDeleteConfirmation = true;
+  }
+
+  async confirmDeleteRelation(): Promise<void> {
+    if (!this.pendingDeletionEvent) return;
+
+    const { resolvedRelation, edgeElement } = this.pendingDeletionEvent;
+    const relation = resolvedRelation.relation;
+
+    // Vérifier les permissions
+    if (! this.canDeleteRelation(relation)) {
+      this.confirmationService.showInfoDialog(
+        'Accès refusé',
+        'Seul le propriétaire du projet ou le créateur de cette relation peut la supprimer.'
+      );
+      this.cancelDeleteConfirmation();
+      return;
+    }
+
+    // Marquer visuellement
+    this.diagramEditModeService.markForDeletion(edgeElement);
+
+    try {
+      this.isDeletingRelation = true;
+      await this.executeRelationDeletion(relation);
+      this.cancelDeleteConfirmation();
+      await this.generateDiagram();
+      console.log('[Component] Relation deleted successfully');
+    } catch (error) {
+      console.error('[Component] Delete relation error:', error);
+      this.diagramEditModeService.clearAllHighlights();
+      this.confirmationService.showConfirmDialog(
+        'Erreur',
+        'Une erreur est survenue lors de la suppression de la relation.',
+        () => {}, () => {}, 'OK', null
+      );
+    } finally {
+      this.isDeletingRelation = false;
+    }
+  }
+
+  cancelDeleteConfirmation(): void {
+    this.showDeleteConfirmation = false;
+    this.pendingDeletionEvent = null;
+    this.pendingDeletionSource = null;
+    this.pendingDeletionTarget = null;
+    this.pendingDeletionIsContemporary = false;
+    this.diagramEditModeService.clearAllHighlights();
+  }
+
+  public getEntityLabel(uuid:  string, type: 'us' | 'fait'): string {
+    if (type === 'us') {
+      const us = this.w.data().objects. us. all.findByUuid(uuid);
+      return us?. item. tag || uuid. substring(0, 8);
+    } else {
+      const fait = this.w.data().objects.fait.all.findByUuid(uuid);
+      return fait?.item.tag || uuid.substring(0, 8);
+    }
+  }
+
+  private executeRelationDeletion(relation: ApiStratigraphie): Promise<void> {
+    return new Promise((resolve, reject) => {
+      relation.live = false;
+
+      this.w.data().objects.stratigraphie.selected.commit(relation).subscribe({
+        next:  () => {
+          this.relations = this.relations.filter(
+            r => r. stratigraphie_uuid !== relation.stratigraphie_uuid
+          );
+          setTimeout(() => {
+            resolve();
+          }, 100);
+        },
+        error: (error) => {
+          relation.live = true;
+          reject(error);
+        }
+      });
+    });
+  }
+
+  canDeleteRelation(relation: ApiStratigraphie): boolean {
+    return this.authService.canDeleteRelation(relation);
   }
 
   // === Gestion des panneaux ===
@@ -397,11 +560,11 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         }
       }
 
-      const relations = this.w.data().objects.stratigraphie.all.list
+      this.relations = this.w.data().objects.stratigraphie.all.list
         .map(item => item.item)
         .filter(rel => rel && rel.live !== false);
 
-      if (relations.length === 0) {
+      if (this.relations.length === 0) {
         this.errorMessage = 'Aucune relation stratigraphique disponible';
         return;
       }
@@ -413,11 +576,11 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       };
 
       // Générer le code et récupérer les nœuds pour la recherche
-      const result = this.diagramService.generateMermaidCodeWithNodes(relations, config);
+      const result = this.diagramService.generateMermaidCodeWithNodes(this.relations, config);
       this.currentMermaidCode = result.code;
       this.allNodes = result.nodes;
 
-      this.calculateStats(relations);
+      this.calculateStats(this.relations);
       await this.renderDiagram();
 
       setTimeout(() => {
@@ -427,6 +590,16 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       }, 300);
 
       this.isControlPanelOpen = false;
+
+      this. diagramEditModeService.updateRelations(this.relations);
+
+      // Si en mode édition, réactiver après le rendu
+      if (this.isEditMode) {
+        // Petit délai pour s'assurer que le DOM est prêt
+        setTimeout(() => {
+          this.diagramEditModeService. setEditMode(true);
+        }, 100);
+      }
 
     } catch (error) {
       console.error('Erreur lors de la génération du diagramme:', error);
@@ -463,6 +636,17 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       console.error('Erreur lors du rendu Mermaid:', error);
       throw new Error('Impossible de générer le diagramme: ' + (error as Error).message);
     }
+  }
+
+  // ==========================================
+  // DEBUG (optionnel)
+  // ==========================================
+
+  /**
+   * Debug: Affiche les infos de toutes les arêtes
+   */
+  debugEdges(): void {
+    this.diagramEditModeService.debugAllEdges();
   }
 
   // === Pan/Zoom ===
@@ -942,6 +1126,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
 
     const relation = relDisplay.relation;
+
 
     if (this.authService.canDeleteRelation(relation)) {
       this.confirmationService.showConfirmDialog(
