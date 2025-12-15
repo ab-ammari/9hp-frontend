@@ -1,0 +1,63 @@
+.focused-diagram-viewer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.diagram-container {
+  flex: 1;
+  overflow: hidden;
+  background: #fff;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  ::ng-deep svg {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+.loading-state,
+.error-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+
+  ion-icon,
+  ion-spinner {
+    font-size: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  gap: 4px;
+  background: white;
+  border-radius: 8px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  ion-button {
+    margin: 0;
+    --padding-start: 8px;
+    --padding-end: 8px;
+  }
+}

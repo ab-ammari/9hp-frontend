@@ -1,0 +1,29 @@
+<div class="focused-diagram-viewer">
+  <div *ngIf="isLoading" class="loading-state">
+    <ion-spinner></ion-spinner>
+    <p>Génération du diagramme...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-state">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div
+    #focusedDiagramContainer
+    class="diagram-container"
+    [hidden]="isLoading || errorMessage">
+  </div>
+
+  <div class="controls" [hidden]="isLoading || errorMessage">
+    <ion-button size="small" fill="clear" (click)="zoomIn()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+    </ion-button>
+    <ion-button size="small" fill="clear" (click)="zoomOut()">
+      <ion-icon name="remove-circle-outline"></ion-icon>
+    </ion-button>
+    <ion-button size="small" fill="clear" (click)="resetView()">
+      <ion-icon name="locate-outline"></ion-icon>
+    </ion-button>
+  </div>
+</div>
