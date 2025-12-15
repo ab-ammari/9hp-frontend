@@ -2,15 +2,13 @@ import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inje
 import { WorkerService } from '../../services/worker.service';
 import { StratigraphicDiagramService, DiagramConfig, DiagramNode } from '../../services/stratigraphic-diagram.service';
 import {ApiDbTable, ApiStratigraphie} from '../../../../shared';
-import {Subject, Subscription} from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import panzoom from 'panzoom';
 import {DOCUMENT} from "@angular/common";
 import {ConfirmationService} from "../../services/confirmation.service";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
-import { DiagramEditModeService, EdgeClickEvent } from '../../services/diagram-edit-mode.service';
-import { EdgeRelationResolverService } from '../../services/edge-relation-resolver.service';
-import { EntityInfo } from '../../Components/widgets/delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { DiagramEditModeService, EdgeClickEvent } from 'src/app/services/diagram-edit-mode.service';
 
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
@@ -108,18 +106,13 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   isDeletingRelation = false;
 
   // Mode édition
-  isEditMode: boolean = false;
-  showDeleteConfirmation:  boolean = false;
-  deleteConfirmationPosition = { x: 0, y: 0 };
-
-  // Données pour le dialog de confirmation
+  isEditMode:  boolean = false;
+  showDeleteConfirmation: boolean = false;
   pendingDeletionEvent: EdgeClickEvent | null = null;
-  pendingDeletionSource:  EntityInfo | null = null;
-  pendingDeletionTarget: EntityInfo | null = null;
-  pendingDeletionIsContemporary:  boolean = false;
-
-  private editModeSubscription: Subscription | null = null;
-  private edgeClickSubscription: Subscription | null = null;
+  deleteConfirmationPosition = { x: 0, y: 0 };
+  
+  private editModeSubscription:  Subscription | null = null;
+  private edgeClickSubscription:  Subscription | null = null;
 
   private relations: ApiStratigraphie[];
 
@@ -130,7 +123,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     private authService: CastorAuthorizationService,
     private confirmationService: ConfirmationService,
     private diagramEditModeService: DiagramEditModeService,
-    private edgeRelationResolver: EdgeRelationResolverService,
   ) {}
 
   ngOnInit(): void {
@@ -142,7 +134,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         }
       });
     this.document.addEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
-
+  
     // Souscrire aux événements du mode édition
     this.editModeSubscription = this.diagramEditModeService.isEditMode$.subscribe(
       isEdit => this.isEditMode = isEdit
@@ -168,7 +160,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       this.panzoomInstance.dispose();
     }
     this.document.removeEventListener('fullscreenchange', this.onFullscreenChange.bind(this));
-
+  
     this.editModeSubscription?.unsubscribe();
     this.edgeClickSubscription?.unsubscribe();
     this.diagramEditModeService.destroy();
@@ -209,57 +201,52 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   }
 
   // ==========================================
-  // MODE ÉDITION
+  // MÉTHODES DU MODE ÉDITION
   // ==========================================
 
+  /**
+   * Toggle le mode édition
+   */
   toggleEditMode(): void {
     this.isEditMode = this.diagramEditModeService.toggleEditMode();
-
+    
     if (this.isEditMode) {
-      this.diagramEditModeService.updateRelations(this.relations);
+      // S'assurer que le cache des relations est à jour
+      this. diagramEditModeService.updateRelations(this.relations);
     }
   }
 
+  /**
+   * Appelé quand une arête est cliquée en mode édition
+   */
   private onEdgeClicked(event: EdgeClickEvent): void {
-    console.log('[Component] Edge clicked:', event. resolvedRelation);
+    console.log('[Component] Edge clicked:', event.resolvedRelation);
 
     this.pendingDeletionEvent = event;
-
-    // Préparer les données pour le dialog
-    const { edgeIdentifier, relation } = event. resolvedRelation;
-
-    this.pendingDeletionSource = {
-      uuid:  edgeIdentifier. sourceUuid,
-      label: this.getEntityLabel(edgeIdentifier.sourceUuid, edgeIdentifier.sourceType),
-      type: edgeIdentifier. sourceType
-    };
-
-    this.pendingDeletionTarget = {
-      uuid: edgeIdentifier.targetUuid,
-      label: this.getEntityLabel(edgeIdentifier.targetUuid, edgeIdentifier.targetType),
-      type: edgeIdentifier.targetType
-    };
-
-    this.pendingDeletionIsContemporary = relation.is_contemporain || false;
-
-    // Position du dialog
+    
+    // Positionner la confirmation près du clic
     this.deleteConfirmationPosition = {
-      x: event.mouseEvent.clientX,
-      y: event.mouseEvent.clientY
+      x: Math.min(event.mouseEvent.clientX + 10, window.innerWidth - 310),
+      y: Math.min(event.mouseEvent.clientY, window.innerHeight - 200)
     };
-
-    this.showDeleteConfirmation = true;
+    
+    this. showDeleteConfirmation = true;
   }
 
+  /**
+ * Confirme la suppression de la relation (appelé depuis le mode édition visuel)
+ */
   async confirmDeleteRelation(): Promise<void> {
     if (!this.pendingDeletionEvent) return;
 
     const { resolvedRelation, edgeElement } = this.pendingDeletionEvent;
     const relation = resolvedRelation.relation;
 
-    // Vérifier les permissions
+    console.log('[Component] Deleting relation:', relation. stratigraphie_uuid);
+
+    // Vérifier les permissions d'abord
     if (! this.canDeleteRelation(relation)) {
-      this.confirmationService.showInfoDialog(
+      this.confirmationService. showInfoDialog(
         'Accès refusé',
         'Seul le propriétaire du projet ou le créateur de cette relation peut la supprimer.'
       );
@@ -272,56 +259,65 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
     try {
       this.isDeletingRelation = true;
-      await this.executeRelationDeletion(relation);
+
+      // Utiliser la même logique que deleteRelation existante
+      await this. executeRelationDeletion(relation);
+
+      // Fermer la confirmation
       this.cancelDeleteConfirmation();
+
+      // Régénérer le diagramme
       await this.generateDiagram();
+
+      // Notification de succès (optionnel, selon votre UI)
       console.log('[Component] Relation deleted successfully');
+
     } catch (error) {
       console.error('[Component] Delete relation error:', error);
+      this.errorMessage = 'Erreur lors de la suppression de la relation';
       this.diagramEditModeService.clearAllHighlights();
+      
+      // Afficher un message d'erreur
       this.confirmationService.showConfirmDialog(
         'Erreur',
         'Une erreur est survenue lors de la suppression de la relation.',
-        () => {}, () => {}, 'OK', null
+        () => {},
+        () => {},
+        'OK',
+        null
       );
     } finally {
       this.isDeletingRelation = false;
     }
   }
 
-  cancelDeleteConfirmation(): void {
-    this.showDeleteConfirmation = false;
-    this.pendingDeletionEvent = null;
-    this.pendingDeletionSource = null;
-    this.pendingDeletionTarget = null;
-    this.pendingDeletionIsContemporary = false;
-    this.diagramEditModeService.clearAllHighlights();
-  }
-
-  public getEntityLabel(uuid:  string, type: 'us' | 'fait'): string {
-    if (type === 'us') {
-      const us = this.w.data().objects. us. all.findByUuid(uuid);
-      return us?. item. tag || uuid. substring(0, 8);
-    } else {
-      const fait = this.w.data().objects.fait.all.findByUuid(uuid);
-      return fait?.item.tag || uuid.substring(0, 8);
-    }
-  }
-
+  /**
+   * Exécute la suppression de la relation via l'API
+   * Réutilise la logique existante mais retourne une Promise
+   */
   private executeRelationDeletion(relation: ApiStratigraphie): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Marquer la relation comme supprimée (soft delete)
       relation.live = false;
 
-      this.w.data().objects.stratigraphie.selected.commit(relation).subscribe({
-        next:  () => {
-          this.relations = this.relations.filter(
+      // Commit la modification
+      this.w.data().objects.stratigraphie. selected.commit(relation).subscribe({
+        next: () => {
+          console.log('[Component] Relation committed successfully');
+          
+          // Mettre à jour la liste locale des relations
+          this. relations = this.relations. filter(
             r => r. stratigraphie_uuid !== relation.stratigraphie_uuid
           );
-          setTimeout(() => {
+
+          // Attendre un court instant pour la synchronisation
+          setTimeout(() => { // Si vous avez cette méthode
             resolve();
           }, 100);
         },
-        error: (error) => {
+        error:  (error) => {
+          console.error('[Component] Commit error:', error);
+          // Restaurer l'état en cas d'erreur
           relation.live = true;
           reject(error);
         }
@@ -329,8 +325,33 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     });
   }
 
+  /**
+   * Vérification des permissions (réutiliser l'existante)
+   */
   canDeleteRelation(relation: ApiStratigraphie): boolean {
     return this.authService.canDeleteRelation(relation);
+  }
+
+  /**
+   * Annule la confirmation de suppression
+   */
+  cancelDeleteConfirmation(): void {
+    this.showDeleteConfirmation = false;
+    this.pendingDeletionEvent = null;
+    this.diagramEditModeService.clearAllHighlights();
+  }
+
+  /**
+   * Récupère le label d'une entité (US ou Fait) par son UUID
+   */
+  getEntityLabel(uuid: string, type: 'us' | 'fait'): string {
+    if (type === 'us') {
+      const us = this.w.data().objects. us. all. findByUuid(uuid);
+      return us?. item. tag || uuid. substring(0, 8);
+    } else {
+      const fait = this.w.data().objects.fait.all.findByUuid(uuid);
+      return fait?.item.tag || uuid. substring(0, 8);
+    }
   }
 
   // === Gestion des panneaux ===
@@ -545,72 +566,127 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   // === Génération du diagramme ===
 
-  async generateDiagram(): Promise<void> {
-    this.isGenerating = true;
-    this.errorMessage = '';
-
-    try {
-      if (!this.isContainerReady()) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        if (!this.isContainerReady()) {
-          this.errorMessage = 'Le conteneur du diagramme n\'est pas encore prêt. Veuillez réessayer.';
-          console.error('Container not ready:', this.diagramContainer);
-          return;
-        }
-      }
-
-      this.relations = this.w.data().objects.stratigraphie.all.list
-        .map(item => item.item)
-        .filter(rel => rel && rel.live !== false);
-
-      if (this.relations.length === 0) {
-        this.errorMessage = 'Aucune relation stratigraphique disponible';
-        return;
-      }
-
-      const config: DiagramConfig = {
-        ...this.diagramConfig,
-        maxDepth: this.filterOptions.maxDepth || undefined,
-        focusNode: this.filterOptions.focusNodeUuid || undefined
-      };
-
-      // Générer le code et récupérer les nœuds pour la recherche
-      const result = this.diagramService.generateMermaidCodeWithNodes(this.relations, config);
-      this.currentMermaidCode = result.code;
-      this.allNodes = result.nodes;
-
-      this.calculateStats(this.relations);
-      await this.renderDiagram();
-
-      setTimeout(() => {
-        this.disposePanZoom();
-        this.initializePanZoom();
-        this.centerDiagram();
-      }, 300);
-
-      this.isControlPanelOpen = false;
-
-      this. diagramEditModeService.updateRelations(this.relations);
-
-      // Si en mode édition, réactiver après le rendu
-      if (this.isEditMode) {
-        // Petit délai pour s'assurer que le DOM est prêt
-        setTimeout(() => {
-          this.diagramEditModeService. setEditMode(true);
-        }, 100);
-      }
-
-    } catch (error) {
-      console.error('Erreur lors de la génération du diagramme:', error);
-      this.errorMessage = 'Erreur lors de la génération du diagramme: ' + (error as Error).message;
-    } finally {
-      this.isGenerating = false;
-    }
+  /**
+ * Génère le diagramme stratigraphique
+ */
+async generateDiagram(): Promise<void> {
+  // Éviter les générations multiples simultanées
+  if (this.isGenerating) {
+    console.log('[Component] Generation already in progress, skipping');
+    return;
   }
+
+  this.isGenerating = true;
+  this.errorMessage = '';
+
+  try {
+    console.log('[Component] Starting diagram generation...');
+
+    // Récupérer les relations depuis le service/API
+    // Adapter selon votre implémentation existante
+    if (! this.relations || this.relations.length === 0) {
+      this.relations = this.w.data().objects.stratigraphie.all.list
+        .filter(wrapper => wrapper.item.live)
+        .map(wrapper => wrapper.item);
+    }
+
+    console.log(`[Component] Found ${this.relations.length} relations`);
+
+    // Vérifier qu'il y a des relations à afficher
+    if (this.relations.length === 0) {
+      this.currentMermaidCode = '';
+      this.allNodes = [];
+      this.isGenerating = false;
+      return;
+    }
+
+    // Générer le code Mermaid avec les nœuds
+    const result = this.diagramService.generateMermaidCodeWithNodes(
+      this.relations,
+      this.diagramConfig
+    );
+
+    this.currentMermaidCode = result.code;
+    this.allNodes = result.nodes;
+
+    console.log('[Component] Mermaid code generated');
+    console.log('[Component] Nodes count:', this.allNodes.length);
+
+    // Vérifier que le conteneur est prêt
+    if (! this.isContainerReady()) {
+      console.warn('[Component] Container not ready, waiting...');
+      await this.waitForContainer();
+    }
+
+    // Rendre le diagramme
+    await this.renderDiagram();
+
+    console.log('[Component] Diagram rendered successfully');
+
+    // Calculer les statistiques
+    this.calculateStats(this.relations);
+
+    // Mettre à jour les entités isolées
+    this.updateIsolatedEntities();
+
+    // === MODE ÉDITION :  Mise à jour des caches ===
+    
+    // Mettre à jour le cache des relations pour le mode édition
+    this.diagramEditModeService.updateRelations(this.relations);
+
+    // Si le mode édition était actif, le réactiver après le rendu
+    if (this.isEditMode) {
+      console.log('[Component] Re-enabling edit mode after diagram regeneration');
+      
+      // Petit délai pour s'assurer que le DOM est complètement prêt
+      setTimeout(() => {
+        // Désactiver puis réactiver pour réattacher les listeners
+        this.diagramEditModeService.setEditMode(false);
+        this.diagramEditModeService.setEditMode(true);
+      }, 150);
+    }
+
+    // Initialiser le pan/zoom si nécessaire
+    this.initializePanZoom();
+
+    this.isControlPanelOpen = false;
+
+  } catch (error) {
+    console. error('[Component] Error generating diagram:', error);
+    this.errorMessage = 'Erreur lors de la génération du diagramme.  Veuillez réessayer.';
+    
+    // Afficher plus de détails en mode développement
+    if (error instanceof Error) {
+      console.error('[Component] Error details:', error. message);
+      console.error('[Component] Stack trace:', error.stack);
+    }
+  } finally {
+    this.isGenerating = false;
+  }
+}
 
   private isContainerReady(): boolean {
     return !!(this.diagramContainer && this.diagramContainer.nativeElement);
+  }
+
+  /**
+   * Attend que le conteneur soit disponible
+   */
+  private waitForContainer(): Promise<void> {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (this.isContainerReady()) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 50);
+
+      // Timeout après 2 secondes
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve();
+      }, 2000);
+    });
   }
 
   private async renderDiagram(): Promise<void> {
@@ -636,17 +712,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       console.error('Erreur lors du rendu Mermaid:', error);
       throw new Error('Impossible de générer le diagramme: ' + (error as Error).message);
     }
-  }
-
-  // ==========================================
-  // DEBUG (optionnel)
-  // ==========================================
-
-  /**
-   * Debug: Affiche les infos de toutes les arêtes
-   */
-  debugEdges(): void {
-    this.diagramEditModeService.debugAllEdges();
   }
 
   // === Pan/Zoom ===
@@ -1127,7 +1192,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
     const relation = relDisplay.relation;
 
-
     if (this.authService.canDeleteRelation(relation)) {
       this.confirmationService.showConfirmDialog(
         'Supprimer la relation',
@@ -1172,6 +1236,18 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       );
     }
   }
+
+  /**
+ * Récupère le label d'un nœud à partir de son ID sanitizé
+ */
+getNodeLabel(sanitizedId: string): string {
+  // Convertir l'ID sanitizé en UUID
+  const uuid = sanitizedId.replace('node_', '').replace(/_/g, '-');
+  
+  // Chercher dans les nœuds
+  const node = this.allNodes.find(n => n. uuid === uuid);
+  return node?. label || sanitizedId;
+}
 
   protected readonly ApiDbTable = ApiDbTable;
 }

@@ -6,7 +6,6 @@ import { StratigraphicDiagramComponent } from './stratigraphic-diagram.component
 import { StratigraphicDiagramRoutingModule } from './stratigraphic-diagram-routing.module';
 import {FloatingComponentsModule} from "../../Components/widgets/floating-components.module";
 import {DisplayModule} from "../../Components/Display/display.module";
-import {AppModule} from "../../app.module";
 
 @NgModule({
   declarations: [
@@ -18,8 +17,7 @@ import {AppModule} from "../../app.module";
     IonicModule,
     StratigraphicDiagramRoutingModule,
     FloatingComponentsModule,
-    DisplayModule,
-    AppModule
+    DisplayModule
   ]
 })
 export class StratigraphicDiagramModule { }

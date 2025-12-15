@@ -421,22 +421,30 @@
     &:hover {
       transform: translateX(-4px);
       --background: var(--ion-color-light-shade);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    h3 {
-      font-weight: 600;
-      margin-bottom: 4px;
+    ion-icon[slot="end"] {
+      font-size: 20px;
+      margin-left: 8px;
     }
+  }
 
-    .entity-type {
-      font-size: 0.85rem;
-      color: var(--ion-color-medium);
-    }
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
 
-    .entity-uuid {
-      font-size: 0.75rem;
-      color: var(--ion-color-medium-tint);
-      font-family: monospace;
+  &::-webkit-scrollbar-track {
+    background: var(--ion-color-light);
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--ion-color-medium);
+    border-radius: 4px;
+
+    &:hover {
+      background: var(--ion-color-medium-shade);
     }
   }
 }
@@ -983,13 +991,274 @@
   }
 }
 
+// === Styles pour le panneau de gestion des relations ===
+.relations-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .search-bar-container {
+    margin-bottom: 16px;
+
+    ion-searchbar {
+      --background: var(--ion-color-light);
+      --border-radius: 12px;
+      --box-shadow: none;
+      padding: 0;
+    }
+  }
+
+  .relations-list {
+    flex: 1;
+    overflow-y: auto;
+
+    .strati-relation-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+
+      tbody tr {
+        background: var(--ion-color-light);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: var(--ion-color-light-shade);
+          transform: translateX(-4px);
+        }
+      }
+
+      td {
+        padding: 12px;
+        vertical-align: middle;
+      }
+
+      .type-strati-box {
+        width: 120px;
+        font-weight: 600;
+        border-left: 3px solid var(--ion-color-primary);
+        border-radius: 8px 0 0 8px;
+      }
+
+      .relation-entities {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+
+        .relation-separator {
+          font-size: 1.2rem;
+          color: var(--ion-color-medium);
+          font-weight: bold;
+        }
+      }
+
+      .action-column {
+        width: 50px;
+        text-align: right;
+        border-radius: 0 8px 8px 0;
+
+        .delete-icon {
+          font-size: 24px;
+          color: var(--ion-color-danger);
+          cursor: pointer;
+          transition: all 0.2s ease;
+
+          &:hover:not(.disabled) {
+            color: var(--ion-color-danger-shade);
+            transform: scale(1.1);
+          }
+
+          &.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--ion-color-light);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--ion-color-medium-shade);
+      }
+    }
+  }
+
+  .no-relations {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+// === Styles pour le panneau des entités isolées ===
+.isolated-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  .filter-section {
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--ion-color-light-shade);
+    margin-bottom: 16px;
+
+    .filter-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .filter-button {
+        margin: 0;
+        height: 44px;
+        font-weight: 600;
+        text-transform: none;
+        transition: all 0.3s ease;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        ion-icon {
+          font-size: 20px;
+        }
+      }
+    }
+
+    .search-bar-container {
+      ion-searchbar {
+        --background: var(--ion-color-light);
+        --border-radius: 12px;
+        --box-shadow: none;
+        padding: 0;
+      }
+    }
+  }
+
+  .isolated-list {
+    flex: 1;
+    overflow-y: auto;
+
+    ion-list {
+      background: transparent;
+      padding: 0;
+    }
+
+    .isolated-item {
+      --background: var(--ion-color-light);
+      --border-radius: 8px;
+      margin-bottom: 8px;
+      --padding-start: 12px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        --background: var(--ion-color-light-shade);
+      }
+    }
+
+    .us-item {
+      border-left: 4px solid var(--ion-color-primary);
+    }
+
+    .fait-item {
+      border-left: 4px solid var(--ion-color-warning);
+    }
+
+    .fait-children {
+      margin-left: 20px;
+      padding-left: 16px;
+      border-left: 2px solid var(--ion-color-light-shade);
+      margin-bottom: 8px;
+
+      .us-child-item {
+        position: relative;
+        margin-bottom: 6px;
+        --background: var(--ion-color-light-tint);
+        border-left: 2px solid var(--ion-color-primary-tint);
+      }
+
+      .child-connector {
+        position: absolute;
+        left: -16px;
+        top: 50%;
+        width: 12px;
+        height: 1px;
+        background: var(--ion-color-light-shade);
+      }
+    }
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--ion-color-light);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--ion-color-medium);
+      border-radius: 4px;
+
+      &:hover {
+        background: var(--ion-color-medium-shade);
+      }
+    }
+  }
+
+  .no-isolated {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+
+      &[name="checkmark-circle-outline"] {
+        color: var(--ion-color-success);
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  }
+}
+
+
 // ============================================
-// MODE ÉDITION - Styles corrigés
+// MODE ÉDITION
 // ============================================
 
+// Indicateur du mode édition (bandeau en haut)
 .edit-mode-indicator {
   position:  fixed;
-  top: 100px;
+  top: 100px; // Ajuster selon votre header
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -1030,49 +1299,52 @@
   }
 }
 
-// Container en mode édition
+// Styles du conteneur en mode édition
 .diagram-edit-mode {
+  // Curseur
   cursor: crosshair;
 
-  // Arêtes cliquables - cibler les paths avec LS-
-  ::ng-deep path.editable-edge {
-    cursor: pointer;
+  // Zone de hit élargie pour les arêtes
+  ::ng-deep .edge-hit-area {
     pointer-events: stroke;
-    stroke-width: 8px; // Zone de clic plus large
-    transition: stroke 0.2s ease, filter 0.2s ease;
-
-    &:hover {
-      stroke:  #ff5722 !important;
-      filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.6));
-    }
+    cursor: pointer;
   }
 
-  // Alternative:  cibler via la classe flowchart-link
-  ::ng-deep path.flowchart-link {
-    cursor:  pointer;
-    pointer-events: stroke;
+  // Style des arêtes éditables
+  ::ng-deep .editable-edge {
+    cursor: pointer;
+
+    path:not(.edge-hit-area) {
+      transition: all 0.2s ease;
+    }
 
     &:hover {
-      stroke: #ff5722 !important;
-      stroke-width: 4px ! important;
-      filter: drop-shadow(0 0 6px rgba(255, 87, 34, 0.5));
+      path:not(.edge-hit-area) {
+        stroke: #ff5722 !important;
+        stroke-width: 4px ! important;
+        filter: drop-shadow(0 0 6px rgba(255, 87, 34, 0.5));
+      }
     }
   }
 
   // Arête en surbrillance (sélectionnée)
-  ::ng-deep path.edge-highlighted {
-    stroke: #2196f3 !important;
-    stroke-width: 5px !important;
-    filter: drop-shadow(0 0 10px rgba(33, 150, 243, 0.7));
-    animation: pulse-edge 1s infinite;
+  ::ng-deep .edge-highlighted {
+    path:not(.edge-hit-area) {
+      stroke: #2196f3 !important;
+      stroke-width: 5px !important;
+      filter: drop-shadow(0 0 10px rgba(33, 150, 243, 0.7));
+      animation: pulse-edge 1s infinite;
+    }
   }
 
   // Arête marquée pour suppression
-  ::ng-deep path.edge-marked-for-deletion {
-    stroke: #f44336 !important;
-    stroke-width: 5px !important;
-    stroke-dasharray: 8, 4;
-    animation: deletion-dash 0.5s linear infinite;
+  ::ng-deep .edge-marked-for-deletion {
+    path:not(.edge-hit-area) {
+      stroke: #f44336 ! important;
+      stroke-width: 5px !important;
+      stroke-dasharray: 8, 4;
+      animation: deletion-dash 0.5s linear infinite;
+    }
   }
 }
 
@@ -1086,133 +1358,185 @@
   to { stroke-dashoffset: 24; }
 }
 
-// ============================================
-// CONFIRMATION DE SUPPRESSION
-// ============================================
+// === Mode Édition ===
 
-.delete-confirmation-overlay {
-  position:  fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:  rgba(0, 0, 0, 0.4);
-  z-index: 9998;
-  animation: fadeIn 0.2s ease-out;
+.diagram-edit-mode {
+  // Curseur personnalisé pour indiquer le mode édition
+  cursor: crosshair;
+  
+  // Indicateur visuel du mode
+  &::before {
+    content:  '✏️ Mode Édition';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 152, 0, 0.9);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    z-index: 1000;
+    animation: pulse-edit-mode 2s infinite;
+  }
+
+  // Arêtes cliquables - cibler les paths avec LS-
+  ::ng-deep path.editable-edge {
+    cursor: pointer;
+    pointer-events: stroke;
+    stroke-width: 8px; // Zone de clic plus large
+    transition: stroke 0.2s ease, filter 0.2s ease;
+
+    &:hover {
+      stroke:  #ff4810 !important;
+      filter: drop-shadow(0 0 8px rgba(255, 87, 34, 0.6));
+    }
+  }
+
+  // Alternative:  cibler via la classe flowchart-link
+  ::ng-deep path.flowchart-link {
+    cursor:  pointer;
+    pointer-events: stroke;
+    
+    &:hover {
+      stroke: #ff5722 !important;
+      stroke-width: 4px ! important;
+      filter: drop-shadow(0 0 6px rgba(255, 87, 34, 0.5));
+    }
+  }
+
+  // Arête en surbrillance (sélectionnée)
+  ::ng-deep path.edge-highlighted {
+    stroke: #ff0000 !important;
+    stroke-width: 5px !important;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.7));
+    animation: pulse-edge 1s infinite;
+  }
+
+  // Arête marquée pour suppression
+  ::ng-deep path.edge-marked-for-deletion {
+    stroke: #f44336 !important;
+    stroke-width: 5px !important;
+    stroke-dasharray: 8, 4;
+    animation: deletion-dash 0.5s linear infinite;
+  }
 }
 
+// Animation du mode édition
+@keyframes pulse-edit-mode {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7);
+  }
+  50% {
+    box-shadow:  0 0 0 10px rgba(255, 152, 0, 0);
+  }
+}
+
+// Animation de l'arête sélectionnée
+@keyframes pulse-edge {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity:  0.7;
+  }
+}
+
+// Animation de suppression
+@keyframes deletion-blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+// === Tooltip de confirmation de suppression ===
 .delete-confirmation-tooltip {
-  position:  fixed;
+  position: fixed;
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-  padding: 20px;
-  z-index: 9999;
-  min-width: 300px;
-  max-width: 400px;
-  animation: tooltipAppear 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  padding: 16px;
+  z-index:  10000;
+  min-width: 280px;
+  animation: tooltip-appear 0.2s ease-out;
 
   .tooltip-header {
-    display: flex;
-    align-items:  center;
-    gap: 10px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--ion-color-light-shade);
-
+    display:  flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    
     ion-icon {
-      font-size: 28px;
+      font-size: 24px;
+      color: #f44336;
     }
-
+    
     h4 {
       margin: 0;
-      font-size:  1.1rem;
+      font-size:  1rem;
       font-weight: 600;
-      color: var(--ion-color-dark);
     }
   }
 
   .tooltip-content {
-    margin-bottom: 20px;
-
+    margin-bottom: 16px;
+    
     .relation-info {
       display: flex;
-      align-items: center;
-      justify-content: center;
-      gap:  12px;
-      padding: 16px;
+      align-items:  center;
+      gap: 8px;
+      padding: 8px;
       background: var(--ion-color-light);
-      border-radius: 12px;
-
-      .entity {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 12px;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-
-        ion-icon {
-          font-size: 18px;
-        }
-
-        span {
-          font-weight: 600;
-          font-size: 0.95rem;
-        }
-
-        &.source {
-          border-left: 3px solid #4caf50;
-        }
-
-        &.target {
-          border-left: 3px solid #2196f3;
-        }
+      border-radius: 8px;
+      
+      .source-node {
+        color: #4caf50;
+        font-weight:  600;
       }
-
-      .arrow-icon {
-        font-size: 24px;
+      
+      .arrow {
         color: #ff9800;
       }
-    }
-
-    .relation-type {
-      display:  flex;
-      justify-content: center;
-      margin-top: 12px;
+      
+      .target-node {
+        color: #2196f3;
+        font-weight: 600;
+      }
     }
   }
 
   .tooltip-actions {
     display: flex;
+    gap: 8px;
     justify-content: flex-end;
-    gap: 10px;
-
+    
     ion-button {
       margin:  0;
-      font-weight: 500;
-
-      ion-spinner {
-        width: 16px;
-        height: 16px;
-      }
     }
   }
 }
 
-@keyframes tooltipAppear {
+@keyframes tooltip-appear {
   from {
     opacity: 0;
     transform: scale(0.9) translateY(-10px);
   }
   to {
     opacity: 1;
-    transform:  scale(1) translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
-@keyframes fadeIn {
-  from { opacity:  0; }
-  to { opacity:  1; }
+// Overlay sombre quand la confirmation est affichée
+.delete-confirmation-overlay {
+  position: fixed;
+  top:  0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:  rgba(0, 0, 0, 0.3);
+  z-index: 9999;
 }

@@ -113,37 +113,89 @@
     (fabClick)="toggleEditMode()">
   </app-floating-action-button>
 
-  <!-- Bouton Mode Édition -->
-  <app-floating-action-button
-    *ngIf="currentMermaidCode"
-    [icon]="isEditMode ? 'create' : 'create-outline'"
-    [color]="isEditMode ? 'warning' : 'secondary'"
-    [position]="'top-right'"
-    [offsetTop]="'415px'"
-    [offsetRight]="'16px'"
-    (fabClick)="toggleEditMode()">
-  </app-floating-action-button>
+  <!-- Overlay de confirmation de suppression -->
+  <div 
+    *ngIf="showDeleteConfirmation" 
+    class="delete-confirmation-overlay" 
+    (click)="cancelDeleteConfirmation()">
+  </div>
 
-  <!-- Indicateur Mode Édition -->
-  <app-edit-mode-indicator
-    [isVisible]="isEditMode"
-    [message]="'Mode Édition - Cliquez sur une flèche pour la supprimer'"
-    [icon]="'create'"
-    (closed)="toggleEditMode()">
-  </app-edit-mode-indicator>
-
-  <!-- Dialog de confirmation de suppression -->
-  <app-delete-confirmation-dialog
-    [isVisible]="showDeleteConfirmation"
-    [isLoading]="isDeletingRelation"
-    [positionX]="deleteConfirmationPosition. x"
-    [positionY]="deleteConfirmationPosition.y"
-    [sourceEntity]="pendingDeletionSource"
-    [targetEntity]="pendingDeletionTarget"
-    [isContemporary]="pendingDeletionIsContemporary"
-    (confirmed)="confirmDeleteRelation()"
-    (cancelled)="cancelDeleteConfirmation()">
-  </app-delete-confirmation-dialog>
+  <!-- Tooltip de confirmation de suppression -->
+  <div 
+    *ngIf="showDeleteConfirmation && pendingDeletionEvent" 
+    class="delete-confirmation-tooltip"
+    [ngStyle]="{
+      'left.px': deleteConfirmationPosition.x,
+      'top.px': deleteConfirmationPosition.y 
+    }"
+    (click)="$event.stopPropagation()">
+    
+    <div class="tooltip-header">
+      <ion-icon name="trash-outline" color="danger"></ion-icon>
+      <h4>Supprimer cette relation ? </h4>
+    </div>
+    
+    <div class="tooltip-content">
+      <div class="relation-info">
+        <!-- Source -->
+        <div class="entity source">
+          <ion-icon 
+            [name]="pendingDeletionEvent.resolvedRelation.edgeIdentifier.sourceType === 'us' ? 'layers-outline' : 'cube-outline'"
+            [color]="pendingDeletionEvent. resolvedRelation. edgeIdentifier. sourceType === 'us' ? 'primary' : 'warning'">
+          </ion-icon>
+          <span>{{ getEntityLabel(
+            pendingDeletionEvent.resolvedRelation.edgeIdentifier.sourceUuid,
+            pendingDeletionEvent.resolvedRelation.edgeIdentifier.sourceType
+          ) }}</span>
+        </div>
+        
+        <!-- Flèche -->
+        <ion-icon 
+          [name]="pendingDeletionEvent. resolvedRelation. relation.is_contemporain ? 'swap-horizontal' : 'arrow-forward'" 
+          class="arrow-icon">
+        </ion-icon>
+        
+        <!-- Target -->
+        <div class="entity target">
+          <ion-icon 
+            [name]="pendingDeletionEvent. resolvedRelation. edgeIdentifier.targetType === 'us' ? 'layers-outline' : 'cube-outline'"
+            [color]="pendingDeletionEvent.resolvedRelation.edgeIdentifier.targetType === 'us' ?  'primary' :  'warning'">
+          </ion-icon>
+          <span>{{ getEntityLabel(
+            pendingDeletionEvent.resolvedRelation.edgeIdentifier.targetUuid,
+            pendingDeletionEvent.resolvedRelation.edgeIdentifier.targetType
+          ) }}</span>
+        </div>
+      </div>
+      
+      <!-- Type de relation -->
+      <div class="relation-type" *ngIf="pendingDeletionEvent.resolvedRelation.relation.is_contemporain">
+        <ion-chip color="tertiary" size="small">
+          <ion-icon name="git-compare-outline"></ion-icon>
+          <ion-label>Contemporain</ion-label>
+        </ion-chip>
+      </div>
+    </div>
+    
+    <div class="tooltip-actions">
+      <ion-button 
+        fill="outline" 
+        size="small" 
+        (click)="cancelDeleteConfirmation()"
+        [disabled]="isDeletingRelation">
+        Annuler
+      </ion-button>
+      <ion-button 
+        color="danger" 
+        size="small" 
+        (click)="confirmDeleteRelation()"
+        [disabled]="isDeletingRelation">
+        <ion-spinner *ngIf="isDeletingRelation" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="! isDeletingRelation" name="trash-outline" slot="start"></ion-icon>
+        {{ isDeletingRelation ? 'Suppression.. .' : 'Supprimer' }}
+      </ion-button>
+    </div>
+  </div>
 
   <!-- Panneau de contrôle -->
   <app-floating-panel
