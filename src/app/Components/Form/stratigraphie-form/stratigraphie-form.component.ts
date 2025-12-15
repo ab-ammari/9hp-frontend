@@ -80,6 +80,11 @@ export class StratigraphieFormComponent implements OnInit, OnChanges, OnDestroy 
   us_selection_list: Array<dbBoundObject<ApiUs>> = [];
   fait_selection_list: Array<dbBoundObject<ApiFait>> = [];
 
+  isPanelOpen = false;
+  currentDepth = 2;
+
+  currentLayoutMode: 'default' | 'elk' | 'dagre-d3' = 'elk';
+
   constructor(
     public w: WorkerService,
     private utiles: CastorUtilitiesService
@@ -126,9 +131,9 @@ export class StratigraphieFormComponent implements OnInit, OnChanges, OnDestroy 
   getStratiRelations() {
     const us_uuid = this.us?.us_uuid;
     const fait_uuid = this.fait?.fait_uuid;
-    
+
     LOG.debug.log({...CONTEXT, action: 'getStratiRelations'}, 'us_uuid', us_uuid, 'fait_uuid', fait_uuid);
-    
+
     const usStatigraphie: {
       anterieur: Array<ApiStratigraphie>;
       contemporain: Array<ApiStratigraphie>;
@@ -138,8 +143,8 @@ export class StratigraphieFormComponent implements OnInit, OnChanges, OnDestroy 
     this.arrayUsposterieur = usStatigraphie.posterieur;
     this.arrayUscontemporain = usStatigraphie.contemporain;
     this.arrayUsAnterieur = usStatigraphie.anterieur;
-    
-    LOG.debug.log({...CONTEXT, action: 'getStratiRelations'}, 
+
+    LOG.debug.log({...CONTEXT, action: 'getStratiRelations'},
       'anterieur', this.arrayUsAnterieur?.length,
       'contemporain', this.arrayUscontemporain?.length,
       'posterieur', this.arrayUsposterieur?.length);
@@ -278,6 +283,34 @@ export class StratigraphieFormComponent implements OnInit, OnChanges, OnDestroy 
       }
 
     });
+  }
+
+  openFocusedDiagram(): void {
+    console.log('=== openFocusedDiagram ===');
+    console.log('us:', this.us);
+    console.log('fait:', this.fait);
+    console.log('currentEntityUuid:', this.currentEntityUuid);
+    console.log('currentEntityType:', this.currentEntityType);
+    this.isPanelOpen = true;
+    console.log('isPanelOpen:', this.isPanelOpen);
+  }
+
+  closeFocusedPanel(): void {
+    this.isPanelOpen = false;
+    // Reset pour pouvoir regénérer la prochaine fois
+    // si on veut garder le diagramme en cache
+  }
+
+  get currentEntityUuid(): string | null {
+    const uuid = this.us?.us_uuid || this.fait?.fait_uuid || null;
+    console.log('currentEntityUuid getter:', uuid);
+    return uuid;
+  }
+
+  get currentEntityType(): 'us' | 'fait' | null {
+    const type = this.us?.us_uuid ? 'us' : (this.fait?.fait_uuid ? 'fait' : null);
+    console.log('currentEntityType getter:', type);
+    return type;
   }
 
 }

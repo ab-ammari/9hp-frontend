@@ -6,6 +6,14 @@
   <mat-icon svgIcon="eye"  style="width: 35px; height: 35px"></mat-icon>
   eye
 </ion-button>
+<!-- Bouton pour ouvrir le sous-diagramme -->
+<ion-button
+  [fill]="'clear'"
+  (click)="openFocusedDiagram()"
+  *ngIf="us || fait">
+  <mat-icon svgIcon="git-network-outline" style="width: 35px; height: 35px"></mat-icon>
+  Voir diagramme
+</ion-button>
 <ion-row>
   <ion-col size="12" size-md="4">
     <!-- Title / Add -->
@@ -202,6 +210,64 @@
     </ion-footer>
   </ng-template>
 </ion-modal>
+
+<!-- Floating Panel pour le diagramme focalisé -->
+<app-floating-panel
+  [(isOpen)]="isPanelOpen"
+  [title]="'Diagramme stratigraphique focalisé'"
+  [position]="'center'"
+  [width]="'80vw'"
+  [maxWidth]="'1200px'"
+  (closed)="closeFocusedPanel()">
+
+  <div style="height: 70vh; display: flex; flex-direction: column; position: relative;">
+
+    <!-- Contrôles en overlay en haut à droite sous le header -->
+    <div style="position: absolute;
+                top: 60px;
+                right: 16px;
+                z-index: 50;
+                background: rgba(255, 255, 255, 0.9);
+                backdrop-filter: blur(12px);
+                padding: 8px 12px;
+                border-radius: 8px;
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+                display: flex;
+                gap: 12px;
+                align-items: center;">
+
+      <ion-select [(ngModel)]="currentDepth"
+                  interface="popover"
+                  style="max-width: 120px;"
+                  placeholder="Profondeur">
+        <ion-select-option [value]="1">1 niveau</ion-select-option>
+        <ion-select-option [value]="2">2 niveaux</ion-select-option>
+        <ion-select-option [value]="3">3 niveaux</ion-select-option>
+        <ion-select-option [value]="4">4 niveaux</ion-select-option>
+        <ion-select-option [value]="5">5 niveaux</ion-select-option>
+      </ion-select>
+
+      <ion-select [(ngModel)]="currentLayoutMode"
+                  interface="popover"
+                  style="max-width: 140px;"
+                  placeholder="Layout">
+        <ion-select-option value="default">Défaut</ion-select-option>
+        <ion-select-option value="elk">ELK</ion-select-option>
+        <ion-select-option value="dagre-d3">Dagre</ion-select-option>
+      </ion-select>
+    </div>
+
+    <!-- Composant de visualisation - TOUTE la place -->
+    <app-focused-diagram-viewer
+      [entityUuid]="currentEntityUuid"
+      [entityType]="currentEntityType"
+      [depth]="currentDepth"
+      [layoutMode]="currentLayoutMode"
+      [isVisible]="isPanelOpen"
+      style="flex: 1; width: 100%; height: 100%;">
+    </app-focused-diagram-viewer>
+  </div>
+</app-floating-panel>
 
 <ng-template #emptyList>
   <ion-row class="justify-content-center">
