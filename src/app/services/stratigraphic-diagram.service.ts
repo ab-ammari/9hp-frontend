@@ -4,6 +4,7 @@ import { ApiStratigraphie, ApiDbTable } from '../../../shared';
 import mermaid from 'mermaid';
 import { saveAs } from 'file-saver';
 
+
 export interface DiagramNode {
   id: string;
   label: string;
@@ -40,9 +41,11 @@ export interface DiagramConfig {
 })
 export class StratigraphicDiagramService {
 
-  private currentLayoutMode: 'default' | 'elk' | 'dagre-d3' = 'default';
+  private currentLayoutMode: 'default' | 'elk' | 'dagre-d3' = 'elk';
 
-  constructor(private w: WorkerService) {
+  constructor(
+    private w: WorkerService
+  ) {
     // Configuration Mermaid
     mermaid.initialize({
       startOnLoad: false,
@@ -53,7 +56,8 @@ export class StratigraphicDiagramService {
         curve: 'basis',
         rankSpacing: 30,
         nodeSpacing: 30,
-        padding: 40
+        padding: 40,
+        defaultRenderer: 'elk'  
       },
       securityLevel: 'loose'
     });

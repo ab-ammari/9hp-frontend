@@ -2490,28 +2490,10 @@ export class CastorValidationService {
     });
 
     // Construire le message d'erreur détaillé
-    let errorMessage = `Relation stratigraphique incohérente détectée:\n\n`;
-
-    errorMessage += `Vous essayez de définir une relation de type "${relation.relationType}" entre:\n`;
-    if (relation.elementType1 === 'US') {
-      errorMessage += `- US ${this.getUsTag(relation.elementId1)} (Fait ${this.getFaitTag(relation.fait1)})\n`;
-    } else {
-      errorMessage += `- Fait ${this.getFaitTag(relation.elementId1)}\n`;
-    }
-
-    if (relation.elementType2 === 'US') {
-      errorMessage += `- US ${this.getUsTag(relation.elementId2)} (Fait ${this.getFaitTag(relation.fait2)})\n\n`;
-    } else {
-      errorMessage += `- Fait ${this.getFaitTag(relation.elementId2)}\n\n`;
-    }
-
-    errorMessage += `Cependant, les relations suivantes existent déjà entre les Faits ${this.getFaitTag(relation.fait1)} et ${this.getFaitTag(relation.fait2)}:\n\n`;
-
+    let errorMessage = ''
     conflictExamples.forEach((example, index) => {
       errorMessage += `${index + 1}. Relation de type "${example.type}": ${example.description}\n`;
     });
-
-    errorMessage += `\nEntre deux Faits différents, toutes les relations stratigraphiques doivent être cohérentes (soit toutes antérieures, soit toutes postérieures, soit toutes contemporaines).`;
 
     // Générer le message court pour l'en-tête
     const firstConflict = conflictingRelations[0];
