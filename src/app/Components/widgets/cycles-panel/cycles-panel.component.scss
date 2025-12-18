@@ -1,0 +1,241 @@
+.cycles-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+// ============================================
+// BARRE D'OUTILS
+// ============================================
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background:  var(--ion-color-light);
+  border-radius: 12px;
+
+  .navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .nav-indicator {
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: center;
+      color: var(--ion-color-dark);
+    }
+
+    ion-button {
+      --padding-start: 6px;
+      --padding-end: 6px;
+      margin:  0;
+      height: 32px;
+    }
+  }
+
+  .selection-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    ion-button {
+      margin: 0;
+      height:  32px;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+// ============================================
+// RÉSUMÉ
+// ============================================
+
+.cycles-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.1), rgba(233, 30, 99, 0.05));
+  border-radius: 12px;
+  border-left: 4px solid var(--ion-color-danger);
+
+  .summary-icon ion-icon {
+    font-size: 28px;
+  }
+
+  .summary-text {
+    font-size: 0.95rem;
+    color: var(--ion-color-dark);
+
+    strong {
+      color: var(--ion-color-danger);
+      font-size: 1.1rem;
+    }
+
+    span {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// ============================================
+// LISTE DES CYCLES
+// ============================================
+
+.cycles-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 300px;
+
+  ion-list {
+    background:  transparent;
+    padding: 0;
+  }
+
+  .cycle-item {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    --padding-start: 16px;  // Espace pour le contenu
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    
+    // Indicateur de couleur via border-left
+    border-left: 4px solid var(--cycle-color, var(--ion-color-medium));
+    
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    // Quand sélectionné
+    &.selected {
+      --background: var(--cycle-bg-color);
+      border-left-width: 6px;
+      
+      ion-icon[slot="start"] {
+        color: var(--cycle-color);
+      }
+    }
+
+    // Quand c'est le cycle actif (navigation)
+    &.current {
+      border-left-width:  8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+
+      ion-icon[slot="start"].rotating {
+        animation: rotate-icon 2s linear infinite;
+      }
+    }
+
+    ion-icon[slot="start"] {
+      font-size: 24px;
+      color: var(--ion-color-medium);
+      transition: color 0.3s ease;
+    }
+
+    ion-label {
+      h3 {
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: color 0.3s ease;
+      }
+
+      .cycle-nodes-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+
+        ion-chip {
+          height: 22px;
+          font-size: 0.7rem;
+          margin:  0;
+          --background: var(--ion-color-light-tint);
+          transition: all 0.3s ease;
+        }
+      }
+    }
+
+    ion-icon[slot="end"] {
+      font-size: 20px;
+      color: var(--ion-color-light-shade);
+      transition: color 0.3s ease;
+    }
+  }
+}
+
+@keyframes rotate-icon {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// ============================================
+// ÉTAT VIDE
+// ============================================
+
+.no-cycles {
+  text-align: center;
+  padding: 60px 20px;
+
+  ion-icon {
+    font-size: 80px;
+    margin-bottom:  20px;
+  }
+
+  h3 {
+    margin:  0 0 8px 0;
+    color: var(--ion-color-success);
+    font-size: 1.2rem;
+  }
+
+  p {
+    margin: 0;
+    color:  var(--ion-color-medium);
+    font-size: 0.95rem;
+  }
+}
+
+// ============================================
+// SCROLLBAR
+// ============================================
+
+.cycles-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cycles-list::-webkit-scrollbar-track {
+  background: var(--ion-color-light);
+  border-radius: 4px;
+}
+
+.cycles-list::-webkit-scrollbar-thumb {
+  background: var(--ion-color-medium);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--ion-color-medium-shade);
+  }
+}
+
+// ============================================
+// RESPONSIVE
+// ============================================
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cycles-list {
+    max-height: 250px;
+  }
+}
