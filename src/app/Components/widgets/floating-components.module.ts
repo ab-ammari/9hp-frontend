@@ -5,14 +5,14 @@ import { FloatingActionButtonComponent } from './floating-action-button/floating
 import { FloatingPanelComponent } from './floating-panel/floating-panel.component';
 import { FocusedDiagramViewerComponent } from './focused-diagram-viewer/focused-diagram-viewer.component';
 import {FormsModule} from "@angular/forms";
-import { DeleteConfirmationDialogComponent } from './delete-confirmation-dialog/delete-confirmation-dialog.component';
+import { CyclesPanelComponent } from './cycles-panel/cycles-panel.component';
 
 @NgModule({
   declarations: [
     FloatingActionButtonComponent,
     FloatingPanelComponent,
     FocusedDiagramViewerComponent,
-    DeleteConfirmationDialogComponent
+    CyclesPanelComponent
   ],
   imports: [
     CommonModule,
@@ -23,7 +23,7 @@ import { DeleteConfirmationDialogComponent } from './delete-confirmation-dialog/
     FloatingActionButtonComponent,
     FloatingPanelComponent,
     FocusedDiagramViewerComponent,
-    DeleteConfirmationDialogComponent
+    CyclesPanelComponent
   ]
 })
 export class FloatingComponentsModule { }
