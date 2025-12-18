@@ -9,6 +9,7 @@ import {DOCUMENT} from "@angular/common";
 import {ConfirmationService} from "../../services/confirmation.service";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
 import { DiagramEditModeService, EdgeClickEvent } from 'src/app/services/diagram-edit-mode.service';
+import { DiagramParadoxModeService } from 'src/app/services/diagram-paradox-mode.service';
 
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
@@ -66,10 +67,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   focusNodeSearchResults: DiagramNode[] = [];
   showFocusNodeSuggestions = false;
 
-  currentLayoutMode: MermaidLayoutMode = 'default';
+  currentLayoutMode: MermaidLayoutMode = 'elk';
   layoutModes: { value: MermaidLayoutMode; label: string; description: string }[] = [
-    { value: 'default', label: 'Par défaut', description: 'Layout flowchart standard de Mermaid' },
-    { value: 'elk', label: 'ELK', description: 'Eclipse Layout Kernel - meilleur pour les grands graphes' },
+    { value: 'default', label: 'Layout flowchart', description: 'Layout flowchart standard de Mermaid' },
+    { value: 'elk', label: 'ELK (par défaut)', description: 'Eclipse Layout Kernel - meilleur pour les grands graphes' },
     { value: 'dagre-d3', label: 'Dagre-D3', description: 'Layout hiérarchique optimisé' }
   ];
 
@@ -98,18 +99,29 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   filteredIsolatedEntities: IsolatedEntity[] = [];
   expandedFaits = new Set<string>();
   isolatedSearchQuery = '';
+  private isolatedEntitiesLoaded: boolean = false;
+  readonly ISOLATED_ITEM_HEIGHT = 52;
+  readonly ISOLATED_CHILD_ITEM_HEIGHT = 44;
 
   isRelationsPanelOpen = false;
   relationsSearchQuery = '';
   allRelations: RelationDisplay[] = [];
   filteredRelations: RelationDisplay[] = [];
   isDeletingRelation = false;
+  // Flag pour indiquer si les relations ont déjà été chargées
+  private relationsLoaded:  boolean = false;
+  // Hauteur d'un item pour le virtual scrolling (en pixels)
+  readonly RELATION_ITEM_HEIGHT = 56;
 
   // Mode édition
   isEditMode:  boolean = false;
   showDeleteConfirmation: boolean = false;
   pendingDeletionEvent: EdgeClickEvent | null = null;
   deleteConfirmationPosition = { x: 0, y: 0 };
+
+  // Mode Paradoxe
+  isParadoxMode:  boolean = false;
+  isCyclesPanelOpen: boolean = false;
   
   private editModeSubscription:  Subscription | null = null;
   private edgeClickSubscription:  Subscription | null = null;
@@ -123,6 +135,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     private authService: CastorAuthorizationService,
     private confirmationService: ConfirmationService,
     private diagramEditModeService: DiagramEditModeService,
+    private diagramParadoxModeService:  DiagramParadoxModeService,
   ) {}
 
   ngOnInit(): void {
@@ -143,12 +156,24 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.edgeClickSubscription = this.diagramEditModeService.edgeClicked$.subscribe(
       event => this.onEdgeClicked(event)
     );
+
+    // S'abonner au mode paradoxe
+    this. diagramParadoxModeService.isParadoxMode$
+      .pipe(takeUntil(this.destroyer$))
+      .subscribe(isActive => {
+        this.isParadoxMode = isActive;
+      });
   }
 
   ngAfterViewInit(): void {
     // Initialiser le service d'édition
     if (this.diagramContainer?. nativeElement) {
       this.diagramEditModeService.initialize(this. diagramContainer.nativeElement);
+    }
+
+    // Initialiser le service paradoxe
+    if (this.diagramContainer?. nativeElement) {
+      this.diagramParadoxModeService.initialize(this.diagramContainer.nativeElement);
     }
   }
 
@@ -164,6 +189,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.editModeSubscription?.unsubscribe();
     this.edgeClickSubscription?.unsubscribe();
     this.diagramEditModeService.destroy();
+
+    this.diagramParadoxModeService.destroy();
   }
 
   private onFullscreenChange(): void {
@@ -310,6 +337,9 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
             r => r. stratigraphie_uuid !== relation.stratigraphie_uuid
           );
 
+          this.refreshRelations(); // Recharger les relations après suppression
+          resolve();
+
           // Attendre un court instant pour la synchronisation
           setTimeout(() => { // Si vous avez cette méthode
             resolve();
@@ -323,6 +353,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         }
       });
     });
+  }
+
+  trackByRelationUuid(index: number, item: RelationDisplay): string {
+    return item.relation.stratigraphie_uuid || index.toString();
   }
 
   /**
@@ -352,6 +386,36 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       const fait = this.w.data().objects.fait.all.findByUuid(uuid);
       return fait?.item.tag || uuid. substring(0, 8);
     }
+  }
+
+  // ==========================================
+  // MÉTHODES DU MODE PARADOXE
+  // ==========================================
+
+  /**
+   * Toggle le mode paradoxe
+   */
+  toggleParadoxMode(): void {
+    this.isParadoxMode = this.diagramParadoxModeService. toggleParadoxMode();
+    
+    // Ouvrir automatiquement le panneau des cycles
+    if (this.isParadoxMode) {
+      this.isCyclesPanelOpen = true;
+    }
+  }
+
+  /**
+   * Ouvre/ferme le panneau des cycles
+   */
+  toggleCyclesPanel(): void {
+    this.isCyclesPanelOpen = !this.isCyclesPanelOpen;
+  }
+
+  /**
+   * Callback quand le panneau des cycles est fermé
+   */
+  onCyclesPanelClosed(): void {
+    this.isCyclesPanelOpen = false;
   }
 
   // === Gestion des panneaux ===
@@ -712,6 +776,9 @@ async generateDiagram(): Promise<void> {
       console.error('Erreur lors du rendu Mermaid:', error);
       throw new Error('Impossible de générer le diagramme: ' + (error as Error).message);
     }
+
+    // Rafraîchir les caches du service paradoxe
+    this.diagramParadoxModeService.refreshCaches();
   }
 
   // === Pan/Zoom ===
@@ -946,7 +1013,12 @@ async generateDiagram(): Promise<void> {
       this.isStatsPanelOpen = false;
       this.isSearchPanelOpen = false;
       this.isLayoutPanelOpen = false;
-      this.updateIsolatedEntities();
+      this.isRelationsPanelOpen = false;
+      
+      // Charger les entités isolées seulement si elles n'ont pas encore été chargées
+      if (!this.isolatedEntitiesLoaded) {
+        this.updateIsolatedEntities();
+      }
     }
   }
 
@@ -961,7 +1033,26 @@ async generateDiagram(): Promise<void> {
     } else {
       this.isolatedFilters.showUS = !this.isolatedFilters.showUS;
     }
+    
+    // Forcer le rechargement car les filtres ont changé
+    this.isolatedEntitiesLoaded = false;
     this.updateIsolatedEntities();
+  }
+
+  // Méthode pour forcer le rechargement des entités isolées
+  refreshIsolatedEntities(): void {
+    this.isolatedEntitiesLoaded = false;
+    this.updateIsolatedEntities();
+  }
+
+  // TrackBy pour optimiser le rendu des entités isolées
+  trackByIsolatedEntity(index: number, entity: IsolatedEntity): string {
+    return entity.uuid;
+  }
+
+  // TrackBy pour les enfants US
+  trackByChildUS(index: number, child: IsolatedEntity): string {
+    return child.uuid;
   }
 
   toggleFaitExpansion(faitUuid: string): void {
@@ -1001,7 +1092,7 @@ async generateDiagram(): Promise<void> {
   }
 
   updateIsolatedEntities(): void {
-    const relations = this.w. data().objects.stratigraphie.all.list
+    const relations = this.w.data().objects.stratigraphie.all. list
       .map(item => item.item)
       .filter(rel => rel && rel.live !== false);
 
@@ -1014,32 +1105,32 @@ async generateDiagram(): Promise<void> {
       if (rel.fait_posterieur) connectedUUIDs.add(rel.fait_posterieur);
     });
 
-    const isolated: IsolatedEntity[] = [];
+    const isolated:  IsolatedEntity[] = [];
 
-    if (this.isolatedFilters. showFaits) {
+    if (this.isolatedFilters.showFaits) {
       this.w.data().objects.fait.all.list.forEach(faitWrapper => {
         const fait = faitWrapper.item;
         if (fait && fait.live !== false && !connectedUUIDs.has(fait.fait_uuid)) {
-          const childrenUS: IsolatedEntity[] = [];
+          const childrenUS:  IsolatedEntity[] = [];
 
           this.w.data().objects.us.all.list.forEach(usWrapper => {
             const us = usWrapper.item;
             if (us && us.live !== false && us.fait_uuid === fait.fait_uuid) {
-              if (!connectedUUIDs.has(us.us_uuid)) {
+              if (! connectedUUIDs.has(us.us_uuid)) {
                 childrenUS.push({
                   uuid: us.us_uuid,
-                  label: us.tag || us.us_uuid.substring(0, 8),
+                  label: us.tag || us.us_uuid. substring(0, 8),
                   type: 'us'
                 });
               }
             }
           });
 
-          isolated. push({
-            uuid: fait. fait_uuid,
+          isolated.push({
+            uuid: fait.fait_uuid,
             label: fait.tag || fait.fait_uuid.substring(0, 8),
             type: 'fait',
-            childrenUS: childrenUS.length > 0 ? childrenUS : undefined
+            childrenUS:  childrenUS. length > 0 ? childrenUS : undefined
           });
         }
       });
@@ -1048,16 +1139,15 @@ async generateDiagram(): Promise<void> {
     if (this.isolatedFilters.showUS) {
       this.w.data().objects.us.all.list.forEach(usWrapper => {
         const us = usWrapper.item;
-        if (us && us.live !== false && !connectedUUIDs.has(us. us_uuid)) {
-          // Vérifier si l'US n'est pas déjà dans un Fait isolé
+        if (us && us.live !== false && !connectedUUIDs.has(us.us_uuid)) {
           const isInIsolatedFait = isolated.some(
             entity => entity.type === 'fait' &&
-              entity.childrenUS?.some(child => child.uuid === us. us_uuid)
+              entity.childrenUS?. some(child => child.uuid === us.us_uuid)
           );
 
           if (!isInIsolatedFait) {
-            isolated. push({
-              uuid: us. us_uuid,
+            isolated.push({
+              uuid: us.us_uuid,
               label: us.tag || us.us_uuid.substring(0, 8),
               type: 'us'
             });
@@ -1070,11 +1160,12 @@ async generateDiagram(): Promise<void> {
       if (a.type === b.type) {
         return a.label.localeCompare(b.label);
       }
-      return a. type === 'fait' ? -1 : 1;
+      return a.type === 'fait' ? -1 : 1;
     });
 
     this.isolatedEntities = isolated;
     this.filterIsolatedEntities();
+    this.isolatedEntitiesLoaded = true; // Marquer comme chargé
   }
 
   /**
@@ -1121,14 +1212,19 @@ async generateDiagram(): Promise<void> {
   }
 
   toggleRelationsPanel(): void {
-    this.isRelationsPanelOpen = !this.isRelationsPanelOpen;
+    this.isRelationsPanelOpen = !this. isRelationsPanelOpen;
     if (this.isRelationsPanelOpen) {
       this.isControlPanelOpen = false;
       this.isStatsPanelOpen = false;
       this.isSearchPanelOpen = false;
       this.isLayoutPanelOpen = false;
       this.isIsolatedPanelOpen = false;
-      this.loadRelations();
+      
+      // Charger les relations seulement si elles n'ont pas encore été chargées
+      // ou si les données sources ont changé
+      if (!this.relationsLoaded) {
+        this.loadRelations();
+      }
     }
   }
 
@@ -1138,11 +1234,11 @@ async generateDiagram(): Promise<void> {
   }
 
   loadRelations(): void {
-    const relations = this.w.data().objects.stratigraphie.all.list
+    const relations = this.w.data().objects.stratigraphie.all. list
       .map(item => item.item)
       .filter(rel => rel && rel.live !== false);
 
-    this.allRelations = relations.map(rel => ({
+    this.allRelations = relations. map(rel => ({
       relation: rel,
       leftLabel: '',
       leftType: 'us' as 'us' | 'fait',
@@ -1151,8 +1247,15 @@ async generateDiagram(): Promise<void> {
       type: ''
     }));
 
-    this.filteredRelations = [...this.allRelations];
+    this.filteredRelations = [... this.allRelations];
+    this.relationsLoaded = true; // Marquer comme chargé
   }
+
+  refreshRelations(): void {
+    this.relationsLoaded = false;
+    this.loadRelations();
+  }
+
 
   onRelationsSearchChange(): void {
     if (!this.relationsSearchQuery.trim()) {

@@ -31,10 +31,14 @@
     <section *ngIf="!currentMermaidCode && !isGenerating" class="empty-state">
       <ion-icon name="git-network-outline" class="empty-icon"></ion-icon>
       <h2>Aucun diagramme généré</h2>
-      <p>Ouvrez le panneau de contrôle pour générer votre diagramme</p>
-      <ion-button (click)="openControlPanel()" color="primary">
-        <ion-icon name="settings-outline" slot="start"></ion-icon>
-        Ouvrir les contrôles
+      <p>Cliquez sur le bouton ci-dessous pour générer votre diagramme</p>
+      
+      <ion-button 
+        (click)="generateDiagram()" 
+        color="primary"
+        class="ion-margin-top">
+        <ion-icon name="git-network-outline" slot="start"></ion-icon>
+        Générer le diagramme
       </ion-button>
     </section>
 
@@ -111,6 +115,17 @@
     [offsetTop]="'415px'"
     [offsetRight]="'16px'"
     (fabClick)="toggleEditMode()">
+  </app-floating-action-button>
+
+  <!-- Bouton Mode Paradoxe -->
+  <app-floating-action-button
+    *ngIf="currentMermaidCode"
+    [icon]="isParadoxMode ?  'warning' : 'warning-outline'"
+    [color]="isParadoxMode ?  'danger' : 'secondary'"
+    [position]="'top-right'"
+    [offsetTop]="'460px'"
+    [offsetRight]="'16px'"
+    (fabClick)="toggleParadoxMode()">
   </app-floating-action-button>
 
   <!-- Overlay de confirmation de suppression -->
@@ -576,62 +591,73 @@
         </div>
       </div>
 
-      <!-- Liste des entités isolées -->
+      <!-- Compteur d'entités isolées -->
+      <div class="isolated-count" *ngIf="filteredIsolatedEntities.length > 0">
+        <span>{{ filteredIsolatedEntities.length }} entité(s) isolée(s)</span>
+      </div>
+
+      <!-- Liste des entités isolées avec Virtual Scrolling -->
       <div class="isolated-list">
-        <ion-list *ngIf="filteredIsolatedEntities.length > 0">
-          <ng-container *ngFor="let entity of filteredIsolatedEntities">
+        <cdk-virtual-scroll-viewport
+          *ngIf="filteredIsolatedEntities.length > 0"
+          [itemSize]="ISOLATED_ITEM_HEIGHT"
+          class="isolated-viewport">
+          
+          <ng-container *cdkVirtualFor="let entity of filteredIsolatedEntities; trackBy: trackByIsolatedEntity">
             <!-- US isolée -->
-            <ion-item
+            <div
               *ngIf="entity.type === 'us'"
-              class="isolated-item us-item"
-              lines="none">
+              class="isolated-item us-item">
               <app-castor-tag-display
                 [description]="{table: ApiDbTable.us, uuid: entity.uuid}"
                 [infoBulle]="true">
               </app-castor-tag-display>
-            </ion-item>
+            </div>
 
             <!-- Fait isolé -->
-            <ion-item
+            <div
               *ngIf="entity.type === 'fait'"
-              class="isolated-item fait-item"
-              lines="none">
-              <app-castor-tag-display
-                [description]="{table: ApiDbTable.fait, uuid: entity.uuid}"
-                [infoBulle]="true">
-              </app-castor-tag-display>
-
-              <ion-button
-                *ngIf="entity.childrenUS && entity.childrenUS.length > 0"
-                fill="clear"
-                size="small"
-                (click)="toggleFaitExpansion(entity.uuid)"
-                slot="end">
-                <ion-icon
-                  [name]="expandedFaits.has(entity.uuid) ? 'chevron-down-outline' : 'chevron-forward-outline'"
-                  slot="icon-only">
-                </ion-icon>
-              </ion-button>
-            </ion-item>
-
-            <!-- US enfants du Fait (si étendu) -->
-            <div *ngIf="entity.type === 'fait' && expandedFaits.has(entity.uuid) && entity.childrenUS" class="fait-children">
-              <ion-item
-                *ngFor="let childUS of entity.childrenUS"
-                class="isolated-item us-child-item"
-                lines="none">
-                <div class="child-connector"></div>
+              class="isolated-item fait-item">
+              <div class="fait-header">
                 <app-castor-tag-display
-                  [description]="{table: ApiDbTable.us, uuid: childUS.uuid}"
+                  [description]="{table: ApiDbTable.fait, uuid: entity.uuid}"
                   [infoBulle]="true">
                 </app-castor-tag-display>
-              </ion-item>
+
+                <ion-button
+                  *ngIf="entity.childrenUS && entity.childrenUS.length > 0"
+                  fill="clear"
+                  size="small"
+                  (click)="toggleFaitExpansion(entity. uuid)"
+                  class="expand-button">
+                  <ion-icon
+                    [name]="expandedFaits.has(entity.uuid) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                    slot="icon-only">
+                  </ion-icon>
+                  <span class="children-count">({{ entity.childrenUS.length }})</span>
+                </ion-button>
+              </div>
+
+              <!-- US enfants du Fait (si étendu) - rendu inline sans virtual scroll imbriqué -->
+              <div 
+                *ngIf="expandedFaits.has(entity.uuid) && entity.childrenUS" 
+                class="fait-children">
+                <div
+                  *ngFor="let childUS of entity.childrenUS; trackBy: trackByChildUS"
+                  class="isolated-item us-child-item">
+                  <div class="child-connector"></div>
+                  <app-castor-tag-display
+                    [description]="{table: ApiDbTable.us, uuid: childUS.uuid}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                </div>
+              </div>
             </div>
           </ng-container>
-        </ion-list>
+        </cdk-virtual-scroll-viewport>
 
         <!-- Message si aucune entité isolée -->
-        <div *ngIf="filteredIsolatedEntities.length === 0 && !isolatedSearchQuery" class="no-isolated">
+        <div *ngIf="filteredIsolatedEntities. length === 0 && !isolatedSearchQuery" class="no-isolated">
           <ion-icon name="checkmark-circle-outline"></ion-icon>
           <p>Aucune entité isolée</p>
         </div>
@@ -668,64 +694,76 @@
         </ion-searchbar>
       </div>
 
-      <!-- Liste des relations -->
+      <!-- Compteur de relations -->
+      <div class="relations-count" *ngIf="filteredRelations.length > 0">
+        <span>{{ filteredRelations.length }} relation(s)</span>
+      </div>
+
+      <!-- Liste des relations avec Virtual Scrolling -->
       <div class="relations-list">
-        <table class="table strati-relation-table" *ngIf="filteredRelations.length > 0">
-          <tbody>
-          <tr *ngFor="let rel of filteredRelations" class="relation-row">
-            <!-- Colonne type de relation -->
-            <td class="type-strati-box">
-              <app-castor-type-display
-                [type]="rel.relation.strati_type_uuid"
-                [display_prefix]="false"
-                [display_label]="true">
-              </app-castor-type-display>
-            </td>
+        <cdk-virtual-scroll-viewport
+          *ngIf="filteredRelations.length > 0"
+          [itemSize]="RELATION_ITEM_HEIGHT"
+          class="relations-viewport">
+          
+          <table class="table strati-relation-table">
+            <tbody>
+              <tr *cdkVirtualFor="let rel of filteredRelations; trackBy: trackByRelationUuid" 
+                  class="relation-row">
+                <!-- Colonne type de relation -->
+                <td class="type-strati-box">
+                  <app-castor-type-display
+                    [type]="rel. relation.strati_type_uuid"
+                    [display_prefix]="false"
+                    [display_label]="true">
+                  </app-castor-type-display>
+                </td>
 
-            <!-- Colonne entités -->
-            <td class="relation-entities">
-              <!-- Entité gauche (antérieur ou contemporain 1) -->
-              <app-castor-tag-display
-                *ngIf="rel.relation.us_anterieur"
-                [description]="{table: ApiDbTable.us, uuid: rel.relation.us_anterieur}"
-                [infoBulle]="true">
-              </app-castor-tag-display>
-              <app-castor-tag-display
-                *ngIf="rel.relation.fait_anterieur"
-                [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_anterieur}"
-                [infoBulle]="true">
-              </app-castor-tag-display>
+                <!-- Colonne entités -->
+                <td class="relation-entities">
+                  <!-- Entité gauche (antérieur ou contemporain 1) -->
+                  <app-castor-tag-display
+                    *ngIf="rel.relation. us_anterieur"
+                    [description]="{table: ApiDbTable.us, uuid: rel.relation.us_anterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.fait_anterieur"
+                    [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_anterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
 
-              <!-- Séparateur -->
-              <span class="relation-separator" *ngIf="!rel.relation.is_contemporain">→</span>
-              <span class="relation-separator" *ngIf="rel.relation.is_contemporain">↔</span>
+                  <!-- Séparateur -->
+                  <span class="relation-separator" *ngIf="! rel.relation.is_contemporain">→</span>
+                  <span class="relation-separator" *ngIf="rel.relation.is_contemporain">↔</span>
 
-              <!-- Entité droite (postérieur ou contemporain 2) -->
-              <app-castor-tag-display
-                *ngIf="rel.relation.us_posterieur"
-                [description]="{table: ApiDbTable.us, uuid: rel.relation.us_posterieur}"
-                [infoBulle]="true">
-              </app-castor-tag-display>
-              <app-castor-tag-display
-                *ngIf="rel.relation.fait_posterieur"
-                [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_posterieur}"
-                [infoBulle]="true">
-              </app-castor-tag-display>
-            </td>
+                  <!-- Entité droite (postérieur ou contemporain 2) -->
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.us_posterieur"
+                    [description]="{table: ApiDbTable.us, uuid: rel.relation.us_posterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.fait_posterieur"
+                    [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_posterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                </td>
 
-            <!-- Colonne action -->
-            <td class="text-end align-middle action-column">
-              <ion-icon
-                name="close-outline"
-                class="delete-icon"
-                title="Supprimer cette relation"
-                [class.disabled]="isDeletingRelation"
-                (click)="deleteRelation(rel, $event)">
-              </ion-icon>
-            </td>
-          </tr>
-          </tbody>
-        </table>
+                <!-- Colonne action -->
+                <td class="text-end align-middle action-column">
+                  <ion-icon
+                    name="close-outline"
+                    class="delete-icon"
+                    title="Supprimer cette relation"
+                    [class.disabled]="isDeletingRelation"
+                    (click)="deleteRelation(rel, $event)">
+                  </ion-icon>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </cdk-virtual-scroll-viewport>
 
         <div *ngIf="filteredRelations.length === 0 && !relationsSearchQuery" class="no-relations">
           <ion-icon name="git-branch-outline"></ion-icon>
@@ -739,4 +777,11 @@
       </div>
     </div>
   </app-floating-panel>
+
+  <!-- Panneau des Cycles -->
+  <app-cycles-panel
+    [isOpen]="isCyclesPanelOpen"
+    (isOpenChange)="isCyclesPanelOpen = $event"
+    (closed)="onCyclesPanelClosed()">
+  </app-cycles-panel>
 </div>

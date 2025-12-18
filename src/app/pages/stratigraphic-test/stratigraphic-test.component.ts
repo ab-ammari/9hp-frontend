@@ -6,7 +6,6 @@ import { takeUntil, tap } from 'rxjs/operators';
 import { LOG, LoggerContext } from 'ngx-wcore';
 import {ApiDbTable, ApiStratigraphie} from "../../../../shared";
 import {ConfirmationService} from "../../services/confirmation.service";
-import {AuthService} from "@auth0/auth0-angular";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
 
 const CONTEXT: LoggerContext = {
@@ -44,6 +43,7 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
 
   // État de la recherche
   isSearching: boolean = false;
+  hasSearched: boolean = false;
 
   protected readonly ApiDbTable = ApiDbTable;
 
@@ -113,6 +113,8 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
 
         // Initialiser explicitement tous les états d'expansion des cycles à false (fermés)
         this.initializeExpandedStates();
+
+        this.hasSearched = true;
 
       } catch (error) {
         LOG.error.log({...CONTEXT, action: 'findParadoxes'}, 'Error searching for paradoxes:', error);
