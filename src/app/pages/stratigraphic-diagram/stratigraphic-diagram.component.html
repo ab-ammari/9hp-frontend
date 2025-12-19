@@ -120,8 +120,8 @@
   <!-- Bouton Mode Paradoxe -->
   <app-floating-action-button
     *ngIf="currentMermaidCode"
-    [icon]="isParadoxMode ?  'warning' : 'warning-outline'"
-    [color]="isParadoxMode ?  'danger' : 'secondary'"
+    [icon]="isParadoxMode ? 'warning' : 'warning-outline'"
+    [color]="isParadoxMode ? 'danger' : 'secondary'"
     [position]="'top-right'"
     [offsetTop]="'460px'"
     [offsetRight]="'16px'"
@@ -779,9 +779,9 @@
   </app-floating-panel>
 
   <!-- Panneau des Cycles -->
-  <app-cycles-panel
-    [isOpen]="isCyclesPanelOpen"
-    (isOpenChange)="isCyclesPanelOpen = $event"
-    (closed)="onCyclesPanelClosed()">
-  </app-cycles-panel>
+  <app-paradoxes-panel
+    [isOpen]="isParadoxesPanelOpen"
+    (isOpenChange)="isParadoxesPanelOpen = $event"
+    (closed)="onParadoxesPanelClosed()">
+  </app-paradoxes-panel>
 </div>

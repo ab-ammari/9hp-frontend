@@ -9,7 +9,7 @@ import {DOCUMENT} from "@angular/common";
 import {ConfirmationService} from "../../services/confirmation.service";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
 import { DiagramEditModeService, EdgeClickEvent } from 'src/app/services/diagram-edit-mode.service';
-import { DiagramParadoxModeService } from 'src/app/services/diagram-paradox-mode.service';
+import { DiagramParadoxVisualizationService } from 'src/app/services/diagram-paradox-visualization.service';
 
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
@@ -121,7 +121,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   // Mode Paradoxe
   isParadoxMode:  boolean = false;
-  isCyclesPanelOpen: boolean = false;
+  isParadoxesPanelOpen: boolean = false;
   
   private editModeSubscription:  Subscription | null = null;
   private edgeClickSubscription:  Subscription | null = null;
@@ -135,8 +135,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     private authService: CastorAuthorizationService,
     private confirmationService: ConfirmationService,
     private diagramEditModeService: DiagramEditModeService,
-    private diagramParadoxModeService:  DiagramParadoxModeService,
-  ) {}
+    private diagramParadoxVisualizationService: DiagramParadoxVisualizationService,  ) {}
 
   ngOnInit(): void {
     this.w.data().objects.stratigraphie.all.onValueChange()
@@ -158,7 +157,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     );
 
     // S'abonner au mode paradoxe
-    this. diagramParadoxModeService.isParadoxMode$
+    this.diagramParadoxVisualizationService.isParadoxMode$
       .pipe(takeUntil(this.destroyer$))
       .subscribe(isActive => {
         this.isParadoxMode = isActive;
@@ -172,8 +171,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     }
 
     // Initialiser le service paradoxe
-    if (this.diagramContainer?. nativeElement) {
-      this.diagramParadoxModeService.initialize(this.diagramContainer.nativeElement);
+    if (this.diagramContainer?.nativeElement) {
+      this.diagramParadoxVisualizationService.initialize(this.diagramContainer.nativeElement);
     }
   }
 
@@ -190,7 +189,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.edgeClickSubscription?.unsubscribe();
     this.diagramEditModeService.destroy();
 
-    this.diagramParadoxModeService.destroy();
+    this.diagramParadoxVisualizationService.destroy();
   }
 
   private onFullscreenChange(): void {
@@ -396,11 +395,23 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
    * Toggle le mode paradoxe
    */
   toggleParadoxMode(): void {
-    this.isParadoxMode = this.diagramParadoxModeService. toggleParadoxMode();
+    this.isParadoxMode = this.diagramParadoxVisualizationService.toggleParadoxMode();
     
-    // Ouvrir automatiquement le panneau des cycles
+    // Ajouter/retirer la classe sur le SVG
+    if (this.diagramContainer?.nativeElement) {
+      const svg = this.diagramContainer.nativeElement.querySelector('svg');
+      if (svg) {
+        if (this.isParadoxMode) {
+          svg.classList.add('paradox-mode-active');
+        } else {
+          svg.classList.remove('paradox-mode-active');
+        }
+      }
+    }
+    
+    // Ouvrir automatiquement le panneau des paradoxes
     if (this.isParadoxMode) {
-      this.isCyclesPanelOpen = true;
+      this.isParadoxesPanelOpen = true;
     }
   }
 
@@ -408,14 +419,14 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
    * Ouvre/ferme le panneau des cycles
    */
   toggleCyclesPanel(): void {
-    this.isCyclesPanelOpen = !this.isCyclesPanelOpen;
+    this.isParadoxesPanelOpen = !this.isParadoxesPanelOpen;
   }
 
   /**
    * Callback quand le panneau des cycles est fermé
    */
-  onCyclesPanelClosed(): void {
-    this.isCyclesPanelOpen = false;
+  onParadoxesPanelClosed(): void {
+    this.isParadoxesPanelOpen = false;
   }
 
   // === Gestion des panneaux ===
@@ -778,8 +789,47 @@ async generateDiagram(): Promise<void> {
     }
 
     // Rafraîchir les caches du service paradoxe
-    this.diagramParadoxModeService.refreshCaches();
+    setTimeout(() => {
+    // Debug structure (à retirer après avoir résolu le problème)
+    this.debugSVGStructure();
+    
+    // Rafraîchir les caches du service paradoxe
+    this.diagramParadoxVisualizationService.refreshCaches();
+  }, 500);
   }
+
+  /**
+ * Debug: Inspecte le SVG pour comprendre la structure
+ */
+private debugSVGStructure(): void {
+  if (this.diagramContainer?.nativeElement) {
+    const svg = this.diagramContainer.nativeElement.querySelector('svg');
+    if (svg) {
+      console.log('[DEBUG] SVG Structure Analysis:');
+      
+      // Analyser les nœuds
+      const nodes = svg.querySelectorAll('.node');
+      console.log(`Found ${nodes.length} nodes`);
+      if (nodes.length > 0) {
+        console.log('Sample node:', nodes[0]);
+        console.log('Node ID:', nodes[0].id);
+      }
+      
+      // Analyser les arêtes
+      const paths = svg.querySelectorAll('path.flowchart-link');
+      console.log(`Found ${paths.length} flowchart-link paths`);
+      if (paths.length > 0) {
+        console.log('Sample path classes:', paths[0].className.baseVal || paths[0].className);
+        
+        // Afficher les premières arêtes pour voir le format des classes
+        for (let i = 0; i < Math.min(5, paths.length); i++) {
+          const classes = paths[i].className.baseVal || paths[i].className;
+          console.log(`Path ${i} classes:`, classes);
+        }
+      }
+    }
+  }
+}
 
   // === Pan/Zoom ===
 
