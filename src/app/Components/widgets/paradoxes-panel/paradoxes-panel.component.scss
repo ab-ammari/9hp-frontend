@@ -1,0 +1,327 @@
+.paradoxes-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+// ============================================
+// ONGLETS
+// ============================================
+
+.tabs-container {
+  ion-segment {
+    --background: var(--ion-color-light);
+    border-radius: 12px;
+    
+    ion-segment-button {
+      --indicator-color: var(--ion-color-primary);
+      --color-checked: rgb(0, 32, 194);
+      min-height: 48px;
+      
+      ion-label {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        
+        ion-badge {
+        }
+      }
+      
+      ion-icon {
+        font-size: 15px;
+        margin-right: 4px;
+      }
+    }
+  }
+}
+
+// ============================================
+// BARRE D'OUTILS
+// ============================================
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+
+  .navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .nav-indicator {
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-width: 60px;
+      text-align: center;
+      color: var(--ion-color-dark);
+    }
+  }
+
+  .selection-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+}
+
+// ============================================
+// RECHERCHE
+// ============================================
+
+.search-container {
+  ion-searchbar {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    padding: 0;
+  }
+}
+
+// ============================================
+// RÉSUMÉ
+// ============================================
+
+.paradoxes-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(233, 30, 99, 0.1), rgba(233, 30, 99, 0.05));
+  border-radius: 12px;
+  border-left: 4px solid var(--ion-color-danger);
+
+  .summary-icon ion-icon {
+    font-size: 28px;
+  }
+
+  .summary-text {
+    font-size: 0.95rem;
+    color: var(--ion-color-dark);
+
+    strong {
+      color: var(--ion-color-danger);
+      font-size: 1.1rem;
+    }
+
+    span {
+      color: var(--ion-color-medium);
+      font-size: 0.85rem;
+    }
+  }
+}
+
+// ============================================
+// LISTE DES PARADOXES
+// ============================================
+
+.paradoxes-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+
+  ion-list {
+    background: transparent;
+    padding: 0;
+  }
+
+  .paradox-item {
+    --background: var(--ion-color-light);
+    --border-radius: 12px;
+    --padding-start: 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    border-left: 4px solid var(--paradox-color, var(--ion-color-medium));
+    
+    &:hover {
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &.selected {
+      --background: rgba(var(--ion-color-primary-rgb), 0.1);
+      border-left-width: 6px;
+    }
+
+    &.current {
+      border-left-width: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    ion-label {
+      h3 {
+        margin: 0 0 4px 0;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .paradox-description {
+        font-size: 0.85rem;
+        color: var(--ion-color-medium);
+        margin: 4px 0;
+      }
+
+      .cycle-nodes-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+
+        ion-chip {
+          height: 22px;
+          font-size: 0.7rem;
+          margin: 0;
+        }
+      }
+
+      .paradox-details {
+        margin-top: 8px;
+      }
+    }
+
+    .paradox-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      ion-button {
+        margin: 0;
+      }
+
+      ion-icon {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// ============================================
+// ZONE D'EXPANSION
+// ============================================
+
+.paradox-expansion {
+  background: var(--ion-color-light-tint);
+  margin: 0 8px 8px 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--paradox-color, var(--ion-color-medium));
+
+  .expansion-content {
+    .full-message {
+      padding: 8px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 12px;
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
+    }
+
+    .involved-relations {
+      h4 {
+        margin: 0 0 8px 0;
+        font-size: 0.9rem;
+        color: var(--ion-color-dark);
+      }
+
+      .relation-item {
+        padding: 4px 8px;
+        background: white;
+        border-radius: 4px;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+
+        .relation-detail {
+          color: var(--ion-color-medium-shade);
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// ÉTAT VIDE
+// ============================================
+
+.no-paradoxes {
+  text-align: center;
+  padding: 60px 20px;
+
+  ion-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.2rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 0.95rem;
+  }
+}
+
+// ============================================
+// SCROLLBAR
+// ============================================
+
+.paradoxes-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.paradoxes-list::-webkit-scrollbar-track {
+  background: var(--ion-color-light);
+  border-radius: 4px;
+}
+
+.paradoxes-list::-webkit-scrollbar-thumb {
+  background: var(--ion-color-medium);
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--ion-color-medium-shade);
+  }
+}
+
+// ============================================
+// ANIMATIONS SPÉCIFIQUES PAR TYPE
+// ============================================
+
+@keyframes paradox-edge-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -46; }
+}
+
+// Styles pour les différents types dans le diagramme
+:host ::ng-deep {
+  .paradox-edge-cycle {
+    stroke-dasharray: 15, 8;
+    animation: paradox-edge-flow 0.8s linear infinite;
+  }
+
+  .paradox-edge-temporal {
+    stroke-dasharray: 10, 5;
+    animation: paradox-edge-flow 1.2s linear infinite reverse;
+  }
+
+  .paradox-edge-consistency {
+    stroke-dasharray: 20, 10;
+    opacity: 0.9;
+  }
+
+  .paradox-edge-containment {
+    stroke-dasharray: 5, 5;
+    opacity: 0.8;
+  }
+}

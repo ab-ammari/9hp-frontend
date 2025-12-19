@@ -1,0 +1,171 @@
+<app-floating-panel
+  [isOpen]="isOpen"
+  (isOpenChange)="isOpenChange.emit($event)"
+  title="Paradoxes détectés"
+  [position]="'right'"
+  [width]="'500px'"
+  [showBackdrop]="false"
+  [allowBackgroundInteractions]="true"
+  (closed)="close()">
+
+  <div class="paradoxes-panel-content">
+
+    <!-- Onglets -->
+    <div class="tabs-container">
+      <ion-segment [value]="activeTab" (ionChange)="selectTab($any($event.detail.value))">
+        <ion-segment-button 
+          *ngFor="let tab of tabs" 
+          [value]="tab.id"
+          class="paradox-tab">
+          <ion-icon [name]="tab.icon"></ion-icon>
+          <ion-label>
+            {{ tab.label }}
+            <ion-badge *ngIf="getCountForTab(tab.id) > 0" [color]="tab.color">
+              {{ getCountForTab(tab.id) }}
+            </ion-badge>
+          </ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- Barre d'outils -->
+    <div class="toolbar" *ngIf="filteredParadoxes.length > 0">
+      <!-- Navigation -->
+      <div class="navigation-controls">
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="previousParadox()"
+          [disabled]="totalCount <= 1 || multiSelectMode">
+          <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
+        <span class="nav-indicator">
+          {{ currentIndex + 1 }} / {{ totalCount }}
+        </span>
+
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="nextParadox()"
+          [disabled]="totalCount <= 1 || multiSelectMode">
+          <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+
+      <!-- Mode sélection -->
+      <div class="selection-controls">
+        <ion-button
+          size="small"
+          [fill]="multiSelectMode ? 'solid' : 'outline'"
+          [color]="multiSelectMode ? 'primary' : 'medium'"
+          (click)="toggleMultiSelectMode()">
+          <ion-icon name="checkbox-outline" slot="start"></ion-icon>
+          Multi
+        </ion-button>
+
+        <ion-button
+          *ngIf="multiSelectMode"
+          size="small"
+          fill="clear"
+          (click)="selectAll()">
+          Tout
+        </ion-button>
+
+        <ion-button
+          *ngIf="multiSelectMode && selectedCount > 0"
+          size="small"
+          fill="clear"
+          color="medium"
+          (click)="deselectAll()">
+          Aucun
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="search-container" *ngIf="paradoxes.length > 3">
+      <ion-searchbar
+        [(ngModel)]="searchQuery"
+        (ionInput)="onSearchChange()"
+        placeholder="Rechercher un paradoxe..."
+        [debounce]="300">
+      </ion-searchbar>
+    </div>
+
+    <!-- Liste des paradoxes -->
+    <div class="paradoxes-list" *ngIf="filteredParadoxes.length > 0">
+      <ion-list>
+        <ng-container *ngFor="let paradoxItem of filteredParadoxes; let i = index">
+          <ion-item
+            (click)="onParadoxClick(paradoxItem, i, $event)"
+            class="paradox-item"
+            [class.selected]="isParadoxSelected(paradoxItem.paradoxId)"
+            [class.current]="isCurrentParadox(paradoxItem) && !multiSelectMode"
+            [class.expanded]="expandedParadoxes.has(paradoxItem.paradoxId)"
+            [style.--paradox-color]="getParadoxColor(paradoxItem)"
+            button
+            detail="false">
+
+            <!-- Icône du type -->
+            <ion-icon
+              slot="start"
+              [name]="getParadoxIcon(paradoxItem.type)"
+              [style.color]="isParadoxSelected(paradoxItem.paradoxId) ? getParadoxColor(paradoxItem) : null">
+            </ion-icon>
+
+            <!-- Contenu -->
+            <ion-label>
+              <h3 [style.color]="isParadoxSelected(paradoxItem.paradoxId) ? getParadoxColor(paradoxItem) : null">
+                {{ paradoxItem.displayName }}
+              </h3>
+              
+              <!-- Description courte -->
+              <p class="paradox-description">{{ getShortMessage(paradoxItem) }}</p>
+              
+              <!-- Chips pour les cycles -->
+              <div class="cycle-nodes-preview" *ngIf="paradoxItem.type === 'cycle'">
+                <ion-chip
+                  *ngFor="let node of getDisplayNodes(paradoxItem)"
+                  size="small">
+                  {{ node }}
+                </ion-chip>
+              </div>
+              
+              <!-- Détails pour les autres types -->
+              <div class="paradox-details" *ngIf="paradoxItem.type !== 'cycle'">
+                <ion-chip size="small" color="medium">
+                  {{ paradoxItem.relations.length }} relation(s)
+                </ion-chip>
+              </div>
+            </ion-label>
+
+            <!-- Actions -->
+            <div slot="end" class="paradox-actions">
+              <!-- Indicateur de visibilité -->
+              <ion-icon
+                [name]="isParadoxSelected(paradoxItem.paradoxId) ? 'eye' : 'eye-off-outline'"
+                [style.color]="isParadoxSelected(paradoxItem.paradoxId) ? getParadoxColor(paradoxItem) : null">
+              </ion-icon>
+            </div>
+          </ion-item>
+        </ng-container>
+      </ion-list>
+    </div>
+
+    <!-- État vide -->
+    <div class="no-paradoxes" *ngIf="filteredParadoxes.length === 0 && !searchQuery">
+      <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+      <h3>Aucun paradoxe détecté</h3>
+      <p *ngIf="activeTab === 'all'">Votre diagramme stratigraphique ne contient aucun paradoxe.</p>
+      <p *ngIf="activeTab !== 'all'">Aucun paradoxe de type "{{ getTabLabel(activeTab) }}".</p>
+    </div>
+
+    <!-- Aucun résultat de recherche -->
+    <div class="no-paradoxes" *ngIf="filteredParadoxes.length === 0 && searchQuery">
+      <ion-icon name="search-outline" color="medium"></ion-icon>
+      <h3>Aucun résultat</h3>
+      <p>Aucun paradoxe ne correspond à "{{ searchQuery }}"</p>
+    </div>
+  </div>
+</app-floating-panel>
