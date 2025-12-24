@@ -2659,12 +2659,12 @@ export class CastorValidationService {
   ): string {
     // Construire le message court
     let entity1 = relation.elementType1 === 'US'
-      ? `US ${this.getUsTag(relation.elementId1)}`
-      : `Fait ${this.getFaitTag(relation.elementId1)}`;
+      ? ` ${this.getUsTag(relation.elementId1)}`
+      : ` ${this.getFaitTag(relation.elementId1)}`;
 
     let entity2 = relation.elementType2 === 'US'
-      ? `US ${this.getUsTag(relation.elementId2)}`
-      : `Fait ${this.getFaitTag(relation.elementId2)}`;
+      ? ` ${this.getUsTag(relation.elementId2)}`
+      : ` ${this.getFaitTag(relation.elementId2)}`;
 
     let relationType = relation.relationType === 'contemporain' ? 'contemporain à' : 'antérieur à';
 
@@ -2674,20 +2674,20 @@ export class CastorValidationService {
     let conflictRelationType = '';
 
     if (conflictingRelation.us_anterieur) {
-      conflictEntity1 = `US ${this.getUsTag(conflictingRelation.us_anterieur)}`;
+      conflictEntity1 = ` ${this.getUsTag(conflictingRelation.us_anterieur)}`;
     } else if (conflictingRelation.fait_anterieur) {
-      conflictEntity1 = `Fait ${this.getFaitTag(conflictingRelation.fait_anterieur)}`;
+      conflictEntity1 = ` ${this.getFaitTag(conflictingRelation.fait_anterieur)}`;
     }
 
     if (conflictingRelation.us_posterieur) {
-      conflictEntity2 = `US ${this.getUsTag(conflictingRelation.us_posterieur)}`;
+      conflictEntity2 = ` ${this.getUsTag(conflictingRelation.us_posterieur)}`;
     } else if (conflictingRelation.fait_posterieur) {
-      conflictEntity2 = `Fait ${this.getFaitTag(conflictingRelation.fait_posterieur)}`;
+      conflictEntity2 = ` ${this.getFaitTag(conflictingRelation.fait_posterieur)}`;
     }
 
     conflictRelationType = conflictingRelation.is_contemporain ? 'contemporain à' : 'antérieur à';
 
-    return `${entity1} ${relationType} <strong>${entity2}</strong> mais ${conflictEntity1} ${conflictRelationType} ${conflictEntity2}`;
+    return `${entity1} ${relationType} ${entity2} mais ${conflictEntity1} ${conflictRelationType} ${conflictEntity2}`;
   }
 
   public findAllParadoxes(paradoxType?: 'containment' | 'consistency' | 'temporal' | 'cycle'): DetectedParadox[] {
