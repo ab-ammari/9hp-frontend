@@ -1,0 +1,22 @@
+<div class="fab-container" 
+     [ngStyle]="getPositionStyles()"
+     (mouseenter)="onMouseEnter()"
+     (mouseleave)="onMouseLeave()">
+  
+  <!-- Tooltip -->
+  <div *ngIf="showTooltip && tooltip" 
+       class="fab-tooltip"
+       [ngClass]="'tooltip-' + tooltipPosition">
+    {{ tooltip }}
+  </div>
+
+  <ion-fab-button
+    [color]="color"
+    [disabled]="disabled"
+    (click)="onClick()"
+    class="fab-button">
+    <ion-icon [name]="icon"></ion-icon>
+  </ion-fab-button>
+
+  <span *ngIf="label" class="fab-label">{{ label }}</span>
+</div>
