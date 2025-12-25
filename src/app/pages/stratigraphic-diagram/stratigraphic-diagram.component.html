@@ -55,24 +55,20 @@
     [position]="'top-right'"
     [offsetTop]="'145px'"
     [offsetRight]="'16px'"
+    tooltip="Paramètres et contrôles du diagramme"
+    [tooltipPosition]="'left'"
     (fabClick)="openControlPanel()">
   </app-floating-action-button>
 
-  <!-- Mode de layout -->
-  <app-floating-action-button
-    icon="grid-outline"
-    [position]="'top-right'"
-    [offsetTop]="'190px'"
-    [offsetRight]="'16px'"
-    (fabClick)="toggleLayoutPanel()">
-  </app-floating-action-button>
-
+  <!-- Statistiques -->
   <app-floating-action-button
     *ngIf="currentMermaidCode"
     icon="stats-chart-outline"
     [position]="'top-right'"
-    [offsetTop]="'235px'"
+    [offsetTop]="'190px'"
     [offsetRight]="'16px'"
+    tooltip="Statistiques du diagramme"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleStatsPanel()">
   </app-floating-action-button>
 
@@ -81,8 +77,10 @@
     *ngIf="currentMermaidCode"
     icon="search-outline"
     [position]="'top-right'"
-    [offsetTop]="'280px'"
+    [offsetTop]="'235px'"
     [offsetRight]="'16px'"
+    tooltip="Rechercher une entité (US ou Fait)"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleSearchPanel()">
   </app-floating-action-button>
 
@@ -91,8 +89,10 @@
     *ngIf="currentMermaidCode"
     icon="file-tray-outline"
     [position]="'top-right'"
-    [offsetTop]="'325px'"
+    [offsetTop]="'280px'"
     [offsetRight]="'16px'"
+    tooltip="Entités isolées"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleIsolatedPanel()">
   </app-floating-action-button>
 
@@ -101,8 +101,10 @@
     *ngIf="currentMermaidCode"
     icon="link-outline"
     [position]="'top-right'"
-    [offsetTop]="'370px'"
+    [offsetTop]="'325px'"
     [offsetRight]="'16px'"
+    tooltip="Gérer les relations stratigraphiques"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleRelationsPanel()">
   </app-floating-action-button>
 
@@ -112,8 +114,10 @@
     [icon]="isEditMode ? 'create' : 'create-outline'"
     [color]="isEditMode ? 'warning' : 'secondary'"
     [position]="'top-right'"
-    [offsetTop]="'415px'"
+    [offsetTop]="'370px'"
     [offsetRight]="'16px'"
+    [tooltip]="isEditMode ? 'Désactiver le mode édition' : 'Activer le mode édition (supprimer des relations)'"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleEditMode()">
   </app-floating-action-button>
 
@@ -123,8 +127,10 @@
     [icon]="isParadoxMode ? 'warning' : 'warning-outline'"
     [color]="isParadoxMode ? 'danger' : 'secondary'"
     [position]="'top-right'"
-    [offsetTop]="'460px'"
+    [offsetTop]="'415px'"
     [offsetRight]="'16px'"
+    [tooltip]="isParadoxMode ? 'Désactiver la visualisation des paradoxes' : 'Visualiser les paradoxes'"
+    [tooltipPosition]="'left'"
     (fabClick)="toggleParadoxMode()">
   </app-floating-action-button>
 
@@ -243,6 +249,44 @@
           <ion-icon name="alert-circle-outline" slot="start"></ion-icon>
           <ion-label class="ion-text-wrap">{{ errorMessage }}</ion-label>
         </ion-item>
+      </div>
+
+      <!-- =========== -->
+      <!-- Mode Layout -->
+      <!-- =========== -->
+
+      <div class="control-section">
+        <h3 class="section-title">
+          <ion-icon name="grid-outline"></ion-icon>
+          Mode d'affichage
+        </h3>
+
+        <ion-list class="layout-options-list">
+          <ion-item
+            *ngFor="let mode of layoutModes"
+            (click)="selectLayoutMode(mode.value)"
+            [class.selected]="currentLayoutMode === mode.value"
+            class="layout-option-item"
+            button
+            lines="none">
+            <ion-icon
+              slot="start"
+              [name]="mode.value === 'default' ? 'git-network-outline' :
+                     mode.value === 'elk' ? 'apps-outline' : 'analytics-outline'"
+              [color]="currentLayoutMode === mode.value ? 'primary' : 'medium'">
+            </ion-icon>
+            <ion-label>
+              <h3>{{ mode.label }}</h3>
+              <p>{{ mode.description }}</p>
+            </ion-label>
+            <ion-icon
+              *ngIf="currentLayoutMode === mode.value"
+              slot="end"
+              name="checkmark-circle"
+              color="primary">
+            </ion-icon>
+          </ion-item>
+        </ion-list>
       </div>
 
       <!-- Section Export -->
@@ -499,47 +543,6 @@
           <p>Générez d'abord un diagramme pour rechercher des entités</p>
         </div>
       </div>
-    </div>
-  </app-floating-panel>
-
-  <!--Mode de layout -->
-  <app-floating-panel
-    [isOpen]="isLayoutPanelOpen"
-    (isOpenChange)="isLayoutPanelOpen = $event"
-    title="Mode d'affichage"
-    [position]="'right'"
-    [width]="'380px'"
-    (closed)="onLayoutPanelClosed()">
-
-    <div class="layout-panel-content">
-      <p class="layout-description">
-        Choisissez l'algorithme de disposition du diagramme
-      </p>
-
-      <ion-list>
-        <ion-item
-          *ngFor="let mode of layoutModes"
-          (click)="selectLayoutMode(mode.value)"
-          [class.selected]="currentLayoutMode === mode.value"
-          class="layout-option">
-          <ion-icon
-            slot="start"
-            [name]="mode.value === 'default' ? 'git-network-outline' :
-                   mode.value === 'elk' ? 'apps-outline' : 'analytics-outline'"
-            [color]="currentLayoutMode === mode.value ? 'primary' : 'medium'">
-          </ion-icon>
-          <ion-label>
-            <h3>{{ mode.label }}</h3>
-            <p>{{ mode.description }}</p>
-          </ion-label>
-          <ion-icon
-            *ngIf="currentLayoutMode === mode.value"
-            slot="end"
-            name="checkmark-circle"
-            color="primary">
-          </ion-icon>
-        </ion-item>
-      </ion-list>
     </div>
   </app-floating-panel>
 

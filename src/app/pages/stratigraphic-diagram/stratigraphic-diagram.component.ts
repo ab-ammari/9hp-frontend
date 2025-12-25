@@ -612,21 +612,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     console.log('Surbrillance appliquée sur:', nodeElement);
   }
 
-  // === Mode de layout ===
-
-  toggleLayoutPanel(): void {
-    this.isLayoutPanelOpen = !this.isLayoutPanelOpen;
-    if (this.isLayoutPanelOpen) {
-      this.isControlPanelOpen = false;
-      this.isStatsPanelOpen = false;
-      this.isSearchPanelOpen = false;
-    }
-  }
-
-  onLayoutPanelClosed(): void {
-    this.isLayoutPanelOpen = false;
-  }
-
   selectLayoutMode(mode: MermaidLayoutMode): void {
     if (this.currentLayoutMode !== mode) {
       this.currentLayoutMode = mode;
@@ -636,7 +621,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
         this.generateDiagram();
       }
     }
-    this.isLayoutPanelOpen = false;
   }
 
   // === Génération du diagramme ===
@@ -858,9 +842,9 @@ private debugSVGStructure(): void {
     }
 
     this.panzoomInstance = panzoom(element, {
-      maxZoom: 5,
-      minZoom: 0.1,
-      bounds: true,
+      maxZoom: 15,
+      minZoom: 0.05,
+      bounds: false,
       boundsPadding: 0.1,
       zoomDoubleClickSpeed: 1,
       smoothScroll: false,
@@ -1062,7 +1046,6 @@ private debugSVGStructure(): void {
       this.isControlPanelOpen = false;
       this.isStatsPanelOpen = false;
       this.isSearchPanelOpen = false;
-      this.isLayoutPanelOpen = false;
       this.isRelationsPanelOpen = false;
       
       // Charger les entités isolées seulement si elles n'ont pas encore été chargées

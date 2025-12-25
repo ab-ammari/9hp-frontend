@@ -38,50 +38,6 @@
   position: relative;
 }
 
-.diagram-container {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: #ffffff;
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
-
-  // Styles pour le SVG Mermaid
-  ::ng-deep svg {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-  }
-
-  // Personnalisation des nœuds
-  ::ng-deep {
-    .node {
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        filter: brightness(1.1);
-      }
-    }
-
-    .edgePath .path {
-      stroke-width: 2px;
-      fill: none;
-    }
-
-    .edgeLabel {
-      background-color: white;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 0.85rem;
-    }
-  }
-}
-
 // Contrôles de zoom overlay
 .zoom-controls-overlay {
   position: absolute;
@@ -766,34 +722,6 @@
     max-height: 250px;
   }
 }
-.diagram-container {
-  ::ng-deep {
-    // Style pour les subgraphs de Faits
-    .cluster[id*="flowchart-"] {
-      rect {
-        fill: #FFF3E0 !important;
-        stroke: #F57C00 !important;
-        stroke-width: 2px !important;
-        rx: 8px !important;
-        ry: 8px !important;
-      }
-
-      .cluster-label {
-        fill: #E65100 !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-      }
-    }
-
-    // US à l'intérieur des Faits
-    .cluster .node {
-      rect {
-        fill: #E3F2FD !important;
-        stroke: #1976D2 !important;
-      }
-    }
-  }
-}
 
 .isolated-panel-content {
   display: flex;
@@ -1468,22 +1396,6 @@
 .diagram-edit-mode {
   // Curseur personnalisé pour indiquer le mode édition
   cursor: crosshair;
-  
-  // Indicateur visuel du mode
-  &::before {
-    content:  '✏️ Mode Édition';
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(255, 152, 0, 0.9);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    z-index: 1000;
-    animation: pulse-edit-mode 2s infinite;
-  }
 
   // Arêtes cliquables - cibler les paths avec LS-
   ::ng-deep path.editable-edge {
@@ -1823,22 +1735,6 @@
 // ============================================
 
 .diagram-paradox-mode {
-  // Indicateur visuel du mode
-  &::before {
-    content: '⚠️ Mode Paradoxes';
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background: linear-gradient(135deg, #e91e63, #c2185b);
-    color: white;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    z-index: 1000;
-    animation: pulse-paradox-mode 2s infinite;
-  }
-
   // Atténuer les éléments non impliqués
   ::ng-deep {
     .node:not(.paradox-node-highlighted) {
@@ -1944,3 +1840,52 @@
   }
 }
 
+// === Styles pour la section Mode d'affichage intégrée ===
+.section-description {
+  color: var(--ion-color-medium);
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+}
+
+.layout-options-list {
+  background: transparent;
+  padding: 0;
+
+  .layout-option-item {
+    --background: var(--ion-color-light);
+    --border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      --background: var(--ion-color-light-shade);
+    }
+
+    &.selected {
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+      border-left: 3px solid var(--ion-color-primary);
+    }
+
+    h3 {
+      font-weight: 600;
+      margin-bottom: 2px;
+      font-size: 0.95rem;
+    }
+
+    p {
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      margin: 0;
+    }
+
+    ion-icon[slot="start"] {
+      font-size: 22px;
+      margin-right: 12px;
+    }
+
+    ion-icon[slot="end"] {
+      font-size: 20px;
+    }
+  }
+}
