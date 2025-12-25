@@ -38,18 +38,24 @@
   position: relative;
 }
 
-// Contrôles de zoom overlay
+// Contrôles de zoom overlay avec toggle de légende
 .zoom-controls-overlay {
   position: absolute;
   bottom: 20px;
   right: 20px;
   display: flex;
+  align-items: center;
   gap: 8px;
   background: white;
   border-radius: 12px;
   padding: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 100;
+
+  .zoom-buttons {
+    display: flex;
+    gap: 4px;
+  }
 
   ion-button {
     margin: 0;
@@ -59,9 +65,349 @@
     --padding-end: 0;
 
     ion-icon {
-      font-size: 25px;
+      font-size: 20px;
     }
   }
+
+  .controls-separator {
+    width: 1px;
+    height: 24px;
+    background: var(--ion-color-light-shade);
+    margin: 0 4px;
+  }
+
+  .legend-toggle-btn {
+    --border-radius: 8px;
+    
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+// Legende compacte
+.diagram-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 220px;
+  max-width: 280px;
+  overflow: hidden;
+  
+  // Animation d'apparition/disparition
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: bottom left;
+
+  &.legend-visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+  }
+
+  &.legend-hidden {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+    pointer-events: none;
+  }
+
+  .legend-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px 8px 14px;
+    background: var(--ion-color-light);
+    border-bottom: 1px solid var(--ion-color-light-shade);
+
+    .legend-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--ion-color-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 14px;
+        background: var(--ion-color-primary);
+        border-radius: 2px;
+      }
+    }
+
+    .legend-close {
+      --padding-start: 4px;
+      --padding-end: 4px;
+      margin: 0;
+      height: 28px;
+      width: 28px;
+      
+      ion-icon {
+        font-size: 18px;
+        color: var(--ion-color-medium);
+      }
+
+      &:hover ion-icon {
+        color: var(--ion-color-dark);
+      }
+    }
+  }
+
+  .legend-items {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--ion-color-dark-shade);
+
+    .legend-color {
+      width: 28px;
+      height: 18px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      border: 2px solid;
+      transition: all 0.2s ease;
+
+      &.legend-dashed {
+        border-style: dashed;
+      }
+    }
+
+    span {
+      line-height: 1.3;
+    }
+  }
+}
+
+// section apparence dans le panneau de contrôle
+.style-accordion {
+  margin-top: 8px;
+
+  ion-accordion {
+    margin-bottom: 8px;
+    border-radius: 10px !important;
+    overflow: hidden;
+    background: var(--ion-color-light);
+
+    &.accordion-expanded {
+      background: var(--ion-color-light-tint);
+    }
+  }
+
+  .accordion-header {
+    --background: transparent;
+    --padding-start: 12px;
+    --padding-end: 12px;
+    --inner-padding-end: 0;
+    --min-height: 48px;
+
+    .style-preview {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      border: 2px solid;
+      margin-right: 12px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+
+      &.contemporary-preview {
+        border-style: dashed;
+      }
+    }
+
+    ion-label {
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+  }
+
+  .style-options {
+    padding: 12px 16px 16px;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.color-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  label {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium-shade);
+    flex: 1;
+  }
+
+  input[type="color"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 44px;
+    height: 32px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+
+    &::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    &::-webkit-color-swatch {
+      border: 2px solid var(--ion-color-light-shade);
+      border-radius: 6px;
+      transition: border-color 0.2s ease;
+    }
+
+    &:hover::-webkit-color-swatch {
+      border-color: var(--ion-color-primary);
+    }
+
+    &::-moz-color-swatch {
+      border: 2px solid var(--ion-color-light-shade);
+      border-radius: 6px;
+    }
+  }
+}
+
+.reset-styles-btn {
+  margin-top: 16px;
+  --border-radius: 10px;
+  font-size: 0.85rem;
+
+  ion-icon {
+    font-size: 18px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .zoom-controls-overlay {
+    bottom: 10px;
+    right: 10px;
+    padding: 6px;
+    border-radius: 10px;
+
+    .zoom-buttons {
+      gap: 2px;
+    }
+
+    ion-button {
+      height: 32px;
+      width: 32px;
+
+      ion-icon {
+        font-size: 18px;
+      }
+    }
+
+    .controls-separator {
+      height: 20px;
+      margin: 0 2px;
+    }
+  }
+
+  .diagram-legend {
+    bottom: 60px; // Au-dessus des contrôles sur mobile
+    left: 10px;
+    min-width: 180px;
+    max-width: 220px;
+
+    .legend-header {
+      padding: 8px 10px 6px 12px;
+
+      .legend-title {
+        font-size: 0.8rem;
+      }
+    }
+
+    .legend-items {
+      padding: 10px 12px;
+      gap: 8px;
+    }
+
+    .legend-item {
+      font-size: 0.75rem;
+      gap: 10px;
+
+      .legend-color {
+        width: 22px;
+        height: 14px;
+      }
+    }
+  }
+
+  .style-accordion {
+    .accordion-header {
+      --min-height: 44px;
+
+      .style-preview {
+        width: 20px;
+        height: 20px;
+        margin-right: 10px;
+      }
+
+      ion-label {
+        font-size: 0.85rem;
+      }
+    }
+
+    .style-options {
+      padding: 10px 12px 14px;
+      gap: 10px;
+    }
+  }
+
+  .color-option {
+    label {
+      font-size: 0.8rem;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 28px;
+    }
+  }
+}
+
+// animation
+@keyframes legendSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Animation au premier affichage
+.diagram-legend.legend-visible {
+  animation: legendSlideIn 0.3s ease-out;
+}
+
+// Transition douce pour les couleurs
+.legend-color,
+.style-preview {
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 // État vide
@@ -477,105 +823,139 @@
   }
 }
 
-// === Styles pour le survol des arêtes ===
+// ==============================================
+// DIFFÉRENCIATION VISUELLE DES SUBGRAPHS
+// ==============================================
 .diagram-container {
   ::ng-deep {
-    // Style de base pour les arêtes
-    .edgePath {
-      path {
-        cursor: pointer;
-        transition: all 0.3s ease;
-      }
-
-      &:hover path {
-        stroke-width: 3px;
+    
+    // === Style de base pour tous les subgraphs ===
+    g.subgraph {
+      rect.subgraph {
+        transition: fill 0.2s ease, stroke 0.2s ease;
       }
     }
 
-    // Classes pour la surbrillance au survol
-    .edge-hover-source {
-      rect, polygon, circle, ellipse {
-        filter: drop-shadow(0 0 8px #ff3838) drop-shadow(0 0 16px #4CAF50) !important;
-        stroke: #2E7D32 !important;
-        stroke-width: 3px !important;
+    // === Style spécifique pour les Faits (subgraphs contenant des US) ===
+    g.subgraph.fait-subgraph {
+      rect.subgraph {
+        fill: var(--diagram-fait-bg, #FFF3E0) !important;
+        stroke: var(--diagram-fait-stroke, #F57C00) !important;
+        stroke-width: var(--diagram-fait-stroke-width, 2px) !important;
+        stroke-dasharray: none !important;
+        rx: 8px;
+        ry: 8px;
       }
 
-      text {
-        font-weight: bold !important;
-      }
-    }
-
-    .edge-hover-target {
-      rect, polygon, circle, ellipse {
-        filter: drop-shadow(0 0 8px #2196F3) drop-shadow(0 0 16px #2196F3) !important;
-        stroke: #1565C0 !important;
-        stroke-width: 3px !important;
-      }
-
-      text {
-        font-weight: bold !important;
-      }
-    }
-
-    .edge-hover-active {
-      path {
-        stroke: #FF5722 !important;
-        stroke-width: 4px !important;
-        filter: drop-shadow(0 0 4px #FF5722) !important;
-      }
-    }
-
-    // Tooltip pour afficher les infos de la relation
-    .edge-tooltip {
-      position: absolute;
-      background: rgba(0, 0, 0, 0.85);
-      color: white;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      pointer-events: none;
-      z-index: 10000;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      max-width: 300px;
-
-      .tooltip-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
+      // Label du Fait dans le subgraph
+      .nodeLabel {
         font-weight: 600;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        padding-bottom: 8px;
+        fill: #E65100;
+      }
+    }
+
+    // === Style spécifique pour les groupes de contemporanéité ===
+    g.subgraph.contemporary-group {
+      rect.subgraph {
+        fill: var(--diagram-contemporary-bg, #F5F5F5) !important;
+        stroke: var(--diagram-contemporary-stroke, #9E9E9E) !important;
+        stroke-width: var(--diagram-contemporary-stroke-width, 1.5px) !important;
+        stroke-dasharray: var(--diagram-contemporary-dasharray, 5 5) !important;
+        rx: 12px;
+        ry: 12px;
       }
 
-      .tooltip-source {
-        color: #81C784;
+      // Ombre légère pour distinguer visuellement
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    }
 
-        &::before {
-          content: '●';
-          margin-right: 6px;
-        }
+    // === Style des nœuds US ===
+    g.node.usStyle {
+      rect, polygon {
+        fill: var(--diagram-us-bg, #E3F2FD) !important;
+        stroke: var(--diagram-us-stroke, #1976D2) !important;
+        stroke-width: var(--diagram-us-stroke-width, 2px) !important;
       }
 
-      .tooltip-arrow {
-        color: #FF8A65;
-        font-size: 1.2rem;
+      .nodeLabel {
+        fill: #0D47A1;
+        font-weight: 500;
+      }
+    }
+
+    // === Style des nœuds Fait simples (sans US) ===
+    g.node.faitStyle {
+      rect, polygon {
+        fill: var(--diagram-fait-bg, #FFF3E0) !important;
+        stroke: var(--diagram-fait-stroke, #F57C00) !important;
+        stroke-width: var(--diagram-fait-stroke-width, 2px) !important;
       }
 
-      .tooltip-target {
-        color: #64B5F6;
+      .nodeLabel {
+        fill: #E65100;
+        font-weight: 600;
+      }
+    }
 
-        &::before {
-          content: '●';
-          margin-right: 6px;
-        }
+    // === Style du nœud focal (recherche/filtre) ===
+    g.node.focusStyle {
+      rect, polygon {
+        fill: #C8E6C9 !important;
+        stroke: #388E3C !important;
+        stroke-width: 3px !important;
       }
 
-      .tooltip-relation-type {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.7);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+      .nodeLabel {
+        fill: #1B5E20;
+        font-weight: 700;
+      }
+    }
+  }
+}
+
+// ==============================================
+// VARIABLES CSS PERSONNALISABLES
+// ==============================================
+// Ces variables peuvent être redéfinies pour personnaliser les couleurs
+:host {
+  // US
+  --diagram-us-bg: #E3F2FD;
+  --diagram-us-stroke: #1976D2;
+  --diagram-us-stroke-width: 2px;
+
+  // Faits
+  --diagram-fait-bg: #FFF3E0;
+  --diagram-fait-stroke: #F57C00;
+  --diagram-fait-stroke-width: 2px;
+
+  // Groupes contemporains
+  --diagram-contemporary-bg: #F5F5F5;
+  --diagram-contemporary-stroke: #9E9E9E;
+  --diagram-contemporary-stroke-width: 1.5px;
+  --diagram-contemporary-dasharray: 5 5;
+}
+
+// ==============================================
+// RESPONSIVE
+// ==============================================
+
+@media (max-width: 768px) {
+  .diagram-legend {
+    bottom: 70px;
+    left: 10px;
+    padding: 12px;
+    min-width: 160px;
+
+    .legend-title {
+      font-size: 0.8rem;
+    }
+
+    .legend-item {
+      font-size: 0.75rem;
+
+      .legend-color {
+        width: 20px;
+        height: 14px;
       }
     }
   }

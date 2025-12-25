@@ -1,6 +1,6 @@
 import {Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewInit, Inject} from '@angular/core';
 import { WorkerService } from '../../services/worker.service';
-import { StratigraphicDiagramService, DiagramConfig, DiagramNode } from '../../services/stratigraphic-diagram.service';
+import { StratigraphicDiagramService, DiagramConfig, DiagramNode, DiagramStyleConfig, DEFAULT_DIAGRAM_STYLES} from '../../services/stratigraphic-diagram.service';
 import {ApiDbTable, ApiStratigraphie} from '../../../../shared';
 import { Subject, Subscription } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -10,6 +10,7 @@ import {ConfirmationService} from "../../services/confirmation.service";
 import {CastorAuthorizationService} from "../../services/castor-authorization-service.service";
 import { DiagramEditModeService, EdgeClickEvent } from 'src/app/services/diagram-edit-mode.service';
 import { DiagramParadoxVisualizationService } from 'src/app/services/diagram-paradox-visualization.service';
+import { style } from '@angular/animations';
 
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
@@ -128,6 +129,10 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   private relations: ApiStratigraphie[];
 
+  // legend
+  showLegend: boolean = false;
+  styleConfig: DiagramStyleConfig = { ...DEFAULT_DIAGRAM_STYLES };
+
   constructor(
     public w: WorkerService,
     private diagramService: StratigraphicDiagramService,
@@ -162,6 +167,12 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
       .subscribe(isActive => {
         this.isParadoxMode = isActive;
       });
+
+    // load style preferences
+    this.loadStylePreferences();
+    
+    // upload style config from service
+    this.styleConfig = this.diagramService.getStyleConfig();
   }
 
   ngAfterViewInit(): void {
@@ -681,6 +692,10 @@ async generateDiagram(): Promise<void> {
     await this.renderDiagram();
 
     console.log('[Component] Diagram rendered successfully');
+    
+    setTimeout(() => {
+      this.applyStylesWithoutRegeneration();
+    }, 100);
 
     // Calculer les statistiques
     this.calculateStats(this.relations);
@@ -916,6 +931,155 @@ private debugSVGStructure(): void {
       this.generateDiagram();
     }
   }
+
+  /**
+   * toggle display of the legend
+   */
+  toggleLegend(): void {
+    this.showLegend = !this.showLegend;
+  }
+
+  /**
+   * gerat th changment of a style property
+   * @param property - the property to change
+   * @param event - the event of input color picker
+   */
+  onStyleChange(property: keyof DiagramStyleConfig, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const value = input.value;
+    
+    // update the local configuration
+    this.styleConfig = {
+      ...this.styleConfig,
+      [property]: value
+    };
+    
+    // update the service
+    this.diagramService.setStyleConfig({ [property]: value });
+    
+    // generat the diagram to apply the new styles
+    if (this.currentMermaidCode) {
+      this.applyStylesWithoutRegeneration();
+    }
+
+    // save preferences
+    this.saveStylePreferences();
+  }
+
+  /**
+   * apply styles without regenerating the diagram
+   * (more efficient for color changes in real-time)
+   */
+  private applyStylesWithoutRegeneration(): void {
+    if (!this.diagramContainer?.nativeElement) return;
+    
+    const svg = this.diagramContainer.nativeElement.querySelector('svg');
+    if (!svg) return;
+
+    // apply styles to Fait subgraphs
+    const faitSubgraphs = svg.querySelectorAll('g.subgraph.fait-subgraph rect.subgraph');
+    faitSubgraphs.forEach((rect: Element) => {
+      (rect as SVGRectElement).style.fill = this.styleConfig.faitBackground;
+      (rect as SVGRectElement).style.stroke = this.styleConfig.faitStroke;
+    });
+
+    // apply styles to Contemporary Group subgraphs
+    const contemporarySubgraphs = svg.querySelectorAll('g.subgraph.contemporary-group rect.subgraph');
+    contemporarySubgraphs.forEach((rect: Element) => {
+      (rect as SVGRectElement).style.fill = this.styleConfig.contemporaryGroupBackground;
+      (rect as SVGRectElement).style.stroke = this.styleConfig.contemporaryGroupStroke;
+    });
+
+    // apply styles to US nodes
+    const usNodes = svg.querySelectorAll('g.node.usStyle');
+    usNodes.forEach((node: Element) => {
+      const shapes = node.querySelectorAll('rect, polygon, circle, ellipse');
+      shapes.forEach((shape: Element) => {
+        (shape as SVGElement).style.setProperty('fill', this.styleConfig.usBackground, 'important');
+        (shape as SVGElement).style.setProperty('stroke', this.styleConfig.usStroke, 'important');
+      });
+    });
+
+    // apply styles to Fait nodes
+    const faitNodes = svg.querySelectorAll('g.node.faitStyle');
+    faitNodes.forEach((node: Element) => {
+      const shapes = node.querySelectorAll('rect, polygon, circle, ellipse');
+      shapes.forEach((shape: Element) => {
+        (shape as SVGElement).style.fill = this.styleConfig.faitBackground;
+        (shape as SVGElement).style.stroke = this.styleConfig.faitStroke;
+      });
+    });
+
+    // update css variables for other components
+    this.updateCssVariables();
+  }
+
+  /**
+   * update CSS variables for visual consistency
+   */
+  private updateCssVariables(): void {
+    const host = this.diagramContainer?.nativeElement?.closest('.stratigraphic-diagram-page');
+    if (host) {
+      host.style.setProperty('--diagram-us-bg', this.styleConfig.usBackground);
+      host.style.setProperty('--diagram-us-stroke', this.styleConfig.usStroke);
+      host.style.setProperty('--diagram-fait-bg', this.styleConfig.faitBackground);
+      host.style.setProperty('--diagram-fait-stroke', this.styleConfig.faitStroke);
+      host.style.setProperty('--diagram-contemporary-bg', this.styleConfig.contemporaryGroupBackground);
+      host.style.setProperty('--diagram-contemporary-stroke', this.styleConfig.contemporaryGroupStroke);
+    }
+  }
+
+  /**
+   * Reset styles to default values
+   * 
+   */
+  resetStyles(): void {
+    // Reset local configuration
+    this.styleConfig = { ...DEFAULT_DIAGRAM_STYLES };
+    
+    // reset the service
+    this.diagramService.resetStyleConfig();
+    
+    // apply styles
+    if (this.currentMermaidCode) {
+      this.applyStylesWithoutRegeneration();
+    }
+
+    // save preferences
+    this.saveStylePreferences();
+  }
+
+  // =============================================
+  // save preferences to local storage
+  // =============================================
+
+  /**
+   * Save style preferences to local storage
+   */
+  private saveStylePreferences(): void {
+    try {
+      localStorage.setItem('diagram-style-config', JSON.stringify(this.styleConfig));
+    } catch (e) {
+      console.warn('unable to save style preferences to local storage:', e);
+    }
+  }
+
+  /**
+   * upload style preferences from local storage
+   */
+  private loadStylePreferences(): void {
+    try {
+      const saved = localStorage.getItem('diagram-style-config');
+      if (saved) {
+        const parsed = JSON.parse(saved) as Partial<DiagramStyleConfig>;
+        this.styleConfig = { ...this.styleConfig, ...parsed };
+        this.diagramService.setStyleConfig(this.styleConfig);
+      }
+    } catch (e) {
+      console.warn('unable to load style preferences from local storage:', e);
+    }
+  }
+
 
   // === Filtres ===
 

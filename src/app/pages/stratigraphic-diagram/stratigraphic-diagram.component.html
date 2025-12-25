@@ -10,20 +10,67 @@
         <!-- Le diagramme Mermaid sera rendu ici -->
       </div>
 
-      <!-- Contrôles de zoom intégrés -->
+      <!-- Contrôles de zoom intégrés + Légende -->
       <div class="zoom-controls-overlay">
-        <ion-button size="small" fill="solid" (click)="zoomIn()" color="light">
-          <ion-icon name="add-circle-outline"></ion-icon>
+        <!-- Boutons de zoom existants -->
+        <div class="zoom-buttons">
+          <ion-button size="small" fill="solid" (click)="zoomIn()" color="light">
+            <ion-icon name="add-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-button size="small" fill="solid" (click)="zoomOut()" color="light">
+            <ion-icon name="remove-circle-outline"></ion-icon>
+          </ion-button>
+          <ion-button size="small" fill="solid" (click)="centerDiagram()" color="light">
+            <ion-icon name="locate-outline"></ion-icon>
+          </ion-button>
+          <ion-button size="small" fill="solid" (click)="toggleFullscreen()" color="light">
+            <ion-icon [name]="isFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
+          </ion-button>
+        </div>
+
+        <!-- Séparateur -->
+        <div class="controls-separator"></div>
+
+        <!-- Toggle Légende -->
+        <ion-button 
+          size="small" 
+          [fill]="showLegend ? 'solid' : 'outline'" 
+          (click)="toggleLegend()" 
+          [color]="showLegend ? 'primary' : 'light'"
+          class="legend-toggle-btn">
+          <ion-icon name="information-circle-outline"></ion-icon>
         </ion-button>
-        <ion-button size="small" fill="solid" (click)="zoomOut()" color="light">
-          <ion-icon name="remove-circle-outline"></ion-icon>
-        </ion-button>
-        <ion-button size="small" fill="solid" (click)="centerDiagram()" color="light">
-          <ion-icon name="locate-outline"></ion-icon>
-        </ion-button>
-        <ion-button size="small" fill="solid" (click)="toggleFullscreen()" color="light">
-          <ion-icon [name]="isFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
-        </ion-button>
+      </div>
+
+      <!-- Légende compacte (positionnée en bas à gauche) -->
+      <div class="diagram-legend" 
+          *ngIf="currentMermaidCode" 
+          [class.legend-visible]="showLegend"
+          [class.legend-hidden]="!showLegend">
+        <div class="legend-header">
+          <span class="legend-title">Légende</span>
+          <ion-button fill="clear" size="small" (click)="toggleLegend()" class="legend-close">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="legend-items">
+          <div class="legend-item">
+            <div class="legend-color" [style.background]="styleConfig.usBackground" 
+                [style.borderColor]="styleConfig.usStroke"></div>
+            <span>US</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" [style.background]="styleConfig.faitBackground" 
+                [style.borderColor]="styleConfig.faitStroke"></div>
+            <span>Fait</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color legend-dashed" 
+                [style.background]="styleConfig.contemporaryGroupBackground"
+                [style.borderColor]="styleConfig.contemporaryGroupStroke"></div>
+            <span>Contemporain</span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -250,6 +297,105 @@
           <ion-label class="ion-text-wrap">{{ errorMessage }}</ion-label>
         </ion-item>
       </div>
+
+      <!-- ============= -->
+      <!-- apparence     -->
+      <!-- ============= -->
+      <div class="control-section">
+      <h3 class="section-title">
+        <ion-icon name="color-palette-outline"></ion-icon>
+        Apparence
+      </h3>
+
+      <!-- Accordéon pour les styles -->
+      <ion-accordion-group [multiple]="false" class="style-accordion">
+        
+        <!-- Style US -->
+        <ion-accordion value="us">
+          <ion-item slot="header" lines="none" class="accordion-header">
+            <div class="style-preview us-preview" 
+                [style.background]="styleConfig.usBackground"
+                [style.borderColor]="styleConfig.usStroke"></div>
+            <ion-label>Unités Stratigraphiques</ion-label>
+          </ion-item>
+          <div slot="content" class="style-options">
+            <div class="color-option">
+              <label>Fond</label>
+              <input type="color" 
+                    [value]="styleConfig.usBackground" 
+                    (input)="onStyleChange('usBackground', $event)">
+            </div>
+            <div class="color-option">
+              <label>Bordure</label>
+              <input type="color" 
+                    [value]="styleConfig.usStroke" 
+                    (input)="onStyleChange('usStroke', $event)">
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- Style Faits -->
+        <ion-accordion value="fait">
+          <ion-item slot="header" lines="none" class="accordion-header">
+            <div class="style-preview fait-preview"
+                [style.background]="styleConfig.faitBackground"
+                [style.borderColor]="styleConfig.faitStroke"></div>
+            <ion-label>Faits</ion-label>
+          </ion-item>
+          <div slot="content" class="style-options">
+            <div class="color-option">
+              <label>Fond</label>
+              <input type="color" 
+                    [value]="styleConfig.faitBackground" 
+                    (input)="onStyleChange('faitBackground', $event)">
+            </div>
+            <div class="color-option">
+              <label>Bordure</label>
+              <input type="color" 
+                    [value]="styleConfig.faitStroke" 
+                    (input)="onStyleChange('faitStroke', $event)">
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- Style Groupes Contemporains -->
+        <ion-accordion value="contemporary">
+          <ion-item slot="header" lines="none" class="accordion-header">
+            <div class="style-preview contemporary-preview"
+                [style.background]="styleConfig.contemporaryGroupBackground"
+                [style.borderColor]="styleConfig.contemporaryGroupStroke"></div>
+            <ion-label>Groupes contemporains</ion-label>
+          </ion-item>
+          <div slot="content" class="style-options">
+            <div class="color-option">
+              <label>Fond</label>
+              <input type="color" 
+                    [value]="styleConfig.contemporaryGroupBackground" 
+                    (input)="onStyleChange('contemporaryGroupBackground', $event)">
+            </div>
+            <div class="color-option">
+              <label>Bordure</label>
+              <input type="color" 
+                    [value]="styleConfig.contemporaryGroupStroke" 
+                    (input)="onStyleChange('contemporaryGroupStroke', $event)">
+            </div>
+          </div>
+        </ion-accordion>
+      </ion-accordion-group>
+
+      <!-- Bouton réinitialiser -->
+      <ion-button 
+        expand="block" 
+        fill="outline" 
+        size="small" 
+        (click)="resetStyles()"
+        class="reset-styles-btn">
+        <ion-icon name="refresh-outline" slot="start"></ion-icon>
+        Réinitialiser les couleurs
+      </ion-button>
+    </div>
+  
+
 
       <!-- =========== -->
       <!-- Mode Layout -->
