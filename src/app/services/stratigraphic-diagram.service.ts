@@ -36,12 +36,58 @@ export interface DiagramConfig {
   groupContemporaries?: boolean;
 }
 
+/**
+ * style configuration
+*/
+export interface DiagramStyleConfig {
+  // US styles
+  usBackground: string;
+  usStroke: string;
+  usStrokeWidth: string;
+  
+  // Faits style (simple nodes and subgraphs)
+  faitBackground: string;
+  faitStroke: string;
+  faitStrokeWidth: string;
+  
+  // contemporary groups style
+  contemporaryGroupBackground: string;
+  contemporaryGroupStroke: string;
+  contemporaryGroupStrokeWidth: string;
+  contemporaryGroupStrokeDasharray?: string;
+}
+
+/**
+ * Default style configuration
+ */
+export const DEFAULT_DIAGRAM_STYLES: DiagramStyleConfig = {
+  // US : bleu clair
+  usBackground: '#E3F2FD',
+  usStroke: '#1976D2',
+  usStrokeWidth: '2px',
+  
+  // Faits : orange/ambre
+  faitBackground: '#FFF3E0',
+  faitStroke: '#F57C00',
+  faitStrokeWidth: '2px',
+  
+  // Contemporary groups: gray with dashed border
+  contemporaryGroupBackground: '#F5F5F5',
+  contemporaryGroupStroke: '#9E9E9E',
+  contemporaryGroupStrokeWidth: '1px',
+  contemporaryGroupStrokeDasharray: '5 5'
+};
+
 @Injectable({
   providedIn: 'root'
 })
 export class StratigraphicDiagramService {
 
   private currentLayoutMode: 'default' | 'elk' | 'dagre-d3' = 'elk';
+
+  // style configuration (modifiable)
+  private styleConfig: DiagramStyleConfig = { ...DEFAULT_DIAGRAM_STYLES };
+
 
   constructor(
     private w: WorkerService
@@ -62,6 +108,29 @@ export class StratigraphicDiagramService {
       securityLevel: 'loose'
     });
   }
+
+  /**
+   * Updates the style configuration
+   * @param config 
+   */
+  public setStyleConfig(config: Partial<DiagramStyleConfig>): void {
+    this.styleConfig = { ...this.styleConfig, ...config };
+  }
+
+  /**
+   * Retrieves the current style configuration
+   */
+  public getStyleConfig(): DiagramStyleConfig {
+    return { ...this.styleConfig };
+  }
+
+  /** 
+   * reset the style configuration to default values
+  */
+  public resetStyleConfig(): void {
+    this.styleConfig = { ...DEFAULT_DIAGRAM_STYLES };
+  }
+
   /**
    * Identifie les groupes d'entités contemporaines
    */
@@ -580,6 +649,114 @@ export class StratigraphicDiagramService {
       .replace(/\n/g, ' ');
   }
 
+  /** 
+   * Post-process the SVG to apply differentiated styles
+   * to Faits (subgraphs with node_*) and contemporary groups (subgraphs with group_*)
+  */
+  private postProcessSvg(container: HTMLElement): void {
+    const svg = container.querySelector('svg');
+    if (!svg) {
+      console.warn('[DiagramService] SVG not found for post-processing');
+      return;
+    }
+
+    // select all subgraphs
+    const subgraphs = svg.querySelectorAll('g.subgraph');
+    
+    console.log(`[DiagramService] Post-processing ${subgraphs.length} subgraphs`);
+
+    subgraphs.forEach((subgraph, index) => {
+      const rect = subgraph.querySelector('rect.subgraph');
+      if (!rect) return;
+
+      // find the subgraph ID via the label group
+      const labelGroup = subgraph.querySelector('g.label g.node');
+      const subgraphId = labelGroup?.id || '';
+
+      // Regex to identify the type of subgraph
+      const isFaitSubgraph = /flowchart-node_[a-f0-9_]+/.test(subgraphId);
+      const isContemporaryGroup = /flowchart-group_\d+/.test(subgraphId);
+
+      if (isFaitSubgraph) {
+        // apply the Fait style
+        this.applyFaitStyle(rect as SVGRectElement, subgraph as SVGGElement);
+        subgraph.classList.add('fait-subgraph');
+        console.log(`[DiagramService] Applied fait style to subgraph ${index}: ${subgraphId}`);
+      } else if (isContemporaryGroup) {
+        // apply the contemporary group style
+        this.applyContemporaryGroupStyle(rect as SVGRectElement, subgraph as SVGGElement);
+        subgraph.classList.add('contemporary-group');
+        console.log(`[DiagramService] Applied contemporary style to subgraph ${index}: ${subgraphId}`);
+      } else {
+        // non idetified subgraph - try alternative identification
+        // if the label contains "FT-" or a Fait pattern
+        const labelText = subgraph.querySelector('.nodeLabel')?.textContent || '';
+        if (labelText.startsWith('FT-') || labelText.match(/^F\d+/)) {
+          this.applyFaitStyle(rect as SVGRectElement, subgraph as SVGGElement);
+          subgraph.classList.add('fait-subgraph');
+          console.log(`[DiagramService] Applied fait style (by label) to subgraph ${index}: ${labelText}`);
+        } else if (labelText.trim() === '' || labelText === ' ') {
+          // subgraph without label = probably a contemporary group
+          this.applyContemporaryGroupStyle(rect as SVGRectElement, subgraph as SVGGElement);
+          subgraph.classList.add('contemporary-group');
+          console.log(`[DiagramService] Applied contemporary style (empty label) to subgraph ${index}`);
+        }
+      }
+    });
+
+    // apply styles to simple nodes (US and Faits without subgraph)
+    this.postProcessNodes(svg);
+  }
+
+  /**
+   * Apply the Fait style to a subgraph rect
+   */
+  private applyFaitStyle(rect: SVGRectElement, subgraph: SVGGElement): void {
+    rect.style.fill = this.styleConfig.faitBackground;
+    rect.style.stroke = this.styleConfig.faitStroke;
+    rect.style.strokeWidth = this.styleConfig.faitStrokeWidth;
+    rect.style.strokeDasharray = ''; // thiere is no dasharray for Fait style
+  }
+
+  /**
+   * Apply the contemporary group style to a subgraph rect
+   */
+  private applyContemporaryGroupStyle(rect: SVGRectElement, subgraph: SVGGElement): void {
+    rect.style.fill = this.styleConfig.contemporaryGroupBackground;
+    rect.style.stroke = this.styleConfig.contemporaryGroupStroke;
+    rect.style.strokeWidth = this.styleConfig.contemporaryGroupStrokeWidth;
+    if (this.styleConfig.contemporaryGroupStrokeDasharray) {
+      rect.style.strokeDasharray = this.styleConfig.contemporaryGroupStrokeDasharray;
+    }
+  }
+
+  /**
+   * Post-process simple nodes (US and Faits) to standardize their styles
+   */
+  private postProcessNodes(svg: SVGSVGElement): void {
+    // Nodes with the usStyle class
+    const usNodes = svg.querySelectorAll('g.node.usStyle');
+    usNodes.forEach(node => {
+      const shapes = node.querySelectorAll('rect, polygon, circle, ellipse');
+      shapes.forEach(shape => {
+        (shape as SVGElement).style.fill = this.styleConfig.usBackground;
+        (shape as SVGElement).style.stroke = this.styleConfig.usStroke;
+        (shape as SVGElement).style.strokeWidth = this.styleConfig.usStrokeWidth;
+      });
+    });
+
+    // Nodes with the faitStyle class (Simple Faits without US)
+    const faitNodes = svg.querySelectorAll('g.node.faitStyle');
+    faitNodes.forEach(node => {
+      const shapes = node.querySelectorAll('rect, polygon, circle, ellipse');
+      shapes.forEach(shape => {
+        (shape as SVGElement).style.fill = this.styleConfig.faitBackground;
+        (shape as SVGElement).style.stroke = this.styleConfig.faitStroke;
+        (shape as SVGElement).style.strokeWidth = this.styleConfig.faitStrokeWidth;
+      });
+    });
+  }
+
   /**
    * Rend le diagramme Mermaid dans un élément DOM
    */
@@ -592,6 +769,9 @@ export class StratigraphicDiagramService {
     try {
       const { svg } = await mermaid.render(`mermaid-${Date.now()}`, mermaidCode);
       container.innerHTML = svg;
+
+      // post-process to apply differentiated styles
+      this.postProcessSvg(container);
     } catch (error) {
       console.error('Error rendering Mermaid diagram:', error);
       throw error;
