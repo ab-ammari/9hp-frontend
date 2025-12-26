@@ -121,11 +121,19 @@ export class StratigraphieFormComponent implements OnInit, OnChanges, OnDestroy 
     await modal.present();
     const { data } = await modal.onWillDismiss();
   }
-  forceRefreshUI(){
+  async forceRefreshUI() {
+    // recharge les données
     this.getStratiRelations();
-    void this.AnterieurList?.validateList();
-    void this.PosterieurList?.validateList();
-    void this.ContemporainList?.validateList();
+    
+    // attend le prochain cycle de rendu
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    // lance ET attend les validations
+    await Promise.all([
+      this.AnterieurList?. validateList(),
+      this.PosterieurList?. validateList(),
+      this.ContemporainList?.validateList()
+    ].filter(Boolean));
   }
 
   getStratiRelations() {
