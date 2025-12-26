@@ -1712,54 +1712,7 @@
   }
 }
 
-// Styles du conteneur en mode édition
-.diagram-edit-mode {
-  // Curseur
-  cursor: crosshair;
 
-  // Zone de hit élargie pour les arêtes
-  ::ng-deep .edge-hit-area {
-    pointer-events: stroke;
-    cursor: pointer;
-  }
-
-  // Style des arêtes éditables
-  ::ng-deep .editable-edge {
-    cursor: pointer;
-
-    path:not(.edge-hit-area) {
-      transition: all 0.2s ease;
-    }
-
-    &:hover {
-      path:not(.edge-hit-area) {
-        stroke: #ff5722 !important;
-        stroke-width: 4px ! important;
-        filter: drop-shadow(0 0 6px rgba(255, 87, 34, 0.5));
-      }
-    }
-  }
-
-  // Arête en surbrillance (sélectionnée)
-  ::ng-deep .edge-highlighted {
-    path:not(.edge-hit-area) {
-      stroke: #2196f3 !important;
-      stroke-width: 5px !important;
-      filter: drop-shadow(0 0 10px rgba(33, 150, 243, 0.7));
-      animation: pulse-edge 1s infinite;
-    }
-  }
-
-  // Arête marquée pour suppression
-  ::ng-deep .edge-marked-for-deletion {
-    path:not(.edge-hit-area) {
-      stroke: #f44336 ! important;
-      stroke-width: 5px !important;
-      stroke-dasharray: 8, 4;
-      animation: deletion-dash 0.5s linear infinite;
-    }
-  }
-}
 
 @keyframes pulse-edge {
   0%, 100% { opacity: 1; }
@@ -1806,8 +1759,8 @@
   ::ng-deep path.edge-highlighted {
     stroke: #ff0000 !important;
     stroke-width: 5px !important;
-    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.7));
-    animation: pulse-edge 1s infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 0, 1));
+    animation: pulse-edge 1s ease-in-out infinite;
   }
 
   // Arête marquée pour suppression
@@ -1816,6 +1769,18 @@
     stroke-width: 5px !important;
     stroke-dasharray: 8, 4;
     animation: deletion-dash 0.5s linear infinite;
+  }
+
+  ::ng-deep g.edgePath {
+    path {
+      stroke-width: 30px;
+      stroke: transparent;
+      pointer-events: stroke;
+      
+      &.flowchart-link {
+        // Le path visible garde ses styles normaux
+      }
+    }
   }
 }
 
