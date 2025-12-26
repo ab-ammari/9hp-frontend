@@ -5,7 +5,8 @@ import { StratigraphicTestRouterModule } from './stratigraphic-test-router.modul
 import { IonicModule } from "@ionic/angular";
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
-import {DisplayModule} from "../../Components/Display/display.module";
+import { DisplayModule } from "../../Components/Display/display.module";
+import { FloatingComponentsModule } from "../../Components/widgets/floating-components.module";
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import {DisplayModule} from "../../Components/Display/display.module";
     IonicModule,
     FormsModule,
     MatIconModule,
-    DisplayModule
+    DisplayModule,
+    FloatingComponentsModule
   ]
 })
 export class StratigraphicTestModule { }

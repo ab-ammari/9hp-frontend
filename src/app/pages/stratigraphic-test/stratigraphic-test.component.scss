@@ -1,63 +1,292 @@
-.paradox-group {
-  margin-bottom: 16px;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.stratigraphic-test-page {
+  position: relative;
+  background-color: var(--ion-background-color, #f5f5f5);
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.group-header {
-  background-color: var(--ion-color-light-tint);
-  cursor: pointer;
+.control-fullscreen {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px;
+}
 
-  ion-item {
-    --background: transparent;
-    --padding-start: 8px;
+// === État initial (empty state) ===
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  max-width: 600px;
+  width: 100%;
+
+  .empty-icon {
+    font-size: 120px;
+    color: var(--ion-color-primary);
+    margin-bottom: 24px;
+    opacity: 0.6;
+  }
+
+  h2 {
+    margin: 24px 0 12px 0;
+    color: var(--ion-color-dark);
+    font-size: 1.75rem;
+    font-weight: 600;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    margin: 0 0 32px 0;
+    font-size: 1rem;
+  }
+
+  ion-button {
+    margin-top: 24px;
+    --padding-start: 32px;
+    --padding-end: 32px;
+    --padding-top: 16px;
+    --padding-bottom: 16px;
+    font-size: 1rem;
+  }
+}
+
+// === Sélecteur de type de contrôle ===
+.control-type-selector {
+  max-width: 100%;
+  margin: 0 auto 16px;
+
+  ion-segment {
+    --background: var(--ion-color-light);
+    border-radius: 12px;
+    padding: 4px;
+
+    ion-segment-button {
+      --border-radius: 8px;
+      --indicator-color: var(--ion-color-primary);
+      --color: var(--ion-color-medium);
+      --color-checked: white;
+      min-height: 40px;
+      font-size: 0.85rem;
+      text-transform: none;
+      font-weight: 500;
+    }
+  }
+}
+
+// === Overlay de chargement ===
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+
+  ion-spinner {
+    color: white;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: white;
+    font-size: 1.1rem;
+    margin: 0;
+  }
+}
+
+// === Section des résultats ===
+.results-section {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-right: 70px; // Espace pour les floating buttons
+  animation: fadeIn 0.4s ease;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--ion-color-primary);
+
+  .results-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    ion-icon {
+      font-size: 28px;
+      color: var(--ion-color-primary);
+    }
 
     h2 {
+      margin: 0;
+      font-size: 1.5rem;
       font-weight: 600;
-      font-size: 1.1rem;
-      margin: 8px 0;
-      color: var(--castor-main-color, #1B2A3A);
+      color: var(--ion-color-dark);
     }
   }
 
-  ion-icon {
-    color: var(--castor-main-color, #1B2A3A);
-    font-size: 1.2rem;
+  .filter-chip {
+    font-size: 0.85rem;
   }
 }
-.group-content {
-  animation: fadeIn 0.3s ease;
-  background-color: var(--ion-color-light);
-  padding-bottom: 4px;
+
+// === État de succès ===
+.success-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, rgba(var(--ion-color-success-rgb), 0.1) 0%, rgba(var(--ion-color-success-rgb), 0.05) 100%);
+  border-radius: 16px;
+  border: 2px solid var(--ion-color-success);
+
+  .success-icon {
+    font-size: 80px;
+    color: var(--ion-color-success);
+    margin-bottom: 16px;
+  }
+
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    color: var(--ion-color-success-shade);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ion-color-medium);
+    font-size: 1rem;
+  }
 }
 
-.paradox-item {
-  margin: 8px;
-  border-radius: 6px;
+// === Container des paradoxes ===
+.paradoxes-container {
+  .paradoxes-summary {
+    margin-bottom: 20px;
+
+    ion-chip {
+      font-size: 0.95rem;
+      padding: 8px 16px;
+    }
+  }
+}
+
+// === Groupes de paradoxes ===
+.paradox-group {
+  margin-bottom: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: white;
 }
+
+.group-header {
+  background-color: var(--ion-color-light);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--ion-color-light-shade);
+  }
+
+  ion-item {
+    --background: transparent;
+    --padding-start: 16px;
+
+    h2 {
+      font-weight: 600;
+      font-size: 1rem;
+      margin: 0;
+      color: var(--ion-color-dark);
+    }
+
+    p {
+      font-size: 0.85rem;
+      color: var(--ion-color-medium);
+      margin: 4px 0 0 0;
+    }
+
+    ion-icon[slot="start"] {
+      color: var(--ion-color-primary);
+      font-size: 1.2rem;
+      margin-right: 12px;
+    }
+  }
+}
+
+.group-content {
+  animation: slideDown 0.3s ease;
+  padding: 8px;
+}
+
+// === Items de paradoxe ===
+.paradox-item {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fafafa;
+  border: 1px solid var(--ion-color-light-shade);
+}
+
 .cycle-header {
-  --background: #f9f9f9;
-  --padding-start: 8px;
-  cursor: pointer !important;
+  --background: transparent;
+  --padding-start: 12px;
+  cursor: pointer;
 
-  ion-label {
-    margin: 10px 0;
+  &:hover {
+    --background: rgba(0, 0, 0, 0.02);
   }
 
-  &:active {
-    --background: #e0e0e0;
+  ion-icon[slot="start"] {
+    color: var(--ion-color-medium);
+    font-size: 1rem;
   }
 }
 
-.cycle-description, .paradox-summary {
+.cycle-description {
+  .relation-count {
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .cycle-entities {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .arrow {
+      color: var(--ion-color-medium);
+      font-weight: bold;
+      margin: 0 2px;
+    }
+  }
+}
+
+.paradox-summary {
   font-weight: 500;
   color: var(--ion-color-dark);
   margin-bottom: 4px;
   font-size: 0.95rem;
+
+  ::ng-deep strong {
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
 }
 
 .relation-count {
@@ -66,73 +295,158 @@
   margin: 0;
 }
 
-.cycle-details, .standard-details {
-  background-color: #ffffff;
-  padding: 0 8px;
-  animation: slideDown 0.3s ease;
+// === Détails ===
+.cycle-details,
+.standard-details {
+  background-color: white;
+  padding: 12px;
+  border-top: 1px solid var(--ion-color-light-shade);
+  animation: fadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+.detailed-message {
+  padding: 12px;
+  background-color: #f0f5ff;
+  border-left: 4px solid var(--ion-color-primary);
+  margin-bottom: 12px;
+  border-radius: 0 8px 8px 0;
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.group-header:hover {
-  background-color: var(--ion-color-light-shade);
-  transition: background-color 0.2s ease;
-}
-.cycle-header:hover {
-  --background: #f0f0f0;
-}
-.relation-list {
-  margin: 8px 0;
-}
-
-.relation-index {
-  font-size: 0.85rem;
-  color: var(--ion-color-medium);
-  font-weight: 500;
-}
-
-.delete-icon {
-  cursor: pointer;
-  color: var(--ion-color-medium);
-  font-size: 1.2rem;
-  padding: 4px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-
-  &:hover {
-    color: var(--ion-color-danger);
-    background-color: rgba(0, 0, 0, 0.05);
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--ion-color-dark);
   }
 }
 
-.relation-content {
-  padding: 10px 12px;
+// === Table des relations ===
+.strati-relation-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  tr {
+    border-bottom: 1px solid var(--ion-color-light-shade);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  td {
+    padding: 10px 12px;
+    vertical-align: middle;
+  }
+
+  .relation-content {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .relation-type {
+    color: var(--ion-color-medium);
+    padding: 0 4px;
+    font-size: 0.9rem;
+  }
+
+  .action-column {
+    width: 80px;
+    text-align: right;
+    white-space: nowrap;
+
+    ion-icon {
+      font-size: 1.3rem;
+      padding: 6px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .preview-icon {
+      color: var(--ion-color-primary);
+      margin-right: 4px;
+
+      &:hover {
+        background-color: rgba(var(--ion-color-primary-rgb), 0.1);
+      }
+    }
+
+    .delete-icon {
+      color: var(--ion-color-danger);
+
+      &:hover {
+        background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+      }
+    }
+  }
 }
 
-.relation-type {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--ion-color-medium);
-}
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
+// === Panneau de filtrage ===
+.filter-panel-content {
+  .filter-description {
+    color: var(--ion-color-medium);
+    margin: 0 0 16px 0;
+    font-size: 0.9rem;
+  }
 }
 
+.filter-options-list {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 20px;
+
+  .filter-option-item {
+    --background: var(--ion-color-light);
+    --border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      --background: var(--ion-color-light-shade);
+    }
+
+    &.selected {
+      --background: rgba(var(--ion-color-primary-rgb), 0.15);
+      border-left: 3px solid var(--ion-color-primary);
+    }
+
+    h3 {
+      font-weight: 500;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    ion-icon[slot="start"] {
+      font-size: 22px;
+      margin-right: 12px;
+    }
+
+    ion-icon[slot="end"] {
+      font-size: 20px;
+    }
+
+    .type-description {
+      font-size: 0.8rem;
+      color: var(--ion-color-medium);
+      margin-top: 4px;
+      white-space: normal;
+      line-height: 1.3;
+    }
+  }
+}
+
+.apply-filter-btn {
+  margin-top: 16px;
+  --border-radius: 10px;
+}
+
+// === Overlay de suppression ===
 .deletion-overlay {
   position: fixed;
   top: 0;
@@ -144,42 +458,23 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 999;
+  z-index: 9999;
 
   ion-spinner {
-    color: #ffffff;
+    color: white;
     width: 48px;
     height: 48px;
     margin-bottom: 16px;
   }
 
   p {
-    color: #ffffff;
-    font-size: 1.2rem;
+    color: white;
+    font-size: 1.1rem;
     margin: 0;
   }
 }
-.cycle-details, .standard-details {
-  display: block;
-  overflow: hidden;
-  background-color: #ffffff;
-  padding: 0 8px;
-  animation: slideDown 0.3s ease;
-}
 
-.preview-icon {
-  cursor: pointer;
-  color: var(--ion-color-medium);
-  font-size: 1.2rem;
-  padding: 4px;
-  margin-right: 8px;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  &:hover {
-    color: var(--ion-color-primary);
-    background-color: rgba(0, 0, 0, 0.05);
-  }
-}
+// === Modal d'impact ===
 .impact-preview-overlay {
   position: fixed;
   top: 0;
@@ -190,80 +485,83 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
-  overflow-y: auto;
+  z-index: 10000;
   padding: 20px;
 }
 
 .impact-preview-container {
-  width: 90%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 500px;
   background-color: white;
-  border-radius: 8px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   animation: fadeInScale 0.3s ease;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .impact-preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
+  padding: 16px 20px;
   background-color: var(--ion-color-light);
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--ion-color-light-shade);
 
   h2 {
     margin: 0;
     font-size: 1.2rem;
-    color: var(--castor-main-color, #1B2A3A);
+    font-weight: 600;
+    color: var(--ion-color-dark);
   }
 
   .close-icon {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     cursor: pointer;
     color: var(--ion-color-medium);
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
 
     &:hover {
       color: var(--ion-color-dark);
+      background-color: rgba(0, 0, 0, 0.05);
     }
   }
 }
 
 .impact-preview-content {
-  padding: 16px;
-  overflow-y: auto;
-}
+  padding: 20px;
 
-.impact-relation {
-  margin-bottom: 16px;
-  padding: 10px;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  border-left: 4px solid var(--ion-color-primary);
+  .impact-relation {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid var(--ion-color-primary);
+    font-size: 0.95rem;
+  }
 }
 
 .impact-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
 .impact-stat-item {
-  padding: 12px;
-  border-radius: 6px;
+  padding: 16px;
+  border-radius: 12px;
   background-color: #f9f9f9;
 
   &.positive {
     border-left: 4px solid var(--ion-color-success);
+    background-color: rgba(var(--ion-color-success-rgb), 0.05);
   }
 
   &.negative {
     border-left: 4px solid var(--ion-color-danger);
+    background-color: rgba(var(--ion-color-danger-rgb), 0.05);
   }
 
   &.neutral {
@@ -271,62 +569,23 @@
   }
 
   h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1rem;
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
     color: var(--ion-color-dark);
+    font-weight: 600;
   }
 }
 
-.impact-summary {
-  padding: 12px;
-  margin-bottom: 20px;
-  border-radius: 6px;
-
-  &.positive-summary {
-    background-color: rgba(var(--ion-color-success-rgb), 0.1);
-    border-left: 4px solid var(--ion-color-success);
-  }
-
-  &.negative-summary {
-    background-color: rgba(var(--ion-color-danger-rgb), 0.1);
-    border-left: 4px solid var(--ion-color-danger);
-  }
-
-  &.neutral-summary {
-    background-color: rgba(var(--ion-color-medium-rgb), 0.1);
-    border-left: 4px solid var(--ion-color-medium);
-  }
-
-  h3 {
-    margin-top: 0;
-    font-size: 1.1rem;
-  }
-
-  p {
-    margin: 8px 0 0 0;
-    display: flex;
-    align-items: center;
-
-    ion-icon {
-      font-size: 1.2rem;
-      margin-right: 8px;
-    }
-  }
-}
-
-.positive-impact, .negative-impact, .neutral-impact {
+.positive-impact,
+.negative-impact,
+.neutral-impact {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  gap: 6px;
+  font-size: 0.85rem;
 
   ion-icon {
-    margin-right: 6px;
-    font-size: 1.2rem;
-  }
-
-  span {
-    font-size: 0.9rem;
+    font-size: 1.1rem;
   }
 }
 
@@ -346,40 +605,32 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--ion-color-light-shade);
 }
 
-.confirm-button, .cancel-button {
-  padding: 10px 16px;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
+// === Animations ===
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.confirm-button {
-  background-color: var(--ion-color-primary);
-  color: white;
-
-  &:hover {
-    background-color: var(--ion-color-primary-shade);
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-}
-
-.cancel-button {
-  background-color: var(--ion-color-light);
-  color: var(--ion-color-dark);
-
-  &:hover {
-    background-color: var(--ion-color-light-shade);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @keyframes fadeInScale {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
@@ -387,100 +638,58 @@
   }
 }
 
-.detailed-message {
-  padding: 12px;
-  background-color: #f0f5ff;
-  border-left: 4px solid var(--ion-color-primary);
-  margin: 8px 0;
-  border-radius: 4px;
+// === Responsive ===
+@media (max-width: 768px) {
+  .empty-state {
+    padding: 30px 16px;
 
-  p {
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: var(--ion-color-dark);
-    white-space: pre-line; // Préserver les sauts de ligne
-  }
-}
+    .empty-icon {
+      font-size: 80px;
+    }
 
-.paradox-summary {
-  // Pour permettre le HTML (strong)
-  ::ng-deep strong {
-    font-weight: 600;
-    color: var(--ion-color-primary);
-  }
-}
-
-
-.cycle-description {
-  margin: 0.5rem 0;
-
-  .relation-count {
-    font-size: 0.9rem;
-    color: #666;
+    h2 {
+      font-size: 1.4rem;
+    }
   }
 
-  .cycle-entities {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-    margin-top: 0.5rem;
+  .control-type-selector {
+    ion-segment {
+      flex-wrap: wrap;
 
-    .arrow {
-      color: #666;
-      font-weight: bold;
+      ion-segment-button {
+        min-width: calc(50% - 4px);
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .results-section {
+    padding-right: 20px;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .impact-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-actions {
+    flex-direction: column;
+
+    ion-button {
+      width: 100%;
     }
   }
 }
 
-.cycle-details {
-  margin: 0.5rem 0;
-  padding: 0.75rem;
-  background-color: #f8f8f8;
-  border-radius: 4px;
-}
-
-.strati-relation-table {
-  width: 100%;
-  border-collapse: collapse;
-
-  th, td {
-    padding: 0.5rem;
-    border-bottom: 1px solid #eee;
-    vertical-align: middle;
-  }
-
-  .relation-content {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .relation-type {
-    color: #666;
-    padding: 0 0.5rem;
-    white-space: nowrap;
-  }
-
-  .action-column {
-    width: 80px;
-    text-align: right;
-    white-space: nowrap;
-
-    ion-icon {
-      cursor: pointer;
-      margin-left: 0.5rem;
-      font-size: 1.2rem;
-    }
-
-    .preview-icon {
-      color: #3880ff;
-    }
-
-    .delete-icon {
-      color: #eb445a;
-    }
+// === Accessibilité ===
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

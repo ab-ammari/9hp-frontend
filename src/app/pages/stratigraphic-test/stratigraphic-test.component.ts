@@ -31,11 +31,31 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
 
   // Types de paradoxes disponibles
   paradoxTypes = [
-    { id: null, name: 'Tous les types de paradoxes' },
-    { id: 'containment', name: 'Paradoxes de contenance (US/Fait)' },
-    { id: 'consistency', name: 'Paradoxes de cohérence entre Faits' },
-    { id: 'temporal', name: 'Paradoxes temporels' },
-    { id: 'cycle', name: 'Paradoxes de cycle' }
+    { 
+      id: null, 
+      name: 'Tous',
+      description: 'Recherche tous les types de paradoxes stratigraphiques dans le projet.'
+    },
+    { 
+      id: 'cycle', 
+      name: 'Cycles',
+      description: 'Détecte les boucles impossibles où une entité serait à la fois antérieure et postérieure à elle-même (ex: US1 → US2 → US3 → US1).'
+    },
+    { 
+      id: 'consistency', 
+      name: 'Cohérence entre Faits',
+      description: 'Vérifie que les relations entre US de Faits différents sont cohérentes. Toutes les US d\'un même Fait doivent maintenir des relations compatibles avec les entités externes.'
+    },
+    { 
+      id: 'containment', 
+      name: 'Contenance US/Fait',
+      description: 'Vérifie qu\'aucune relation stratigraphique directe n\'existe entre un Fait et ses propres US (une US ne peut pas être antérieure/postérieure à son propre Fait).'
+    },
+    { 
+      id: 'temporal', 
+      name: 'Temporel',
+      description: 'Détecte les contradictions directes : une relation antérieur/postérieur qui contredit une relation existante ou une relation contemporaine incompatible.'
+    }
   ];
 
   // Sélection actuelle
@@ -44,6 +64,9 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
   // État de la recherche
   isSearching: boolean = false;
   hasSearched: boolean = false;
+
+  // Panneau de filtrage
+  isFilterPanelOpen: boolean = false;
 
   protected readonly ApiDbTable = ApiDbTable;
 
@@ -73,13 +96,12 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     public w: WorkerService,
     private validationService: CastorValidationService,
     private confirmationService: ConfirmationService,
-    private authService : CastorAuthorizationService
+    private authService: CastorAuthorizationService
   ) { }
 
   ngOnInit(): void {
     LOG.debug.log({...CONTEXT, action: 'ngOnInit'}, 'Initializing stratigraphic test component');
 
-    // Subscribe to any data changes if needed
     this.w.data().objects.onObjectsChange.pipe(
       takeUntil(this.destroyer$),
       tap(() => {
@@ -93,6 +115,89 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     this.destroyer$.complete();
   }
 
+  // ==========================================
+  // MÉTHODES DU PANNEAU DE FILTRAGE
+  // ==========================================
+
+  /**
+   * Ouvre le panneau de filtrage
+   */
+  openFilterPanel(): void {
+    this.isFilterPanelOpen = true;
+  }
+
+  /**
+   * Callback quand le panneau de filtrage est fermé
+   */
+  onFilterPanelClosed(): void {
+    this.isFilterPanelOpen = false;
+  }
+
+  /**
+   * Sélectionne un type de paradoxe dans le panneau
+   */
+  selectParadoxType(typeId: string | null): void {
+    this.selectedParadoxType = typeId as any;
+  }
+
+  /**
+   * Applique le filtre et relance la recherche
+   */
+  applyFilterAndClose(): void {
+    this.isFilterPanelOpen = false;
+    this.findParadoxes();
+  }
+
+  /**
+   * Retourne l'icône correspondant au type de paradoxe
+   */
+  getParadoxTypeIcon(typeId: string | null): string {
+    switch (typeId) {
+      case null:
+        return 'list-outline';
+      case 'cycle':
+        return 'sync-outline';
+      case 'consistency':
+        return 'git-compare-outline';
+      case 'containment':
+        return 'cube-outline';
+      case 'temporal':
+        return 'time-outline';
+      default:
+        return 'help-outline';
+    }
+  }
+
+  /**
+   * Retourne le libellé court du type de paradoxe
+   */
+  getParadoxTypeLabel(typeId: string | null): string {
+    const type = this.paradoxTypes.find(t => t.id === typeId);
+    return type ? type.name : 'Tous';
+  }
+
+  /**
+   * Retourne la couleur du badge selon le type de paradoxe
+   */
+  getParadoxBadgeColor(type: string): string {
+    switch (type) {
+      case 'cycle':
+        return 'danger';
+      case 'consistency':
+        return 'warning';
+      case 'containment':
+        return 'tertiary';
+      case 'temporal':
+        return 'secondary';
+      default:
+        return 'medium';
+    }
+  }
+
+  // ==========================================
+  // MÉTHODES DE RECHERCHE
+  // ==========================================
+
   /**
    * Lance la recherche de paradoxes stratigraphiques
    */
@@ -101,19 +206,15 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
 
     this.isSearching = true;
     this.paradoxResults = [];
-    this.expandedCycles = {}; // Réinitialiser les états d'expansion des cycles
+    this.expandedCycles = {};
 
     setTimeout(() => {
       try {
         this.paradoxResults = this.validationService.findAllParadoxes(this.selectedParadoxType);
         LOG.debug.log({...CONTEXT, action: 'findParadoxes'}, `Found ${this.paradoxResults.length} paradoxes`);
 
-        // Grouper les paradoxes par type
         this.groupParadoxesByType();
-
-        // Initialiser explicitement tous les états d'expansion des cycles à false (fermés)
         this.initializeExpandedStates();
-
         this.hasSearched = true;
 
       } catch (error) {
@@ -138,45 +239,31 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     });
   }
 
-
-  /**
-   * Renvoie le tag (identifiant lisible) d'une US
-   */
   getUsTag(usUuid: string): string {
     const us = this.w.data().objects.us.all.findByUuid(usUuid);
     return us ? us.item.tag : usUuid;
   }
 
-  /**
-   * Renvoie le tag (identifiant lisible) d'un Fait
-   */
   getFaitTag(faitUuid: string): string {
     const fait = this.w.data().objects.fait.all.findByUuid(faitUuid);
     return fait ? fait.item.tag : faitUuid;
   }
 
-  /**
-   * Formate le type de paradoxe pour l'affichage
-   */
   formatParadoxType(type: string): string {
     const paradoxType = this.paradoxTypes.find(pt => pt.id === type);
     return paradoxType ? paradoxType.name : type;
   }
 
-  // vérifier si un paradoxe est un cycle
   isCycleParadox(paradox: any): paradox is CycleParadox {
     return paradox.type === 'cycle' && 'cycleNodes' in paradox;
   }
 
-  // Méthode pour formater le cycle pour l'affichage
   formatCycle(cycleNodes: string[]): string {
     return cycleNodes.join(' → ') + ' → ' + cycleNodes[0];
   }
 
-  // Méthode pour initialiser les états après avoir reçu les résultats
   initAccordionStates(): void {
     if (this.paradoxResults) {
-      // Initialiser tous les accordéons comme fermés
       this.isExpanded = new Array(this.paradoxResults.length).fill(false);
     }
   }
@@ -185,15 +272,13 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     this.groupedParadoxes.clear();
     this.expandedGroups = {};
 
-    // Initialiser les groupes avec des arrays vides
     this.paradoxTypes.forEach(type => {
-      if (type.id) { // Ignorer le "Tous les types"
+      if (type.id) {
         this.groupedParadoxes.set(type.id, []);
-        this.expandedGroups[type.id] = false; // Par défaut, tous les groupes sont cachee
+        this.expandedGroups[type.id] = false;
       }
     });
 
-    // Regrouper les paradoxes par type
     this.paradoxResults.forEach(paradox => {
       const type = paradox.type || 'unknown';
       if (!this.groupedParadoxes.has(type)) {
@@ -203,19 +288,15 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Toggle pour un groupe de paradoxes
   toggleGroupExpand(type: string): void {
     this.expandedGroups[type] = !this.expandedGroups[type];
   }
 
-
-// Toggle pour un cycle spécifique
   isCycleExpanded(groupKey: string, index: number): boolean {
     return !!this.expandedCycles[this.buildCycleKey(groupKey, index)];
   }
 
   toggleCycleExpand(groupKey: string, cycleIndex: number, event?: Event): void {
-    // Empêcher la propagation de l'événement pour éviter les conflits
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -228,7 +309,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     };
   }
 
-// Compter les relations impliquées dans un cycle
   getInvolvedRelationsCount(paradox: any): number {
     if (this.isCycleParadox(paradox)) {
       return paradox.allRelations?.length || 0;
@@ -236,10 +316,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     return paradox.relations?.length || 0;
   }
 
-
-  /**
-   * Version sécurisée du formatage de relation
-   */
   formatRelationAsText(relation: ApiStratigraphie): string {
     if (!relation) {
       return 'Relation indéfinie';
@@ -250,7 +326,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
       let entity2 = '';
       let relationType = '';
 
-      // Déterminer la première entité (anterieure)
       if (relation.us_anterieur) {
         entity1 = `US ${this.getUsTag(relation.us_anterieur)}`;
       } else if (relation.fait_anterieur) {
@@ -259,7 +334,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
         entity1 = 'Entité inconnue';
       }
 
-      // Déterminer la seconde entité (postérieure)
       if (relation.us_posterieur) {
         entity2 = `US ${this.getUsTag(relation.us_posterieur)}`;
       } else if (relation.fait_posterieur) {
@@ -268,7 +342,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
         entity2 = 'Entité inconnue';
       }
 
-      // Déterminer le type de relation
       if (relation.is_contemporain) {
         relationType = 'contemporain à';
       } else {
@@ -286,15 +359,11 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     return this.authService.canDeleteRelation(strati);
   }
 
-  /**
-   * Version améliorée de la suppression avec gestion d'état
-   */
   deleteRelation(relation: ApiStratigraphie, event?: Event): void {
     if (this.isDeletingRelation) {
-      return; // Éviter les suppressions multiples
+      return;
     }
 
-    // Empêcher la propagation de l'événement si fourni
     if (event) {
       event.stopPropagation();
     }
@@ -305,14 +374,10 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
         `Êtes-vous sûr de vouloir supprimer la relation : "${this.formatRelationAsText(relation)}" ?`,
         () => {
           this.isDeletingRelation = true;
-
-          // Action de suppression
           relation.live = false;
           this.w.data().objects.stratigraphie.selected.commit(relation).subscribe(
             () => {
               console.log('Relation supprimée avec succès');
-
-              // Attendre un court instant pour assurer la synchronisation des données
               setTimeout(() => {
                 this.findParadoxes();
                 this.isDeletingRelation = false;
@@ -321,21 +386,18 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
             error => {
               console.error('Erreur lors de la suppression de la relation', error);
               this.isDeletingRelation = false;
-
-              // Afficher un message d'erreur à l'utilisateur
               this.confirmationService.showConfirmDialog(
                 'Erreur',
                 'Une erreur est survenue lors de la suppression de la relation.',
-                () => {}, // Action vide pour le bouton OK
-                () => {}, // Action vide pour le bouton Annuler
+                () => {},
+                () => {},
                 'OK',
-                null // Pas de bouton d'annulation
+                null
               );
             }
           );
         },
         () => {
-          // Action en cas d'annulation
           console.log('Suppression annulée');
         }
       );
@@ -347,36 +409,24 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Simule la suppression d'une relation et analyse l'impact
-   */
   simulateRelationRemoval(relation: ApiStratigraphie, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
 
-    // Stocker l'état actuel des paradoxes
     this.simulationResults.originalParadoxes = [...this.paradoxResults];
     this.simulationResults.removedRelation = relation;
 
-    // Sauvegarder l'état actuel pour pouvoir le restaurer après
     const currentLiveState = relation.live;
-
-    // Simuler la suppression
     relation.live = false;
 
-    // Exécuter la recherche de paradoxes avec la relation temporairement supprimée
     LOG.debug.log({...CONTEXT, action: 'simulateRelationRemoval'}, `Simulation de la suppression de la relation: ${relation.stratigraphie_uuid}`);
 
     setTimeout(() => {
       try {
         const simulatedResults = this.validationService.findAllParadoxes() as (DetectedParadox & { isExpanded?: boolean })[];
         this.simulationResults.simulatedParadoxes = simulatedResults;
-
-        // Calculer les statistiques de l'impact
         this.calculateImpactStatistics();
-
-        // Activer l'affichage du résultat de la simulation
         this.simulationResults.isActive = true;
 
         LOG.debug.log(
@@ -386,17 +436,12 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
       } catch (error) {
         console.error('Erreur lors de la simulation', error);
       } finally {
-        // Restaurer l'état original de la relation
         relation.live = currentLiveState;
       }
     }, 100);
   }
 
-  /**
-   * Calcule les statistiques d'impact de la suppression simulée
-   */
   calculateImpactStatistics(): void {
-    // Compter les paradoxes par type avant/après
     const countByType = (paradoxes: DetectedParadox[], type: string): number =>
       paradoxes.filter(p => p.type === type).length;
 
@@ -412,7 +457,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     this.simulationResults.removedParadoxes = Math.max(0, originalParadoxCount - simulatedParadoxCount);
     this.simulationResults.addedParadoxes = Math.max(0, simulatedParadoxCount - originalParadoxCount);
 
-    // Logs pour le débogage
     LOG.debug.log({...CONTEXT, action: 'calculateImpactStatistics'}, {
       originalCycleCount,
       simulatedCycleCount,
@@ -427,37 +471,24 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Ferme la prévisualisation de l'impact
-   */
   closeImpactPreview(): void {
     this.simulationResults.isActive = false;
   }
 
-  /**
-   * Confirme la suppression après avoir vu l'impact
-   */
   confirmRemovalAfterImpactPreview(): void {
     if (this.simulationResults.removedRelation) {
-      // Utiliser la méthode deleteRelation existante
       this.deleteRelation(this.simulationResults.removedRelation);
-      // Fermer la prévisualisation
       this.closeImpactPreview();
     }
   }
 
-  /**
-   * Génère un message court pour l'en-tête si non fourni
-   */
   getShortMessage(paradox: DetectedParadox): string {
     if (paradox.shortMessage) {
       return paradox.shortMessage;
     }
 
-    // Extraire la première phrase du message complet
     const firstSentence = paradox.message.split('.')[0];
 
-    // Si c'est trop long, tronquer intelligemment
     if (firstSentence.length > 150) {
       return firstSentence.substring(0, 147) + '...';
     }
@@ -465,9 +496,6 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     return firstSentence;
   }
 
-  /**
-   * determiner le type de entité uuid => US ou Fait
-   */
   getEntityTable(uuid: string): ApiDbTable | null {
     if (!uuid) {
       return null;
@@ -486,17 +514,21 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  /**
-   * Comparateur pour ordonner les paradoxes selon notre ordre personnalisé
-   */
   paradoxKeyValueComparator = (a: any, b: any): number => {
     const orderA = this.paradoxDisplayOrder.indexOf(a.key);
     const orderB = this.paradoxDisplayOrder.indexOf(b.key);
 
-    // Si le type n'est pas dans l'ordre défini, le mettre à la fin
     const indexA = orderA === -1 ? this.paradoxDisplayOrder.length : orderA;
     const indexB = orderB === -1 ? this.paradoxDisplayOrder.length : orderB;
 
     return indexA - indexB;
   };
+
+  /**
+   * Retourne la description du type de paradoxe pour le tooltip
+   */
+  getParadoxTypeDescription(typeId: string | null): string {
+    const type = this.paradoxTypes.find(t => t.id === typeId);
+    return type?.description || '';
+  }
 }

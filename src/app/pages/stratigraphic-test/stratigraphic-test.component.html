@@ -1,256 +1,315 @@
 <div id="container" class="stratigraphic-test-page">
-  <main>
-    <section>
-      <ion-row>
-        <ion-col size="12">
-          <ion-card>
-            <ion-card-header>
-              <ion-card-title>Contrôle stratigraphique</ion-card-title>
-            </ion-card-header>
-            <ion-card-content>
-              <ion-list>
-                <ion-item>
-                  <ion-label>Type de paradoxe</ion-label>
-                  <ion-select [(ngModel)]="selectedParadoxType" placeholder="Sélectionner">
-                    <ion-select-option *ngFor="let type of paradoxTypes" [value]="type.id">
-                      {{ type.name }}
-                    </ion-select-option>
-                  </ion-select>
-                </ion-item>
-              </ion-list>
+  <main class="control-fullscreen">
+    <!-- État initial - avant la recherche -->
+    <section *ngIf="!hasSearched && !isSearching" class="empty-state">
+      <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+      <h2>Contrôle stratigraphique</h2>
+      <p>Vérifiez la cohérence des relations stratigraphiques de votre projet</p>
 
-              <ion-button expand="block" class="ion-margin-top" (click)="findParadoxes()" [disabled]="isSearching">
-                <ion-icon name="search-outline" slot="start"></ion-icon>
-                {{ isSearching ? 'Recherche en cours...' : 'Rechercher les paradoxes' }}
-              </ion-button>
+      <!-- Sélecteur de type de contrôle -->
+      <div class="control-type-selector">
+        <ion-segment [(ngModel)]="selectedParadoxType" mode="ios">
+          <ion-segment-button 
+            *ngFor="let type of paradoxTypes"
+            [value]="type.id"
+            [title]="type.description">
+            <ion-label>{{ type.name }}</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
 
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-      <div *ngIf="!isSearching">
-        <ion-card *ngIf="hasSearched && paradoxResults.length === 0 && !isSearching" class="success-message">
-          <ion-card-content class="ion-text-center">
-            <ion-icon name="checkmark-circle" color="success" style="font-size: 28px;"></ion-icon>
-            <h3>Tout semble cohérent dans les relations stratigraphiques, Bravo!</h3>
-          </ion-card-content>
-        </ion-card>
+      <ion-button 
+        (click)="findParadoxes()" 
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="isSearching">
+        <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+        Lancer le contrôle
+      </ion-button>
+    </section>
+
+    <!-- Overlay de chargement -->
+    <div *ngIf="isSearching" class="loading-overlay">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Analyse en cours...</p>
+    </div>
+
+    <!-- Résultats -->
+    <section *ngIf="hasSearched && !isSearching" class="results-section">
+      <!-- Header des résultats -->
+      <div class="results-header">
+        <div class="results-title">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <h2>Résultats du contrôle</h2>
+        </div>
+        <!-- Indicateur du filtre actif -->
+        <ion-chip *ngIf="selectedParadoxType" color="primary" class="filter-chip">
+          <ion-icon name="funnel-outline"></ion-icon>
+          <ion-label>{{ getParadoxTypeLabel(selectedParadoxType) }}</ion-label>
+        </ion-chip>
+      </div>
+
+      <!-- Message de succès si aucun paradoxe -->
+      <div *ngIf="paradoxResults.length === 0" class="success-state">
+        <ion-icon name="checkmark-circle-outline" class="success-icon"></ion-icon>
+        <h3>Tout semble cohérent dans les relations stratigraphiques, Bravo !</h3>
+      </div>
+
+      <!-- Liste des paradoxes groupés -->
+      <div *ngIf="paradoxResults.length > 0" class="paradoxes-container">
+        <div class="paradoxes-summary">
+          <ion-chip color="danger">
+            <ion-icon name="warning-outline"></ion-icon>
+            <ion-label>{{ paradoxResults.length }} problème(s) détecté(s)</ion-label>
+          </ion-chip>
+        </div>
 
         <div *ngFor="let entry of groupedParadoxes | keyvalue:paradoxKeyValueComparator" class="paradox-group">
           <ng-container *ngIf="entry.value.length > 0">
             <div class="group-header" (click)="toggleGroupExpand(entry.key)">
-            <ion-item lines="none" detail="false" button>
-              <ion-icon name="chevron-down" *ngIf="expandedGroups[entry.key]"></ion-icon>
-              <ion-icon name="chevron-forward" *ngIf="!expandedGroups[entry.key]"></ion-icon>
-              <ion-label>
-                <h2>{{ formatParadoxType(entry.key) }} ({{ entry.value.length }})</h2>
-              </ion-label>
-            </ion-item>
-          </div>
+              <ion-item lines="none" detail="false" button>
+                <ion-icon [name]="expandedGroups[entry.key] ? 'chevron-down' : 'chevron-forward'" slot="start"></ion-icon>
+                <ion-label>
+                  <h2>{{ formatParadoxType(entry.key) }}</h2>
+                  <p>{{ entry.value.length }} occurrence(s)</p>
+                </ion-label>
+                <ion-badge slot="end" [color]="getParadoxBadgeColor(entry.key)">
+                  {{ entry.value.length }}
+                </ion-badge>
+              </ion-item>
+            </div>
 
-          <div class="group-content" [hidden]="!expandedGroups[entry.key]">
-            <div *ngFor="let paradox of entry.value; let i = index" class="paradox-item">
+            <div class="group-content" [hidden]="!expandedGroups[entry.key]">
+              <div *ngFor="let paradox of entry.value; let i = index" class="paradox-item">
 
-              <ng-container *ngIf="isCycleParadox(paradox)">
-                <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
-                  <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
-                  <ion-label class="ion-text-wrap">
-                    <div class="cycle-description">
-                      <span>Cycle détecté ( <span class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</span> ):</span>
-                      <div class="cycle-entities">
-                        <ng-container *ngFor="let nodeUUID of paradox.cycleNodesUUIDs; let i = index">
+                <!-- Affichage pour les cycles -->
+                <ng-container *ngIf="isCycleParadox(paradox)">
+                  <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
+                    <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                    <ion-label class="ion-text-wrap">
+                      <div class="cycle-description">
+                        <span class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</span>
+                        <div class="cycle-entities">
+                          <ng-container *ngFor="let nodeUUID of paradox.cycleNodesUUIDs; let i = index">
                             <ng-container *ngIf="getEntityTable(nodeUUID) as table">
                               <app-castor-tag-display
                                 [description]="{table: table, uuid: nodeUUID}"
-                                [infoBulle]="true"
-                              ></app-castor-tag-display>
+                                [infoBulle]="true">
+                              </app-castor-tag-display>
                             </ng-container>
-                            <!-- Flèche -->
-                            <span class="arrow">&#10230;</span>
-                        </ng-container>
-
-                        <ng-container
-                          *ngIf="paradox.cycleNodesUUIDs?.length > 0 &&
-                          getEntityTable(paradox.cycleNodesUUIDs[0]) as firstTable">
-                          <app-castor-tag-display
-                            [description]="{table: firstTable, uuid: paradox.cycleNodesUUIDs[0]}"
-                            [infoBulle]="true"
-                          ></app-castor-tag-display>
-                        </ng-container>
+                            <span class="arrow">→</span>
+                          </ng-container>
+                          <ng-container *ngIf="paradox.cycleNodesUUIDs?.length > 0 && getEntityTable(paradox.cycleNodesUUIDs[0]) as firstTable">
+                            <app-castor-tag-display
+                              [description]="{table: firstTable, uuid: paradox.cycleNodesUUIDs[0]}"
+                              [infoBulle]="true">
+                            </app-castor-tag-display>
+                          </ng-container>
+                        </div>
                       </div>
-                    </div>
-                  </ion-label>
-                </ion-item>
+                    </ion-label>
+                  </ion-item>
 
-                <div *ngIf="isCycleExpanded(entry.key, i)" class="cycle-details">
-                  <table class="table strati-relation-table">
-                    <tbody>
-                    <ng-container *ngFor="let relation of paradox.allRelations; let j = index">
-                      <tr [attr.data-relation-id]="relation.stratigraphie_uuid">
-                        <td class="relation-content">
-                          <ng-container *ngIf="!relation.is_contemporain">
-                            <!-- Entité postérieure -->
-                            <app-castor-tag-display *ngIf="relation.us_posterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_posterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-
-                            <span class="relation-type"><strong>sous</strong></span>
-
-                            <!-- Entité antérieure -->
-                            <app-castor-tag-display *ngIf="relation.us_anterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_anterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                          </ng-container>
-                        </td>
-
-                        <!-- Actions -->
-                        <td class="text-end align-middle action-column">
-                          <ion-icon name="eye-outline"
-                                    class="preview-icon"
-                                    title="Voir l'impact de la suppression"
-                                    (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)">
-                          </ion-icon>
-                          <ion-icon *ngIf="canDeleteRelation(relation)"
-                                    name="close-outline"
-                                    class="delete-icon"
-                                    title="Supprimer cette relation"
-                                    (click)="$event.stopPropagation(); deleteRelation(relation, $event)">
-                          </ion-icon>
-                        </td>
-                      </tr>
-                    </ng-container>
-                    </tbody>
-                  </table>
-                </div>
-              </ng-container>
-
-              <!-- Affichage standard pour les autres types de paradoxes -->
-              <ng-container *ngIf="!isCycleParadox(paradox) ">
-                <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
-                  <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
-                  <ion-label class="ion-text-wrap">
-                    <!-- Affichage du message court si disponible, sinon message normal -->
-                    <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
-                    <p class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</p>
-                  </ion-label>
-                </ion-item>
-
-                <!-- Détails du paradoxe standard (visibles/cachés selon état) -->
-                <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details">
-                  <!-- Message détaillé -->
-                  <div class="detailed-message">
-                    <p>{{ paradox.message }}</p>
+                  <div *ngIf="isCycleExpanded(entry.key, i)" class="cycle-details">
+                    <table class="table strati-relation-table">
+                      <tbody>
+                        <tr *ngFor="let relation of paradox.allRelations" [attr.data-relation-id]="relation.stratigraphie_uuid">
+                          <td class="relation-content">
+                            <ng-container *ngIf="!relation.is_contemporain">
+                              <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <span class="relation-type"><strong>sous</strong></span>
+                              <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                            </ng-container>
+                          </td>
+                          <td class="text-end align-middle action-column">
+                            <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
+                              (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)"></ion-icon>
+                            <ion-icon *ngIf="canDeleteRelation(relation)" name="trash-outline" class="delete-icon" title="Supprimer"
+                              (click)="$event.stopPropagation(); deleteRelation(relation, $event)"></ion-icon>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
+                </ng-container>
 
-                  <!-- Liste des relations impliquées -->
-                  <table class="table strati-relation-table">
-                    <tbody>
-                    <ng-container *ngFor="let relation of paradox.relations; let j = index">
-                      <tr [attr.data-relation-id]="relation.stratigraphie_uuid">
-                        <!-- Colonne Type -->
+                <!-- Affichage pour les autres types -->
+                <ng-container *ngIf="!isCycleParadox(paradox)">
+                  <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
+                    <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                    <ion-label class="ion-text-wrap">
+                      <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
+                      <p class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</p>
+                    </ion-label>
+                  </ion-item>
 
-                        <td class="relation-content">
-                          <!-- Pour les relations non contemporaines -->
-                          <ng-container *ngIf="!relation.is_contemporain">
-                            <!-- Entité postérieure -->
-                            <app-castor-tag-display *ngIf="relation.us_posterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_posterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-
-
-                            <span class="relation-type"><strong>sous</strong></span>
-
-                            <!-- Entité antérieure -->
-                            <app-castor-tag-display *ngIf="relation.us_anterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_anterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                          </ng-container>
-
-                          <!-- Pour les relations contemporaines -->
-                          <ng-container *ngIf="relation.is_contemporain">
-                            <!-- Première entité -->
-                            <app-castor-tag-display *ngIf="relation.us_posterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_posterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-
-                            <!-- Texte "contemporain à" -->
-                            <span class="relation-type">contemporain à</span>
-
-                            <!-- Seconde entité -->
-                            <app-castor-tag-display *ngIf="relation.us_anterieur"
-                                                    [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                            <app-castor-tag-display *ngIf="relation.fait_anterieur"
-                                                    [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
-                                                    [infoBulle]="true"></app-castor-tag-display>
-                          </ng-container>
-                        </td>
-
-                        <!-- Colonne Actions -->
-                        <td class="text-end align-middle action-column">
-                          <ion-icon name="eye-outline"
-                                    class="preview-icon"
-                                    title="Voir l'impact de la suppression"
-                                    (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)">
-                          </ion-icon>
-                          <ion-icon name="close-outline"
-                                    class="delete-icon"
-                                    title="Supprimer cette relation"
-                                    (click)="$event.stopPropagation(); deleteRelation(relation, $event)">
-                          </ion-icon>
-                        </td>
-                      </tr>
-                    </ng-container>
-                    </tbody>
-                  </table>
-                </div>
-              </ng-container>
+                  <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details">
+                    <div class="detailed-message">
+                      <p>{{ paradox.message }}</p>
+                    </div>
+                    <table class="table strati-relation-table">
+                      <tbody>
+                        <tr *ngFor="let relation of paradox.relations" [attr.data-relation-id]="relation.stratigraphie_uuid">
+                          <td class="relation-content">
+                            <ng-container *ngIf="!relation.is_contemporain">
+                              <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <span class="relation-type"><strong>sous</strong></span>
+                              <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                            </ng-container>
+                            <ng-container *ngIf="relation.is_contemporain">
+                              <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <span class="relation-type">contemporain à</span>
+                              <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                            </ng-container>
+                          </td>
+                          <td class="text-end align-middle action-column">
+                            <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
+                              (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)"></ion-icon>
+                            <ion-icon *ngIf="canDeleteRelation(relation)" name="trash-outline" class="delete-icon" title="Supprimer"
+                              (click)="$event.stopPropagation(); deleteRelation(relation, $event)"></ion-icon>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </ng-container>
+              </div>
             </div>
-          </div>
           </ng-container>
         </div>
       </div>
     </section>
-
-    <div *ngIf="isDeletingRelation" class="deletion-overlay">
-      <ion-spinner name="dots"></ion-spinner>
-      <p>Suppression en cours...</p>
-    </div>
   </main>
+
+  <!-- ===== FLOATING ACTION BUTTONS (visibles uniquement après la recherche) ===== -->
+  
+  <!-- Bouton Relancer le contrôle -->
+  <app-floating-action-button
+    *ngIf="hasSearched && !isSearching"
+    icon="reload-outline"
+    [position]="'top-right'"
+    [offsetTop]="'145px'"
+    [offsetRight]="'16px'"
+    tooltip="Relancer le contrôle"
+    [tooltipPosition]="'left'"
+    (fabClick)="findParadoxes()">
+  </app-floating-action-button>
+
+  <!-- Bouton Filtrer les paradoxes -->
+  <app-floating-action-button
+    *ngIf="hasSearched && !isSearching"
+    icon="funnel-outline"
+    [position]="'top-right'"
+    [offsetTop]="'190px'"
+    [offsetRight]="'16px'"
+    tooltip="Filtrer les types de paradoxes"
+    [tooltipPosition]="'left'"
+    (fabClick)="openFilterPanel()">
+  </app-floating-action-button>
+
+  <!-- ===== PANNEAU DE FILTRAGE ===== -->
+  <app-floating-panel
+    [isOpen]="isFilterPanelOpen"
+    (isOpenChange)="isFilterPanelOpen = $event"
+    title="Type de contrôle"
+    [position]="'right'"
+    [width]="'350px'"
+    (closed)="onFilterPanelClosed()">
+
+    <div class="filter-panel-content">
+      <p class="filter-description">Sélectionnez le type de paradoxe à afficher :</p>
+
+      <ion-list class="filter-options-list">
+        <ion-item 
+          *ngFor="let type of paradoxTypes"
+          (click)="selectParadoxType(type.id)"
+          [class.selected]="selectedParadoxType === type.id"
+          class="filter-option-item"
+          button
+          lines="none">
+          <ion-icon 
+            slot="start" 
+            [name]="getParadoxTypeIcon(type.id)"
+            [color]="selectedParadoxType === type.id ? 'primary' : 'medium'">
+          </ion-icon>
+          <ion-label>
+            <h3>{{ type.name }}</h3>
+          </ion-label>
+          <ion-icon 
+            *ngIf="selectedParadoxType === type.id" 
+            slot="end" 
+            name="checkmark-circle" 
+            color="primary">
+          </ion-icon>
+        </ion-item>
+      </ion-list>
+
+      <ion-button 
+        expand="block" 
+        class="apply-filter-btn"
+        (click)="applyFilterAndClose()">
+        <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+        Appliquer et relancer
+      </ion-button>
+    </div>
+  </app-floating-panel>
+
+  <!-- Overlay de suppression -->
+  <div *ngIf="isDeletingRelation" class="deletion-overlay">
+    <ion-spinner name="dots"></ion-spinner>
+    <p>Suppression en cours...</p>
+  </div>
 </div>
 
-<div *ngIf="simulationResults.isActive" class="impact-preview-overlay">
-  <div class="impact-preview-container">
+<!-- Modal de prévisualisation d'impact -->
+<div *ngIf="simulationResults.isActive" class="impact-preview-overlay" (click)="closeImpactPreview()">
+  <div class="impact-preview-container" (click)="$event.stopPropagation()">
     <div class="impact-preview-header">
       <h2>Impact de la suppression</h2>
       <ion-icon name="close-outline" class="close-icon" (click)="closeImpactPreview()"></ion-icon>
     </div>
 
     <div class="impact-preview-content">
-      <p class="impact-relation">Relation à supprimer:
+      <p class="impact-relation">
         <strong>{{ formatRelationAsText(simulationResults.removedRelation) }}</strong>
       </p>
 
       <div class="impact-stats">
-        <div class="impact-stat-item"
-             [class.positive]="simulationResults.removedParadoxes > 0"
-             [class.negative]="simulationResults.addedParadoxes > 0"
-             [class.neutral]="simulationResults.removedParadoxes === 0 && simulationResults.addedParadoxes === 0">
+        <div class="impact-stat-item" [ngClass]="{
+          'positive': simulationResults.removedParadoxes > 0,
+          'negative': simulationResults.addedParadoxes > 0,
+          'neutral': simulationResults.removedParadoxes === 0 && simulationResults.addedParadoxes === 0
+        }">
           <h3>Paradoxes</h3>
           <div *ngIf="simulationResults.removedParadoxes > 0" class="positive-impact">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
@@ -258,18 +317,19 @@
           </div>
           <div *ngIf="simulationResults.addedParadoxes > 0" class="negative-impact">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            <span>{{ simulationResults.addedParadoxes }} nouveau(x) paradoxe(s) créé(s)</span>
+            <span>{{ simulationResults.addedParadoxes }} nouveau(x) paradoxe(s)</span>
           </div>
           <div *ngIf="simulationResults.removedParadoxes === 0 && simulationResults.addedParadoxes === 0" class="neutral-impact">
             <ion-icon name="information-circle-outline"></ion-icon>
-            <span>Aucun changement dans le nombre total de paradoxes</span>
+            <span>Aucun changement</span>
           </div>
         </div>
 
-        <div class="impact-stat-item"
-             [class.positive]="simulationResults.removedCycles > 0"
-             [class.negative]="simulationResults.addedCycles > 0"
-             [class.neutral]="simulationResults.removedCycles === 0 && simulationResults.addedCycles === 0">
+        <div class="impact-stat-item" [ngClass]="{
+          'positive': simulationResults.removedCycles > 0,
+          'negative': simulationResults.addedCycles > 0,
+          'neutral': simulationResults.removedCycles === 0 && simulationResults.addedCycles === 0
+        }">
           <h3>Cycles</h3>
           <div *ngIf="simulationResults.removedCycles > 0" class="positive-impact">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
@@ -277,41 +337,21 @@
           </div>
           <div *ngIf="simulationResults.addedCycles > 0" class="negative-impact">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            <span>{{ simulationResults.addedCycles }} nouveau(x) cycle(s) créé(s)</span>
+            <span>{{ simulationResults.addedCycles }} nouveau(x) cycle(s)</span>
           </div>
           <div *ngIf="simulationResults.removedCycles === 0 && simulationResults.addedCycles === 0" class="neutral-impact">
             <ion-icon name="information-circle-outline"></ion-icon>
-            <span>Aucun changement dans le nombre de cycles</span>
+            <span>Aucun changement</span>
           </div>
         </div>
       </div>
 
-      <div class="impact-summary"
-           [class.positive-summary]="simulationResults.removedParadoxes > simulationResults.addedParadoxes"
-           [class.negative-summary]="simulationResults.addedParadoxes > simulationResults.removedParadoxes"
-           [class.neutral-summary]="simulationResults.removedParadoxes === simulationResults.addedParadoxes">
-        <h3>Résumé de l'impact</h3>
-        <p *ngIf="simulationResults.removedParadoxes > simulationResults.addedParadoxes">
-          <ion-icon name="thumbs-up-outline"></ion-icon>
-          La suppression de cette relation a un impact positif sur le projet.
-        </p>
-        <p *ngIf="simulationResults.addedParadoxes > simulationResults.removedParadoxes">
-          <ion-icon name="thumbs-down-outline"></ion-icon>
-          La suppression de cette relation a un impact négatif sur le projet.
-        </p>
-        <p *ngIf="simulationResults.removedParadoxes === simulationResults.addedParadoxes">
-          <ion-icon name="hand-right-outline"></ion-icon>
-          La suppression de cette relation n'a pas d'impact significatif sur le projet.
-        </p>
-      </div>
-
       <div class="impact-actions">
-        <button (click)="confirmRemovalAfterImpactPreview()" class="confirm-button">
+        <ion-button fill="outline" (click)="closeImpactPreview()">Annuler</ion-button>
+        <ion-button color="danger" (click)="confirmRemovalAfterImpactPreview()">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
           Confirmer la suppression
-        </button>
-        <button (click)="closeImpactPreview()" class="cancel-button">
-          Annuler
-        </button>
+        </ion-button>
       </div>
     </div>
   </div>
