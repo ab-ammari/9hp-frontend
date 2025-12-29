@@ -43,9 +43,8 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   private panzoomInstance: any;
 
   isControlPanelOpen = false;
-  isStatsPanelOpen = false;
-  isSearchPanelOpen = false;
   isLayoutPanelOpen = false;
+  isDataPanelOpen = false;
 
   diagramConfig: DiagramConfig = {
     includeUS: true,
@@ -60,8 +59,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   currentMermaidCode = '';
   errorMessage = '';
 
-  searchQuery = '';
-  searchResults: DiagramNode[] = [];
   allNodes: DiagramNode[] = [];
 
   focusNodeSearchQuery = '';
@@ -90,29 +87,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   isFullscreen = false;
 
-  isIsolatedPanelOpen = false;
-  isolatedFilters = {
-    showFaits: true,
-    showUS: true
-  };
-
-  isolatedEntities: IsolatedEntity[] = [];
-  filteredIsolatedEntities: IsolatedEntity[] = [];
-  expandedFaits = new Set<string>();
-  isolatedSearchQuery = '';
-  private isolatedEntitiesLoaded: boolean = false;
-  readonly ISOLATED_ITEM_HEIGHT = 52;
-  readonly ISOLATED_CHILD_ITEM_HEIGHT = 44;
-
-  isRelationsPanelOpen = false;
-  relationsSearchQuery = '';
-  allRelations: RelationDisplay[] = [];
-  filteredRelations: RelationDisplay[] = [];
   isDeletingRelation = false;
-  // Flag pour indiquer si les relations ont déjà été chargées
-  private relationsLoaded:  boolean = false;
-  // Hauteur d'un item pour le virtual scrolling (en pixels)
-  readonly RELATION_ITEM_HEIGHT = 56;
 
   // Mode édition
   isEditMode:  boolean = false;
@@ -347,7 +322,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
             r => r. stratigraphie_uuid !== relation.stratigraphie_uuid
           );
 
-          this.refreshRelations(); // Recharger les relations après suppression
+          //this.refreshRelations(); // Recharger les relations après suppression
           resolve();
 
           // Attendre un court instant pour la synchronisation
@@ -444,60 +419,14 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
   openControlPanel(): void {
     this.isControlPanelOpen = true;
-    this.isStatsPanelOpen = false;
-    this.isSearchPanelOpen = false;
-    this.isLayoutPanelOpen = false;
+    this.isDataPanelOpen = false;
   }
 
   onControlPanelClosed(): void {
     this.isControlPanelOpen = false;
   }
 
-  toggleStatsPanel(): void {
-    this.isStatsPanelOpen = !this.isStatsPanelOpen;
-    if (this.isStatsPanelOpen) {
-      this.isControlPanelOpen = false;
-      this.isSearchPanelOpen = false;
-      this.isLayoutPanelOpen = false;
-    }
-  }
-
-  onStatsPanelClosed(): void {
-    this.isStatsPanelOpen = false;
-  }
-
   // === Recherche d'entités ===
-
-  toggleSearchPanel(): void {
-    this.isSearchPanelOpen = !this.isSearchPanelOpen;
-    if (this.isSearchPanelOpen) {
-      this.isControlPanelOpen = false;
-      this.isStatsPanelOpen = false;
-      this.isLayoutPanelOpen = false;
-      this.updateSearchResults();
-    }
-  }
-
-  onSearchPanelClosed(): void {
-    this.isSearchPanelOpen = false;
-  }
-
-  onSearchQueryChange(): void {
-    this.updateSearchResults();
-  }
-
-  private updateSearchResults(): void {
-    if (!this.searchQuery.trim()) {
-      this.searchResults = this.allNodes.slice(0, 20); // Afficher les 20 premiers par défaut
-      return;
-    }
-
-    const query = this.searchQuery.toLowerCase().trim();
-    this.searchResults = this.allNodes.filter(node =>
-      node.label.toLowerCase().includes(query) ||
-      node.uuid.toLowerCase().includes(query)
-    ).slice(0, 50); // Limiter à 50 résultats
-  }
 
   zoomToEntity(node: DiagramNode): void {
     if (! this.panzoomInstance || !this.diagramContainer) {
@@ -518,7 +447,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
 
       this.highlightNode(nodeElement);
 
-      this.isSearchPanelOpen = false;
     } else {
       console.warn('Nœud non trouvé dans le SVG:', node);
     }
@@ -701,7 +629,7 @@ async generateDiagram(): Promise<void> {
     this.calculateStats(this.relations);
 
     // Mettre à jour les entités isolées
-    this.updateIsolatedEntities();
+    // this.updateIsolatedEntities();
 
     // === MODE ÉDITION :  Mise à jour des caches ===
     
@@ -1204,167 +1132,6 @@ private debugSVGStructure(): void {
     };
   }
 
-  toggleIsolatedPanel(): void {
-    this.isIsolatedPanelOpen = ! this.isIsolatedPanelOpen;
-    if (this.isIsolatedPanelOpen) {
-      this.isControlPanelOpen = false;
-      this.isStatsPanelOpen = false;
-      this.isSearchPanelOpen = false;
-      this.isRelationsPanelOpen = false;
-      
-      // Charger les entités isolées seulement si elles n'ont pas encore été chargées
-      if (!this.isolatedEntitiesLoaded) {
-        this.updateIsolatedEntities();
-      }
-    }
-  }
-
-  onIsolatedPanelClosed(): void {
-    this.isIsolatedPanelOpen = false;
-    this.isolatedSearchQuery = '';
-  }
-
-  toggleIsolatedFilter(filterType: 'faits' | 'us'): void {
-    if (filterType === 'faits') {
-      this.isolatedFilters.showFaits = !this.isolatedFilters.showFaits;
-    } else {
-      this.isolatedFilters.showUS = !this.isolatedFilters.showUS;
-    }
-    
-    // Forcer le rechargement car les filtres ont changé
-    this.isolatedEntitiesLoaded = false;
-    this.updateIsolatedEntities();
-  }
-
-  // Méthode pour forcer le rechargement des entités isolées
-  refreshIsolatedEntities(): void {
-    this.isolatedEntitiesLoaded = false;
-    this.updateIsolatedEntities();
-  }
-
-  // TrackBy pour optimiser le rendu des entités isolées
-  trackByIsolatedEntity(index: number, entity: IsolatedEntity): string {
-    return entity.uuid;
-  }
-
-  // TrackBy pour les enfants US
-  trackByChildUS(index: number, child: IsolatedEntity): string {
-    return child.uuid;
-  }
-
-  toggleFaitExpansion(faitUuid: string): void {
-    if (this.expandedFaits.has(faitUuid)) {
-      this.expandedFaits.delete(faitUuid);
-    } else {
-      this.expandedFaits.add(faitUuid);
-    }
-  }
-
-  onIsolatedSearchChange(): void {
-    this.filterIsolatedEntities();
-  }
-
-  private filterIsolatedEntities(): void {
-    if (!this.isolatedSearchQuery. trim()) {
-      this.filteredIsolatedEntities = this.isolatedEntities;
-      return;
-    }
-
-    const query = this.isolatedSearchQuery. toLowerCase(). trim();
-
-    this.filteredIsolatedEntities = this.isolatedEntities.filter(entity => {
-      const matchesEntity = entity.label.toLowerCase().includes(query) ||
-        entity.uuid.toLowerCase().includes(query);
-
-      if (entity.type === 'fait' && entity.childrenUS) {
-        const matchesChildren = entity.childrenUS.some(child =>
-          child.label.toLowerCase(). includes(query) ||
-          child.uuid.toLowerCase().includes(query)
-        );
-        return matchesEntity || matchesChildren;
-      }
-
-      return matchesEntity;
-    });
-  }
-
-  updateIsolatedEntities(): void {
-    const relations = this.w.data().objects.stratigraphie.all. list
-      .map(item => item.item)
-      .filter(rel => rel && rel.live !== false);
-
-    const connectedUUIDs = new Set<string>();
-
-    relations.forEach(rel => {
-      if (rel. us_anterieur) connectedUUIDs.add(rel.us_anterieur);
-      if (rel.us_posterieur) connectedUUIDs.add(rel.us_posterieur);
-      if (rel.fait_anterieur) connectedUUIDs.add(rel.fait_anterieur);
-      if (rel.fait_posterieur) connectedUUIDs.add(rel.fait_posterieur);
-    });
-
-    const isolated:  IsolatedEntity[] = [];
-
-    if (this.isolatedFilters.showFaits) {
-      this.w.data().objects.fait.all.list.forEach(faitWrapper => {
-        const fait = faitWrapper.item;
-        if (fait && fait.live !== false && !connectedUUIDs.has(fait.fait_uuid)) {
-          const childrenUS:  IsolatedEntity[] = [];
-
-          this.w.data().objects.us.all.list.forEach(usWrapper => {
-            const us = usWrapper.item;
-            if (us && us.live !== false && us.fait_uuid === fait.fait_uuid) {
-              if (! connectedUUIDs.has(us.us_uuid)) {
-                childrenUS.push({
-                  uuid: us.us_uuid,
-                  label: us.tag || us.us_uuid. substring(0, 8),
-                  type: 'us'
-                });
-              }
-            }
-          });
-
-          isolated.push({
-            uuid: fait.fait_uuid,
-            label: fait.tag || fait.fait_uuid.substring(0, 8),
-            type: 'fait',
-            childrenUS:  childrenUS. length > 0 ? childrenUS : undefined
-          });
-        }
-      });
-    }
-
-    if (this.isolatedFilters.showUS) {
-      this.w.data().objects.us.all.list.forEach(usWrapper => {
-        const us = usWrapper.item;
-        if (us && us.live !== false && !connectedUUIDs.has(us.us_uuid)) {
-          const isInIsolatedFait = isolated.some(
-            entity => entity.type === 'fait' &&
-              entity.childrenUS?. some(child => child.uuid === us.us_uuid)
-          );
-
-          if (!isInIsolatedFait) {
-            isolated.push({
-              uuid: us.us_uuid,
-              label: us.tag || us.us_uuid.substring(0, 8),
-              type: 'us'
-            });
-          }
-        }
-      });
-    }
-
-    isolated.sort((a, b) => {
-      if (a.type === b.type) {
-        return a.label.localeCompare(b.label);
-      }
-      return a.type === 'fait' ? -1 : 1;
-    });
-
-    this.isolatedEntities = isolated;
-    this.filterIsolatedEntities();
-    this.isolatedEntitiesLoaded = true; // Marquer comme chargé
-  }
-
   /**
    * Calcule le nombre d'entités isolées (US + Faits sans relations)
    */
@@ -1403,151 +1170,35 @@ private debugSVGStructure(): void {
     return isolatedCount;
   }
 
-  openIsolatedPanelFromStats(): void {
-    this.isStatsPanelOpen = false;
-    this.toggleIsolatedPanel();
+  /**
+   * Récupère le label d'un nœud à partir de son ID sanitizé
+   */
+  getNodeLabel(sanitizedId: string): string {
+    // Convertir l'ID sanitizé en UUID
+    const uuid = sanitizedId.replace('node_', '').replace(/_/g, '-');
+    
+    // Chercher dans les nœuds
+    const node = this.allNodes.find(n => n. uuid === uuid);
+    return node?. label || sanitizedId;
   }
 
-  toggleRelationsPanel(): void {
-    this.isRelationsPanelOpen = !this. isRelationsPanelOpen;
-    if (this.isRelationsPanelOpen) {
+  /**
+   * Toggle le panneau de données unifié
+   */
+  toggleDataPanel(): void {
+    this.isDataPanelOpen = !this.isDataPanelOpen;
+    if (this.isDataPanelOpen) {
       this.isControlPanelOpen = false;
-      this.isStatsPanelOpen = false;
-      this.isSearchPanelOpen = false;
-      this.isLayoutPanelOpen = false;
-      this.isIsolatedPanelOpen = false;
-      
-      // Charger les relations seulement si elles n'ont pas encore été chargées
-      // ou si les données sources ont changé
-      if (!this.relationsLoaded) {
-        this.loadRelations();
-      }
-    }
-  }
-
-  onRelationsPanelClosed(): void {
-    this.isRelationsPanelOpen = false;
-    this.relationsSearchQuery = '';
-  }
-
-  loadRelations(): void {
-    const relations = this.w.data().objects.stratigraphie.all. list
-      .map(item => item.item)
-      .filter(rel => rel && rel.live !== false);
-
-    this.allRelations = relations. map(rel => ({
-      relation: rel,
-      leftLabel: '',
-      leftType: 'us' as 'us' | 'fait',
-      rightLabel: '',
-      rightType: 'us' as 'us' | 'fait',
-      type: ''
-    }));
-
-    this.filteredRelations = [... this.allRelations];
-    this.relationsLoaded = true; // Marquer comme chargé
-  }
-
-  refreshRelations(): void {
-    this.relationsLoaded = false;
-    this.loadRelations();
-  }
-
-
-  onRelationsSearchChange(): void {
-    if (!this.relationsSearchQuery.trim()) {
-      this.filteredRelations = [...this.allRelations];
-      return;
-    }
-
-    const query = this.relationsSearchQuery.toLowerCase().trim();
-    this.filteredRelations = this.allRelations.filter(rel => {
-      const relation = rel.relation;
-
-      // Recherche dans les UUIDs et tags des entités
-      const searchInEntity = (uuid: string | null, table: ApiDbTable) => {
-        if (!uuid) return false;
-        const entity = table === ApiDbTable.us
-          ? this.w.data().objects.us.all.findByUuid(uuid)
-          : this.w.data().objects.fait.all.findByUuid(uuid);
-        const tag = entity?.item?.tag || '';
-        return tag.toLowerCase().includes(query) || uuid.toLowerCase().includes(query);
-      };
-
-      return searchInEntity(relation.us_anterieur, ApiDbTable.us) ||
-        searchInEntity(relation.us_posterieur, ApiDbTable.us) ||
-        searchInEntity(relation.fait_anterieur, ApiDbTable.fait) ||
-        searchInEntity(relation.fait_posterieur, ApiDbTable.fait);
-    });
-  }
-
-  deleteRelation(relDisplay: RelationDisplay, event?: Event): void {
-    if (this.isDeletingRelation) {
-      return;
-    }
-
-    if (event) {
-      event.stopPropagation();
-    }
-
-    const relation = relDisplay.relation;
-
-    if (this.authService.canDeleteRelation(relation)) {
-      this.confirmationService.showConfirmDialog(
-        'Supprimer la relation',
-        `Êtes-vous sûr de vouloir supprimer la relation : "${relDisplay.leftLabel} → ${relDisplay.rightLabel}" ?`,
-        () => {
-          this.isDeletingRelation = true;
-          relation.live = false;
-
-          this.w.data().objects.stratigraphie.selected.commit(relation).subscribe(
-            () => {
-              console.log('Relation supprimée avec succès');
-              setTimeout(() => {
-                this.loadRelations();
-                if (this.currentMermaidCode) {
-                  this.generateDiagram();
-                }
-                this.isDeletingRelation = false;
-              }, 100);
-            },
-            error => {
-              console.error('Erreur lors de la suppression de la relation', error);
-              this.isDeletingRelation = false;
-              this.confirmationService.showConfirmDialog(
-                'Erreur',
-                'Une erreur est survenue lors de la suppression de la relation.',
-                () => {},
-                () => {},
-                'OK',
-                null
-              );
-            }
-          );
-        },
-        () => {
-          console.log('Suppression annulée');
-        }
-      );
-    } else {
-      this.confirmationService.showInfoDialog(
-        'Accès refusé',
-        'Seul le propriétaire du projet ou le créateur de cette relation peut la supprimer.'
-      );
+      this.isParadoxesPanelOpen = false;
     }
   }
 
   /**
- * Récupère le label d'un nœud à partir de son ID sanitizé
- */
-getNodeLabel(sanitizedId: string): string {
-  // Convertir l'ID sanitizé en UUID
-  const uuid = sanitizedId.replace('node_', '').replace(/_/g, '-');
-  
-  // Chercher dans les nœuds
-  const node = this.allNodes.find(n => n. uuid === uuid);
-  return node?. label || sanitizedId;
-}
+   * Callback quand le panneau de données est fermé
+   */
+  onDataPanelClosed(): void {
+    this.isDataPanelOpen = false;
+  }
 
   protected readonly ApiDbTable = ApiDbTable;
 }
