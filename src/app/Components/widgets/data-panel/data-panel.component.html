@@ -1,0 +1,301 @@
+<app-floating-panel
+  [isOpen]="isOpen"
+  (isOpenChange)="isOpenChange.emit($event)"
+  title="Données du diagramme"
+  [position]="'right'"
+  [width]="'450px'"
+  [showBackdrop]="false"
+  [allowBackgroundInteractions]="true"
+  (closed)="close()">
+
+  <div class="data-panel-content">
+
+    <!-- Onglets -->
+    <div class="tabs-container">
+      <ion-segment [value]="activeTab" (ionChange)="selectTab($any($event.detail.value))">
+        <ion-segment-button 
+          *ngFor="let tab of tabs" 
+          [value]="tab.id"
+          class="data-tab">
+          <ion-icon [name]="tab.icon"></ion-icon>
+          <ion-label>{{ tab.label }}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    <!-- ==================== -->
+    <!-- ONGLET RECHERCHE     -->
+    <!-- ==================== -->
+    <div class="tab-content" *ngIf="activeTab === 'search'">
+      <div class="search-input-container">
+        <ion-searchbar
+          [(ngModel)]="searchQuery"
+          (ionInput)="onSearchQueryChange()"
+          placeholder="Rechercher par nom ou UUID..."
+          [debounce]="300"
+          showCancelButton="never">
+        </ion-searchbar>
+      </div>
+
+      <div class="search-results">
+        <ion-list *ngIf="searchResults.length > 0">
+          <ion-item
+            *ngFor="let node of searchResults"
+            (click)="zoomToEntity(node)"
+            class="search-result-item"
+            button>
+            <app-castor-tag-display
+              [description]="{
+                table: node.type === 'us' ? ApiDbTable.us : ApiDbTable.fait,
+                uuid: node.uuid
+              }"
+              [infoBulle]="true">
+            </app-castor-tag-display>
+            <ion-icon slot="end" name="locate-outline" color="medium"></ion-icon>
+          </ion-item>
+        </ion-list>
+
+        <div *ngIf="searchResults.length === 0 && searchQuery" class="no-results">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Aucune entité trouvée pour "{{ searchQuery }}"</p>
+        </div>
+
+        <div *ngIf="allNodes.length === 0" class="no-data">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>Générez d'abord un diagramme pour rechercher des entités</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- ONGLET ISOLÉES       -->
+    <!-- ==================== -->
+    <div class="tab-content" *ngIf="activeTab === 'isolated'">
+      <div class="filter-section">
+        <div class="filter-buttons">
+          <ion-button
+            [fill]="isolatedFilters.showFaits ? 'solid' : 'outline'"
+            [color]="isolatedFilters.showFaits ? 'warning' : 'medium'"
+            expand="block"
+            (click)="toggleIsolatedFilter('faits')"
+            class="filter-button">
+            <ion-icon name="cube-outline" slot="start"></ion-icon>
+            Faits
+          </ion-button>
+
+          <ion-button
+            [fill]="isolatedFilters.showUS ? 'solid' : 'outline'"
+            [color]="isolatedFilters.showUS ? 'primary' : 'medium'"
+            expand="block"
+            (click)="toggleIsolatedFilter('us')"
+            class="filter-button">
+            <ion-icon name="layers-outline" slot="start"></ion-icon>
+            US
+          </ion-button>
+        </div>
+
+        <div class="search-bar-container">
+          <ion-searchbar
+            [(ngModel)]="isolatedSearchQuery"
+            (ionInput)="onIsolatedSearchChange()"
+            placeholder="Rechercher..."
+            [debounce]="300"
+            showCancelButton="never">
+          </ion-searchbar>
+        </div>
+      </div>
+
+      <div class="isolated-count" *ngIf="filteredIsolatedEntities.length > 0">
+        <span>{{ filteredIsolatedEntities.length }} entité(s) isolée(s)</span>
+      </div>
+
+      <div class="isolated-list">
+        <cdk-virtual-scroll-viewport
+          *ngIf="filteredIsolatedEntities.length > 0"
+          [itemSize]="ISOLATED_ITEM_HEIGHT"
+          class="isolated-viewport">
+          
+          <ng-container *cdkVirtualFor="let entity of filteredIsolatedEntities; trackBy: trackByIsolatedEntity">
+            <div
+              *ngIf="entity.type === 'us'"
+              class="isolated-item us-item">
+              <app-castor-tag-display
+                [description]="{table: ApiDbTable.us, uuid: entity.uuid}"
+                [infoBulle]="true">
+              </app-castor-tag-display>
+            </div>
+
+            <div
+              *ngIf="entity.type === 'fait'"
+              class="isolated-item fait-item">
+              <div class="fait-header">
+                <app-castor-tag-display
+                  [description]="{table: ApiDbTable.fait, uuid: entity.uuid}"
+                  [infoBulle]="true">
+                </app-castor-tag-display>
+
+                <ion-button
+                  *ngIf="entity.childrenUS && entity.childrenUS.length > 0"
+                  fill="clear"
+                  size="small"
+                  (click)="toggleFaitExpansion(entity.uuid)"
+                  class="expand-button">
+                  <ion-icon
+                    [name]="expandedFaits.has(entity.uuid) ? 'chevron-down-outline' : 'chevron-forward-outline'"
+                    slot="icon-only">
+                  </ion-icon>
+                  <span class="children-count">({{ entity.childrenUS.length }})</span>
+                </ion-button>
+              </div>
+
+              <div 
+                *ngIf="expandedFaits.has(entity.uuid) && entity.childrenUS" 
+                class="fait-children">
+                <div
+                  *ngFor="let childUS of entity.childrenUS; trackBy: trackByChildUS"
+                  class="isolated-item us-child-item">
+                  <div class="child-connector"></div>
+                  <app-castor-tag-display
+                    [description]="{table: ApiDbTable.us, uuid: childUS.uuid}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </cdk-virtual-scroll-viewport>
+
+        <div *ngIf="filteredIsolatedEntities.length === 0 && !isolatedSearchQuery" class="no-isolated">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <p>Aucune entité isolée</p>
+        </div>
+
+        <div *ngIf="filteredIsolatedEntities.length === 0 && isolatedSearchQuery" class="no-isolated">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Aucun résultat pour "{{ isolatedSearchQuery }}"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- ONGLET RELATIONS     -->
+    <!-- ==================== -->
+    <div class="tab-content" *ngIf="activeTab === 'relations'">
+      <div class="search-bar-container">
+        <ion-searchbar
+          [(ngModel)]="relationsSearchQuery"
+          (ionInput)="onRelationsSearchChange()"
+          placeholder="Rechercher par tag..."
+          [debounce]="300"
+          showCancelButton="never">
+        </ion-searchbar>
+      </div>
+
+      <div class="relations-count" *ngIf="filteredRelations.length > 0">
+        <span>{{ filteredRelations.length }} relation(s)</span>
+      </div>
+
+      <div class="relations-list">
+        <cdk-virtual-scroll-viewport
+          *ngIf="filteredRelations.length > 0"
+          [itemSize]="RELATION_ITEM_HEIGHT"
+          class="relations-viewport">
+          
+          <table class="table strati-relation-table">
+            <tbody>
+              <tr *cdkVirtualFor="let rel of filteredRelations; trackBy: trackByRelationUuid" 
+                  class="relation-row">
+                <td class="type-strati-box">
+                  <app-castor-type-display
+                    [type]="rel.relation.strati_type_uuid"
+                    [display_prefix]="false"
+                    [display_label]="true">
+                  </app-castor-type-display>
+                </td>
+
+                <td class="relation-entities">
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.us_anterieur"
+                    [description]="{table: ApiDbTable.us, uuid: rel.relation.us_anterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.fait_anterieur"
+                    [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_anterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+
+                  <span class="relation-separator" *ngIf="!rel.relation.is_contemporain">→</span>
+                  <span class="relation-separator" *ngIf="rel.relation.is_contemporain">↔</span>
+
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.us_posterieur"
+                    [description]="{table: ApiDbTable.us, uuid: rel.relation.us_posterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                  <app-castor-tag-display
+                    *ngIf="rel.relation.fait_posterieur"
+                    [description]="{table: ApiDbTable.fait, uuid: rel.relation.fait_posterieur}"
+                    [infoBulle]="true">
+                  </app-castor-tag-display>
+                </td>
+
+                <td class="text-end align-middle action-column">
+                  <ion-icon
+                    name="close-outline"
+                    class="delete-icon"
+                    title="Supprimer cette relation"
+                    [class.disabled]="isDeletingRelation"
+                    (click)="deleteRelation(rel, $event)">
+                  </ion-icon>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </cdk-virtual-scroll-viewport>
+
+        <div *ngIf="filteredRelations.length === 0 && !relationsSearchQuery" class="no-relations">
+          <ion-icon name="git-branch-outline"></ion-icon>
+          <p>Aucune relation disponible</p>
+        </div>
+
+        <div *ngIf="filteredRelations.length === 0 && relationsSearchQuery" class="no-relations">
+          <ion-icon name="search-outline"></ion-icon>
+          <p>Aucun résultat pour "{{ relationsSearchQuery }}"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== -->
+    <!-- ONGLET STATISTIQUES  -->
+    <!-- ==================== -->
+    <div class="tab-content" *ngIf="activeTab === 'stats'">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value">{{ stats.totalNodes }}</div>
+          <div class="stat-label">Nœuds</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ stats.totalEdges }}</div>
+          <div class="stat-label">Relations</div>
+        </div>
+        <div class="stat-card primary">
+          <div class="stat-value">{{ stats.usCount }}</div>
+          <div class="stat-label">US</div>
+        </div>
+        <div class="stat-card warning">
+          <div class="stat-value">{{ stats.faitCount }}</div>
+          <div class="stat-label">Faits</div>
+        </div>
+        <div class="stat-card large clickable" (click)="selectTab('isolated')">
+          <div class="stat-value">{{ stats.isolatedCount }}</div>
+          <div class="stat-label">
+            Entités isolées
+            <ion-icon name="open-outline" class="open-icon"></ion-icon>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</app-floating-panel>
