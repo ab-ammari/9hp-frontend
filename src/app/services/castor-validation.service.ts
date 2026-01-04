@@ -12,6 +12,7 @@ import {
   ValidationResult as WorkerValidationResult
 } from "../../../shared";
 import {dbBoundObject} from "../DataClasses/models/db-bound-object";
+import { ContemporaneityGroupManager, ContemporaneityValidationResult, EntityInfo, StratigraphicRelation, TemporalValidationResult } from "./validation/contemporaneity-group-manager";
 
 /**
  * Un couple (US, Fait) + direction pour identifier un point du graphe.
@@ -148,6 +149,10 @@ export class CastorValidationService {
    */
   private batchValidationRunning = false;
   private batchValidationAbortController: AbortController | null = null;
+
+  private groupManager = new ContemporaneityGroupManager();
+  private groupManagerSynced = false;
+  private useAdvancedDetection = true;
 
   constructor(private w: WorkerService, private syncService: CastorSyncService) {
     // On se branche directement sur les changements de stratigraphie pour tenir le cache à jour.
@@ -869,7 +874,8 @@ export class CastorValidationService {
       { fn: this.checkFaitUSContainmentContradiction.bind(this), type: 'containment', name: 'Containment Check' },
       { fn: this.checkFaitRelationConsistency.bind(this), type: 'consistency', name: 'Consistency Check' },
       { fn: this.checkAnteriorPosteriorContradiction.bind(this), type: 'temporal', name: 'Temporal Check' },
-      { fn: this.checkCycleContradiction.bind(this), type: 'cycle', name: 'Cycle Check' }
+      { fn: this.checkCycleContradiction.bind(this), type: 'cycle', name: 'Cycle Check' },
+      { fn: this.checkAdvancedContemporaneityParadoxes.bind(this), type: 'advanced', name: 'Advanced Contemporaneity Check' }
     ];
 
     for (const validator of validators) {
@@ -895,6 +901,349 @@ export class CastorValidationService {
 
     return { result: true };
   }
+
+  /**
+   * adavanced detection via contemporaneity groupes
+   * 
+   * this method called after all exsiting valalidations have find nothing wrong
+   * it will try to find paradoxes that are not direct contradictions but emerge from complex relations
+   */
+
+  private checkAdvancedContemporaneityParadoxes(
+    newStrati: ApiStratigraphie, 
+    existingRelations: ApiStratigraphie[]
+  ): ValidationResult {
+    
+    // Ne pas exécuter si la détection avancée est désactivée
+    if (!this.useAdvancedDetection) {
+      return { result: true };
+    }
+    
+    // S'assurer que le groupManager est synchronisé
+    this.ensureGroupManagerSynced();
+    
+    if (!this.groupManagerSynced) {
+      // En cas de problème de synchronisation, on laisse passer
+      return { result: true };
+    }
+    
+    try {
+      // ========================================================
+      // CAS 1 : Relation de contemporanéité
+      // ========================================================
+      if (newStrati.is_contemporain) {
+        const entity1Uuid = newStrati.us_anterieur || newStrati.fait_anterieur;
+        const entity2Uuid = newStrati.us_posterieur || newStrati.fait_posterieur;
+        
+        if (!entity1Uuid || !entity2Uuid) {
+          return { result: true };
+        }
+        
+        const validation = this.groupManager.validateContemporaneityRelation(
+          entity1Uuid,
+          entity2Uuid
+        );
+        
+        if (!validation.valid) {
+          return this.convertContemporaneityValidationToResult(
+            validation, 
+            entity1Uuid, 
+            entity2Uuid
+          );
+        }
+      }
+      // ========================================================
+      // CAS 2 : Relation temporelle
+      // ========================================================
+      else {
+        const anterieurUuid = newStrati.us_anterieur || newStrati.fait_anterieur;
+        const posterieurUuid = newStrati.us_posterieur || newStrati.fait_posterieur;
+        
+        if (!anterieurUuid || !posterieurUuid) {
+          return { result: true };
+        }
+        
+        const validation = this.groupManager.validateTemporalRelation(
+          anterieurUuid,
+          posterieurUuid
+        );
+        
+        if (!validation.valid) {
+          return this.convertTemporalValidationToResult(
+            validation, 
+            anterieurUuid, 
+            posterieurUuid
+          );
+        }
+      }
+      
+      return { result: true };
+      
+    } catch (error) {
+      // En cas d'erreur, on laisse passer (fail-safe)
+      LOG.warn.log(
+        {...CONTEXT, action: 'checkAdvancedContemporaneityParadoxes'},
+        'Advanced check failed, allowing relation',
+        error
+      );
+      return { result: true };
+    }
+  }
+
+  /**
+   * ensure that groupManager is synced (lazy loading)
+   */
+  private ensureGroupManagerSynced(): void {
+    if (!this.useAdvancedDetection){
+      return;
+    }
+
+    if (!this.groupManagerSynced) {
+      this.syncGroupManager();
+    }
+  }
+
+  /**
+   * convert validation result from groupManager to ValidationResult
+   */
+  private convertContemporaneityValidationToResult(
+    validation: ContemporaneityValidationResult,
+    entity1Uuid: string,
+    entity2Uuid: string
+  ): ValidationResult {
+    const tag1 = this.getTagForElement(entity1Uuid);
+    const tag2 = this.getTagForElement(entity2Uuid);
+    
+    // ============================================================
+    // CAS 1 : Chemin temporel existant
+    // ============================================================
+    if (validation.errorType === 'EXISTING_TEMPORAL_PATH') {
+      // CORRECTION : Reconstruire les tags dans le service
+      const pathUuids = validation.existingPath?.path || [];
+      const pathTags = pathUuids.map(groupId => {
+        const members = this.groupManager.getGroupMembers(groupId);
+        
+        if (members.length === 0) {
+          return this.getTagForElement(groupId);
+        }
+        
+        const memberTags = members.map(m => this.getTagForElement(m));
+        
+        if (memberTags.length === 1) {
+          return memberTags[0];
+        }
+        
+        return `{${memberTags.join(', ')}}`;
+      });
+      
+      return {
+        result: false,
+        message: `Contradiction détectée : impossible de rendre ${tag1} contemporain de ${tag2}.\n` +
+          `Il existe une chaîne temporelle : ${pathTags.join(' → ')}`,
+        paradoxType: 'temporal',
+        shortMessage: `Chaîne temporelle existante entre <strong>${tag1}</strong> et <strong>${tag2}</strong>`
+      };
+    }
+    
+    // ============================================================
+    // CAS 2 : La fusion créerait un cycle
+    // ============================================================
+    if (validation.errorType === 'WOULD_CREATE_CYCLE') {
+      // CORRECTION : Reconstruire les tags des groupes en conflit
+      const conflictingGroupIds = validation.conflictingGroups || [];
+      const conflictingTags = conflictingGroupIds.map(groupId => {
+        const members = this.groupManager.getGroupMembers(groupId);
+        
+        if (members.length === 0) {
+          return this.getTagForElement(groupId);
+        }
+        
+        const memberTags = members.map(m => this.getTagForElement(m));
+        return memberTags.join('/');
+      }).join(', ');
+      
+      return {
+        result: false,
+        message: `Contradiction détectée : impossible de rendre ${tag1} contemporain de ${tag2}.\n` +
+          `La fusion créerait un paradoxe : le groupe fusionné serait à la fois ` +
+          `antérieur et postérieur à : ${conflictingTags}`,
+        paradoxType: 'temporal',
+        shortMessage: `Fusion impossible entre <strong>${tag1}</strong> et <strong>${tag2}</strong>`
+      };
+    }
+    
+    // ============================================================
+    // CAS 3 : Autre erreur (fallback)
+    // ============================================================
+    return {
+      result: false,
+      message: validation.message || 'Relation de contemporanéité invalide',
+      paradoxType: 'consistency'
+    };
+  }
+
+  /**
+   * convert validation result from groupManager to ValidationResult
+   */
+  private convertTemporalValidationToResult(
+    validation: TemporalValidationResult,
+    anterieurUuid: string,
+    posterieurUuid: string
+  ): ValidationResult {
+    const tag1 = this.getTagForElement(anterieurUuid);
+    const tag2 = this.getTagForElement(posterieurUuid);
+    
+    // CAS 1 : SAME_GROUP
+    if (validation.errorType === 'SAME_GROUP') {
+      const groupMembers = validation.debugInfo?.sourceGroupMembers || [];
+      const memberTags = groupMembers.map(m => this.getTagForElement(m));
+      
+      let message = `Contradiction détectée : impossible de créer une relation temporelle entre ${tag1} et ${tag2} car ils sont contemporains`;
+      
+      if (memberTags.length > 2) {
+        message += ` (via la chaîne : ${memberTags.join(' ↔ ')})`;
+      }
+      message += '.';
+      
+      return {
+        result: false,
+        message,
+        // IMPORTANT : Type 'contemporaneity_conflict' pour différencier
+        paradoxType: 'contemporaneity_conflict',
+        shortMessage: `<strong>${tag1}</strong> et <strong>${tag2}</strong> sont contemporains`
+      };
+    }
+    
+    // CAS 2 : CYCLE
+    if (validation.errorType === 'CYCLE') {
+      const cyclePath = validation.cycleInfo?.path || [];
+      
+      const cycleTagsWithGroups = cyclePath.map(groupId => {
+        const members = this.groupManager.getGroupMembers(groupId);
+        
+        if (members.length === 0) {
+          return this.getTagForElement(groupId);
+        }
+        
+        const memberTags = members.map(m => this.getTagForElement(m));
+        
+        if (memberTags.length === 1) {
+          return memberTags[0];
+        }
+        
+        return `{${memberTags.join(', ')}}`;
+      });
+      
+      const pathDescription = cycleTagsWithGroups.join(' → ');
+      const firstTag = cycleTagsWithGroups[0] || tag2;
+      
+      return {
+        result: false,
+        message: `Contradiction détectée : cycle stratigraphique impossible.\n` +
+          `Chaîne : ${pathDescription} → ${firstTag}\n` +
+          `Une unité stratigraphique ne peut pas être à la fois antérieure et postérieure à elle-même.\n`+
+          `cycle nodes `,
+        // IMPORTANT : Type 'cycle' pour la catégorisation correcte
+        paradoxType: 'cycle',
+        cycleInfo: {
+          cycleId: cycleTagsWithGroups.join(' → '),
+          cycleNodes: cycleTagsWithGroups,
+          cycleNodesUUIDs: cyclePath
+        }
+      };
+    }
+    
+    // CAS 3 : Autre
+    return {
+      result: false,
+      message: validation.message || 'Relation temporelle invalide',
+      paradoxType: 'temporal'
+    };
+  }
+
+  // Private methods for syncronisation
+  /**
+   * syncronize groupeManager with actual data
+   */
+  private syncGroupManager(): void {
+    if (!this.useAdvancedDetection){
+      return;
+    }
+
+    try {
+      const relations = this.convertTOStratigraphicRelations(this.liveRelations);
+      this.groupManager.rebuild(relations);
+      this.groupManagerSynced = true;
+
+      LOG.debug.log(
+        {...CONTEXT, action: 'syncGroupManager'},
+        'GroupeManager synchronized with ' + relations.length + ' relations.'
+      );
+    } catch (error) {
+      LOG.error.log(
+        {...CONTEXT, action: 'syncGroupManager'},
+        'Failed to synchronize GroupeManager, falling back to legacy detection.',
+        error
+      );
+      this.groupManagerSynced = false;
+    }
+  }
+
+  /**
+   * convert ApiStratigraphie to StratigraphicRelation used by groupManager
+   * @param relations ApiStratigraphie list
+   * @returns StratigraphicRelation list
+   */
+  private convertTOStratigraphicRelations(apiRelations: ApiStratigraphie[]): StratigraphicRelation[] {
+    return apiRelations
+      .filter(rel => rel && rel.live !== false)
+      .map(rel => this.convertSingleRelation(rel));
+  }
+
+  /**
+   * convert single ApiStratigraphie to StratigraphicRelation
+   * @param relation ApiStratigraphie
+   * @returns StratigraphicRelation
+   */
+  private convertSingleRelation(relation: ApiStratigraphie): StratigraphicRelation {
+    let anterieur: EntityInfo | null = null;
+    let posterieur: EntityInfo | null = null;
+
+    if (relation.us_anterieur) {
+      anterieur = {
+        uuid: relation.us_anterieur,
+        type: 'US',
+        faitUuid: this.getUSFait(relation.us_anterieur) || undefined
+      };
+    } else if (relation.fait_anterieur) {
+      anterieur = {
+        uuid: relation.fait_anterieur,
+        type: 'FAIT'
+      };
+    }
+
+    if (relation.us_posterieur) {
+      posterieur = {
+        uuid: relation.us_posterieur,
+        type: 'US',
+        faitUuid: this.getUSFait(relation.us_posterieur) || undefined
+      };
+    } else if (relation.fait_posterieur) {
+      posterieur = {
+        uuid: relation.fait_posterieur,
+        type: 'FAIT'
+      };
+    }
+
+    return {
+      uuid: relation.stratigraphie_uuid,
+      anterieur,
+      posterieur,
+      isContemporain: relation.is_contemporain || false,
+      live: relation.live !== false
+    };
+  }
+
 
   /**
    * checking for direct anterior/posterior/contemporary contradictions
@@ -1178,6 +1527,10 @@ export class CastorValidationService {
         }
       }
     });
+    // Propager les relations à travers les entités contemporaines
+    // this.propagateRelationsThroughSynchronousEntities(graph, activeRelations);
+    // this.addInheritedRelationsFromUSToFait(graph, activeRelations, newRelation);
+    //this.addInheritedRelationsToGraph(graph, activeRelations, newRelation);
 
     return graph;
   }
@@ -1526,7 +1879,404 @@ export class CastorValidationService {
     return { result: true };
   }
 
-  
+  /**
+   * Enrich the graph by adding inherited relations to US belonging to Faits
+   * enricher
+   * @param graph
+   * @param relations
+   * @private
+   */
+  private addInheritedRelationsToGraph(
+    graph: Map<string, Array<{to: string, relation: ApiStratigraphie | any}>>,
+    relations: ApiStratigraphie[],
+    newRelation: ApiStratigraphie // Relation en cours de validation
+  ): void {
+    // retrieve all US with their associated Fait
+    const usFaitMap = new Map<string, string>(); // Map US UUID -> Fait UUID
+    const faitUsMap = new Map<string, string[]>(); // Map Fait UUID -> Array of US UUIDs
+
+    this.w.data().objects.us.all.list.forEach(usObj => {
+      const us = usObj.item;
+      if (us.fait_uuid && us.live) {
+        usFaitMap.set(us.us_uuid, us.fait_uuid);
+
+        if (!faitUsMap.has(us.fait_uuid)) {
+          faitUsMap.set(us.fait_uuid, []);
+        }
+        faitUsMap.get(us.fait_uuid).push(us.us_uuid);
+      }
+    });
+
+    // for each relation involving a Fait, add inherited relations to its US
+    relations
+      .filter(rel => rel.live && !rel.is_contemporain)
+      // Exclure la relation en cours de validation
+      .filter(rel => {
+        return !(
+          (rel.us_anterieur === newRelation.us_anterieur && rel.us_posterieur === newRelation.us_posterieur) ||
+          (rel.fait_anterieur === newRelation.fait_anterieur && rel.fait_posterieur === newRelation.fait_posterieur) ||
+          (rel.us_anterieur === newRelation.us_anterieur && rel.fait_posterieur === newRelation.fait_posterieur) ||
+          (rel.fait_anterieur === newRelation.fait_anterieur && rel.us_posterieur === newRelation.us_posterieur)
+        );
+      })
+      .forEach(relation => {
+        // case 1: Anterior Fait (the US of the Fait inherit the "anterior" relation)
+        if (relation.fait_anterieur) {
+          const usArray = faitUsMap.get(relation.fait_anterieur) || [];
+
+          usArray.forEach(usUuid => {
+            // create edge from each US of the Fait to the same destination as the Fait
+            if (relation.us_posterieur) {
+              // US of the Fait -> Posterior US
+              if (!graph.has(usUuid)) {
+                graph.set(usUuid, []);
+              }
+              graph.get(usUuid).push({
+                to: relation.us_posterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from Fait ${this.getFaitTag(relation.fait_anterieur)}`
+                }
+              });
+            }
+
+            if (relation.fait_posterieur) {
+              // US of the Fait -> Posterior Fait
+              if (!graph.has(usUuid)) {
+                graph.set(usUuid, []);
+              }
+              graph.get(usUuid).push({
+                to: relation.fait_posterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from Fait ${this.getFaitTag(relation.fait_anterieur)}`
+                }
+              });
+            }
+          });
+        }
+
+        // case 2: Posterior Fait (the US of the Fait inherit the "posterior" relation)
+        if (relation.fait_posterieur) {
+          const usArray = faitUsMap.get(relation.fait_posterieur) || [];
+
+          usArray.forEach(usUuid => {
+            // create edge from each US of the Fait to the same destination as the Fait
+            if (relation.us_anterieur) {
+              // US of the Fait -> Anterior US
+              if (!graph.has(usUuid)) {
+                graph.set(usUuid, []);
+              }
+              graph.get(usUuid).push({
+                to: relation.us_anterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from Fait ${this.getFaitTag(relation.fait_posterieur)}`
+                }
+              });
+            }
+
+            if (relation.fait_anterieur) {
+              // US of the Fait -> Anterior Fait
+              if (!graph.has(usUuid)) {
+                graph.set(usUuid, []);
+              }
+              graph.get(usUuid).push({
+                to: relation.fait_anterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from Fait ${this.getFaitTag(relation.fait_posterieur)}`
+                }
+              });
+            }
+          });
+        }
+      });
+  }
+
+  /**
+   * Enrich the graph by adding inherited relations from US to their Faits
+   * excluding the relation being validated
+   * @param graph
+   * @param relations
+   * @private
+   */
+  private addInheritedRelationsFromUSToFait(
+    graph: Map<string, Array<{to: string, relation: ApiStratigraphie | any}>>,
+    relations: ApiStratigraphie[],
+    newRelation: ApiStratigraphie
+  ): void {
+    // retrieve all US with their associated Fait
+    const usFaitMap = new Map<string, string>(); // Map US UUID -> Fait UUID
+    const faitUsMap = new Map<string, string[]>(); // Map Fait UUID -> Array of US UUIDs
+
+    this.w.data().objects.us.all.list.forEach(usObj => {
+      const us = usObj.item;
+      if (us.fait_uuid && us.live) {
+        usFaitMap.set(us.us_uuid, us.fait_uuid);
+
+        if (!faitUsMap.has(us.fait_uuid)) {
+          faitUsMap.set(us.fait_uuid, []);
+        }
+        faitUsMap.get(us.fait_uuid).push(us.us_uuid);
+      }
+    });
+
+    // for each relation involving a US, propagate it to its Fait
+    relations
+      .filter(rel => rel.live && !rel.is_contemporain)
+      // Exclure la relation en cours de validation
+      .filter(rel => {
+        return !(
+          (rel.us_anterieur === newRelation.us_anterieur && rel.us_posterieur === newRelation.us_posterieur) ||
+          (rel.fait_anterieur === newRelation.fait_anterieur && rel.fait_posterieur === newRelation.fait_posterieur) ||
+          (rel.us_anterieur === newRelation.us_anterieur && rel.fait_posterieur === newRelation.fait_posterieur) ||
+          (rel.fait_anterieur === newRelation.fait_anterieur && rel.us_posterieur === newRelation.us_posterieur)
+        );
+      })
+      .forEach(relation => {
+        // Cas 1: US antérieure - propager au Fait
+        if (relation.us_anterieur && usFaitMap.has(relation.us_anterieur)) {
+          const faitUuid = usFaitMap.get(relation.us_anterieur);
+
+          // verify that the other element of the relation does not belong to the same Fait
+          let targetIsExternal = true;
+
+          if (relation.us_posterieur && usFaitMap.has(relation.us_posterieur)) {
+            // if the posterior US belongs to the same Fait, do not propagate
+            if (usFaitMap.get(relation.us_posterieur) === faitUuid) {
+              targetIsExternal = false;
+            }
+          }
+
+
+          // propagate only for external relations
+          if (targetIsExternal) {
+            // initialize the node of the Fait if it does not exist
+            if (!graph.has(faitUuid)) {
+              graph.set(faitUuid, []);
+            }
+
+            // add the relation from the Fait to the external entity
+            if (relation.us_posterieur) {
+              graph.get(faitUuid).push({
+                to: relation.us_posterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from US ${this.getUsTag(relation.us_anterieur)}`
+                }
+              });
+            }
+
+            if (relation.fait_posterieur) {
+              graph.get(faitUuid).push({
+                to: relation.fait_posterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from US ${this.getUsTag(relation.us_anterieur)}`
+                }
+              });
+            }
+          }
+        }
+
+        // Cas 2: US postérieure - propager au Fait
+        if (relation.us_posterieur && usFaitMap.has(relation.us_posterieur)) {
+          const faitUuid = usFaitMap.get(relation.us_posterieur);
+
+          // verify that the other element of the relation does not belong to the same Fait
+          let targetIsExternal = true;
+
+          if (relation.us_anterieur && usFaitMap.has(relation.us_anterieur)) {
+            // if the anterior US belongs to the same Fait, do not propagate
+            if (usFaitMap.get(relation.us_anterieur) === faitUuid) {
+              targetIsExternal = false;
+            }
+          }
+
+          // only propagate for external relations
+          if (targetIsExternal) {
+            // inialize the node of the Fait if it does not exist
+            if (!graph.has(faitUuid)) {
+              graph.set(faitUuid, []);
+            }
+
+            // add  the relation from the Fait to the external entity
+            if (relation.us_anterieur) {
+              graph.get(faitUuid).push({
+                to: relation.us_anterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from US ${this.getUsTag(relation.us_posterieur)}`
+                }
+              });
+            }
+
+            if (relation.fait_anterieur) {
+              graph.get(faitUuid).push({
+                to: relation.fait_anterieur,
+                relation: {
+                  ...relation,
+                  inherited: true,
+                  source: `inherited from US ${this.getUsTag(relation.us_posterieur)}`
+                }
+              });
+            }
+          }
+        }
+      });
+  }
+
+  /**
+   * Enrichit le graphe en propageant les relations à travers les entités contemporaines
+   */
+  private propagateRelationsThroughSynchronousEntities(
+    graph: Map<string, Array<{to: string, relation: any}>>,
+    relations: ApiStratigraphie[]
+  ): void {
+    // Construct a graph of synchronous relationships
+    const synchronousGraph = new Map<string, string[]>();
+
+    // collect all synchronous relations
+    relations.filter(rel => rel.live && rel.is_contemporain).forEach(relation => {
+      // Relations US-US, Fait-Fait, US-Fait
+      if (relation.us_anterieur && relation.us_posterieur) {
+        this.addSynchronousLink(synchronousGraph, relation.us_anterieur, relation.us_posterieur);
+        this.addSynchronousLink(synchronousGraph, relation.us_posterieur, relation.us_anterieur);
+      }
+      if (relation.fait_anterieur && relation.fait_posterieur) {
+        this.addSynchronousLink(synchronousGraph, relation.fait_anterieur, relation.fait_posterieur);
+        this.addSynchronousLink(synchronousGraph, relation.fait_posterieur, relation.fait_anterieur);
+      }
+      if (relation.us_anterieur && relation.fait_posterieur) {
+        this.addSynchronousLink(synchronousGraph, relation.us_anterieur, relation.fait_posterieur);
+        this.addSynchronousLink(synchronousGraph, relation.fait_posterieur, relation.us_anterieur);
+      }
+      if (relation.fait_anterieur && relation.us_posterieur) {
+        this.addSynchronousLink(synchronousGraph, relation.fait_anterieur, relation.us_posterieur);
+        this.addSynchronousLink(synchronousGraph, relation.us_posterieur, relation.fait_anterieur);
+      }
+    });
+
+    // calculate entity groups
+    const synchronousGroups = this.computeSynchronousGroups(synchronousGraph);
+
+    //for each group, propagate relations between group members
+    let hasChanges = true;
+    let iterations = 0;
+    const MAX_ITERATIONS = 20; // avoid potential infinite loops
+
+    // repeat the propagation until no new relation is added
+    while (hasChanges && iterations < MAX_ITERATIONS) {
+      hasChanges = false;
+      iterations++;
+
+      // for each group of synchronous entities
+      synchronousGroups.forEach(group => {
+        if (group.length <= 1) return; // ignore groups of size 1
+
+        // for each pair of entities in the group
+        for (let i = 0; i < group.length; i++) {
+          const entity1 = group[i];
+          const relations1 = graph.get(entity1) || [];
+
+          // for each other entity in the group
+          for (let j = 0; j < group.length; j++) {
+            if (i === j) continue;
+
+            const entity2 = group[j];
+
+
+            // create the list if it does not exist
+            if (!graph.has(entity2)) {
+              graph.set(entity2, []);
+            }
+
+            // propagate each relation from entity1 to entity2
+            for (const relation of relations1) {
+              // don't propagate to entities in the same contemporary group
+              if (!group.includes(relation.to)) {
+                // verify if this relation already exists
+                const existingRelation = graph.get(entity2).find(r => r.to === relation.to);
+
+                if (!existingRelation) {
+                  // add the propagated relation
+                  graph.get(entity2).push({
+                    to: relation.to,
+                    relation: {
+                      ...relation.relation,
+                      inherited: true,
+                      propagated: true,
+                      source: `propagated from ${this.getTagForElement(entity1)} via contemporaneity`
+                    }
+                  });
+
+                  hasChanges = true;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // propagate inverse relations
+    this.propagateInverseRelations(graph, synchronousGroups);
+  }
+
+  private propagateInverseRelations(
+    graph: Map<string, Array<{to: string, relation: any}>>,
+    synchronousGroups: string[][]
+  ): void {
+
+    // construct a map of entities to their contemporary groups
+    const entityToGroup = new Map<string, string[]>();
+    synchronousGroups.forEach(group => {
+      group.forEach(entity => {
+        entityToGroup.set(entity, group);
+      });
+    });
+
+    // for each relation A -> B, if B belongs to a contemporary group,
+    // all members of that group should be considered as targeted by A
+    graph.forEach((targets, source) => {
+      const newRelations: Array<{to: string, relation: any}> = [];
+
+      targets.forEach(target => {
+        const group = entityToGroup.get(target.to);
+
+        if (group && group.length > 1) {
+          // propane the relation to all members of the contemporary group
+          group.forEach(member => {
+            if (member !== target.to && !targets.some(t => t.to === member)) {
+              newRelations.push({
+                to: member,
+                relation: {
+                  ...target.relation,
+                  inherited: true,
+                  propagated: true,
+                  source: `propagated via contemporaneity with ${this.getTagForElement(target.to)}`
+                }
+              });
+            }
+          });
+        }
+      });
+
+      // add the new relations
+      if (newRelations.length > 0) {
+        targets.push(...newRelations);
+      }
+    });
+  }
+
   /**
    * Ajoute un lien dans le graphe des relations contemporaines
    */
@@ -2474,4 +3224,3 @@ export class CastorValidationService {
   }
 
 }
-
