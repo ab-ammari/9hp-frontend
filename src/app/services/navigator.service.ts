@@ -14,6 +14,8 @@ import {ApiDbTable, ApiSyncableObject, ApiSynchroFrontInterfaceEnum} from "../..
 import {A} from "../Core-event";
 import {UI} from "../util/ui";
 import {beforeRead} from "@popperjs/core";
+import { getTableDescription } from '../DataClasses/models/sync-obj-utilities';
+import { debounceTime } from 'rxjs';
 
 const CONTEXT: LoggerContext = {
   origin: 'NavigatorService'
@@ -32,6 +34,29 @@ export class NavigatorService extends AbstractService {
     ]);
 
     this.initNavigationSupervisor();
+    this.initUIStateSync();
+  }
+
+  private initUIStateSync() {
+    UI.state.onStoreChange.pipe(
+      debounceTime(100)
+    ).subscribe(() => {
+      const obj_list = Object.entries(UI.state.getStoredStates());
+      const queryParams: Params = {};
+      
+      obj_list.forEach(item => {
+        if (item[1]) {
+          queryParams[item[0]] = item[1];
+        }
+      });
+
+      // update URL without navigating
+      this.router.navigate([], {
+        queryParams: queryParams,
+        replaceUrl: true,
+        queryParamsHandling: '',
+      });
+    });
   }
 
   init(name) {
@@ -219,11 +244,29 @@ export class NavigatorService extends AbstractService {
 
   }
 
+  /**
   private navigateToObject(data: ApiSyncableObject, newTab?: boolean) {
     this.w.data().objects.selectObject(data).subscribe(() => {
       this.navigateTo(getObjectDetailsLocation(data.table), {}, 'merge', newTab);
     });
   }
+   */
+
+  private navigateToObject(data: ApiSyncableObject, newTab?: boolean) {
+    const info = getTableDescription(data.table);
+    const uuid_path = info.uuid_paths[0];
+    const uuid = data[uuid_path];
+
+    this.w.data().objects.selectObject(data).subscribe(() => {
+      const params: Params = {
+        [uuid_path]: uuid,
+        projet_uuid: UI.state.store.projet_uuid  // Conserver le projet
+      };
+      this.navigateTo(getObjectDetailsLocation(data.table), params, '', newTab);
+    });
+  }
+
+
 }
 
 export function getObjectDetailsLocation(obj: ApiDbTable): ApiSynchroFrontInterfaceEnum {
