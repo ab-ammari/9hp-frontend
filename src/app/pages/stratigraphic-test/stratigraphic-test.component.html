@@ -278,21 +278,24 @@
                           <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
                           <app-castor-tag-display *ngIf="conflictRelation.us_posterieur"
                                   [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_posterieur}"
-                                  [infoBulle]="true"></app-castor-tag-display>
-                                <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
-                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
-                                  [infoBulle]="true"></app-castor-tag-display>
-                                <span class="relation-type temporal-conflict-type">
-                                <app-castor-type-display
-                                [type]="conflictRelation.strati_type_uuid"
-                                [display_prefix]="false"></app-castor-type-display>
-                                 </span>
-                                <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
-                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
-                                  [infoBulle]="true"></app-castor-tag-display>
-                                <app-castor-tag-display *ngIf="conflictRelation.fait_anterieur"
-                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_anterieur}"
-                                  [infoBulle]="true"></app-castor-tag-display>
+                                  [infoBulle]="true">
+                          </app-castor-tag-display>
+                          <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
+                            [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
+                            [infoBulle]="true">
+                          </app-castor-tag-display>
+                          <span class="relation-type temporal-conflict-type">
+                          <app-castor-type-display
+                            [type]="conflictRelation.strati_type_uuid"
+                            [display_prefix]="false">
+                          </app-castor-type-display>
+                            </span>
+                          <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
+                            [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
+                            [infoBulle]="true"></app-castor-tag-display>
+                          <app-castor-tag-display *ngIf="conflictRelation.fait_anterieur"
+                            [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_anterieur}"
+                            [infoBulle]="true"></app-castor-tag-display>
 </div>
 
 
