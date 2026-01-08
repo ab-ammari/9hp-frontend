@@ -693,3 +693,373 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+// === Styles pour les cycles indirects et groupes de contemporanéité ===
+
+.cycle-type-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.indirect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+// Groupe de contemporanéité (entités entre accolades)
+.contemporaneity-group {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.1);
+  border: 1px dashed var(--ion-color-tertiary);
+  border-radius: 8px;
+  padding: 4px 8px;
+  margin: 2px 0;
+  
+  .group-bracket {
+    font-weight: bold;
+    color: var(--ion-color-tertiary);
+    font-size: 1.1em;
+    margin: 0 2px;
+  }
+  
+  .group-separator {
+    color: var(--ion-color-medium);
+    margin: 0 4px;
+  }
+  
+  // Style pour les tags à l'intérieur du groupe
+  app-castor-tag-display {
+    margin: 0 2px;
+  }
+}
+
+// Animation subtile pour les groupes au survol
+.contemporaneity-group:hover {
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.2);
+  border-style: solid;
+}
+
+// Message d'information pour les cycles indirects
+.indirect-cycle-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.08);
+  border-left: 4px solid var(--ion-color-tertiary);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 16px;
+  
+  ion-icon {
+    font-size: 1.5rem;
+    color: var(--ion-color-tertiary);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--ion-color-dark);
+    
+    strong {
+      color: var(--ion-color-tertiary-shade);
+    }
+    
+    code {
+      background-color: rgba(0, 0, 0, 0.05);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85em;
+    }
+  }
+}
+
+// Style pour les relations de contemporanéité dans le tableau
+.relation-type.contemporain-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ion-color-tertiary);
+  font-style: italic;
+  
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+// Amélioration de la zone d'affichage des entités du cycle
+.cycle-entities {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px 0;
+  
+  .arrow {
+    color: var(--ion-color-medium);
+    font-weight: bold;
+    margin: 0 4px;
+    font-size: 1.1em;
+  }
+}
+
+// Style différencié pour les cycles directs vs indirects dans l'en-tête du groupe
+.paradox-group {
+  // Badge pour distinguer visuellement les types de cycles
+  &[data-has-indirect="true"] {
+    .group-header {
+      border-left: 3px solid var(--ion-color-tertiary);
+    }
+  }
+}
+
+// Légende pour les couleurs (optionnel - à ajouter si souhaité)
+.cycle-legend {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  background-color: var(--ion-color-light);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      
+      &.direct {
+        background-color: var(--ion-color-danger);
+      }
+      
+      &.indirect {
+        background-color: var(--ion-color-tertiary);
+      }
+    }
+  }
+}
+
+// Responsive pour les groupes de contemporanéité
+@media (max-width: 576px) {
+  .contemporaneity-group {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px 10px;
+    
+    .group-bracket {
+      display: none;
+    }
+    
+    .group-separator {
+      display: none;
+    }
+    
+    // Indicateur visuel alternatif sur mobile
+    &::before {
+      content: 'Groupe :';
+      font-size: 0.75rem;
+      color: var(--ion-color-tertiary);
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+  }
+  
+  .cycle-entities {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .arrow {
+      transform: rotate(90deg);
+      margin: 4px 0;
+    }
+  }
+}
+
+// Animation pour mettre en évidence les nouveaux paradoxes détectés
+@keyframes highlightNew {
+  0% {
+    background-color: rgba(var(--ion-color-warning-rgb), 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.paradox-item.newly-detected {
+  animation: highlightNew 2s ease-out;
+}
+// === Styles pour les paradoxes temporels indirects ===
+
+.indirect-temporal-header {
+  border-left: 3px solid var(--ion-color-tertiary);
+}
+
+.paradox-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.paradox-type-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+// Affichage du groupe de contemporanéité dans l'en-tête
+.contemporaneity-group-display {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  
+  .group-label {
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    font-weight: 500;
+  }
+  
+  .inline-group {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+  }
+}
+
+// Section des détails pour paradoxes temporels indirects
+.indirect-temporal-details {
+  .relations-section {
+    margin-bottom: 20px;
+    
+    h4 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 12px 0;
+      padding: 8px 12px;
+      background-color: var(--ion-color-light);
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ion-color-dark);
+      
+      ion-icon {
+        font-size: 1.1rem;
+      }
+    }
+  }
+  
+  // Section spéciale pour la relation en conflit
+  .conflicting-relation-section {
+    h4 {
+      background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+      border-left: 4px solid var(--ion-color-danger);
+      
+      ion-icon {
+        color: var(--ion-color-danger);
+      }
+    }
+  }
+}
+
+// Style pour les lignes de relations de contemporanéité
+.contemporaneity-relation-row {
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.03);
+  
+  &:hover {
+    background-color: rgba(var(--ion-color-tertiary-rgb), 0.08);
+  }
+}
+
+// Style pour la ligne de relation en conflit
+.conflicting-relation-row {
+  background-color: rgba(var(--ion-color-danger-rgb), 0.05);
+  border-left: 3px solid var(--ion-color-danger);
+  
+  &:hover {
+    background-color: rgba(var(--ion-color-danger-rgb), 0.1);
+  }
+}
+
+// Type de relation temporelle en conflit
+.temporal-conflict-type {
+  color: var(--ion-color-danger);
+  
+  strong {
+    color: var(--ion-color-danger);
+  }
+}
+
+// Amélioration du style du badge indirect (déjà défini mais amélioré)
+.indirect-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 12px;
+  
+  ion-icon {
+    font-size: 0.9rem;
+  }
+}
+
+// Style pour le type de relation contemporaine dans les tableaux
+.relation-type.contemporain-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ion-color-tertiary);
+  font-style: italic;
+  padding: 2px 8px;
+  background-color: rgba(var(--ion-color-tertiary-rgb), 0.1);
+  border-radius: 4px;
+  
+  ion-icon {
+    font-size: 1rem;
+  }
+}
+
+// Responsive
+@media (max-width: 576px) {
+  .contemporaneity-group-display {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .inline-group {
+      flex-wrap: wrap;
+    }
+  }
+  
+  .indirect-temporal-details {
+    .relations-section h4 {
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+    }
+  }
+  
+  .contemporaneity-chain-section .chain-display code {
+    font-size: 0.8rem;
+  }
+}

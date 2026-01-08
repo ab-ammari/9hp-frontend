@@ -1,6 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { WorkerService } from '../../services/worker.service';
-import {CastorValidationService, CycleParadox, DetectedParadox} from '../../services/castor-validation.service';
+import {
+  CastorValidationService, 
+  CycleParadox, 
+  DetectedParadox,
+  CycleNodeInfo,
+  TemporalParadoxInfo
+} from '../../services/castor-validation.service';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { LOG, LoggerContext } from 'ngx-wcore';
@@ -530,5 +536,202 @@ export class StratigraphicTestComponent implements OnInit, OnDestroy {
   getParadoxTypeDescription(typeId: string | null): string {
     const type = this.paradoxTypes.find(t => t.id === typeId);
     return type?.description || '';
+  }
+
+  /**
+   * Vérifie si un paradoxe est un cycle indirect (avec groupes de contemporanéité)
+   */
+  isIndirectCycle(paradox: any): boolean {
+    return paradox.type === 'cycle' && paradox.isIndirectCycle === true;
+  }
+  
+  /**
+   * Vérifie si le cycle a des informations de groupes
+   */
+  hasCycleNodeInfos(paradox: any): boolean {
+    return this.isCycleParadox(paradox) && 
+           Array.isArray(paradox.cycleNodeInfos) && 
+           paradox.cycleNodeInfos.length > 0;
+  }
+  
+  /**
+   * Retourne les CycleNodeInfos d'un paradoxe cycle
+   */
+  getCycleNodeInfos(paradox: any): CycleNodeInfo[] {
+    if (this.isCycleParadox(paradox) && paradox.cycleNodeInfos) {
+      return paradox.cycleNodeInfos;
+    }
+    return [];
+  }
+  
+  /**
+   * Vérifie si un nœud du cycle est un groupe de contemporanéité
+   */
+  isGroupNode(nodeInfo: CycleNodeInfo): boolean {
+    return nodeInfo.isGroup && nodeInfo.memberUUIDs.length > 1;
+  }
+  
+  /**
+   * Retourne la table pour un membre d'un groupe (pour app-castor-tag-display)
+   */
+  getMemberTable(memberUUID: string): ApiDbTable | null {
+    return this.getEntityTable(memberUUID);
+  }
+  
+  /**
+   * Formate le badge pour indiquer un cycle indirect
+   */
+  getCycleBadgeLabel(paradox: any): string {
+    if (this.isIndirectCycle(paradox)) {
+      return 'Indirect';
+    }
+    return '';
+  }
+  
+  /**
+   * Compte le nombre de groupes de contemporanéité dans un cycle
+   */
+  getGroupCountInCycle(paradox: any): number {
+    if (!this.hasCycleNodeInfos(paradox)) {
+      return 0;
+    }
+    return paradox.cycleNodeInfos.filter((info: CycleNodeInfo) => info.isGroup).length;
+  }
+
+  // obtenir une description textuelle d'un groupe
+  getGroupDescription(nodeInfo: CycleNodeInfo): string {
+    if (!nodeInfo.isGroup) {
+      return nodeInfo.displayTag || '';
+    }
+    
+    const memberTags = nodeInfo.memberUUIDs.map(uuid => {
+      const table = this.getEntityTable(uuid);
+      if (table === ApiDbTable.us) {
+        const us = this.w.data().objects.us.all.findByUuid(uuid);
+        return us ? us.item.tag : uuid.substring(0, 8);
+      } else if (table === ApiDbTable.fait) {
+        const fait = this.w.data().objects.fait.all.findByUuid(uuid);
+        return fait ? fait.item.tag : uuid.substring(0, 8);
+      }
+      return uuid.substring(0, 8);
+    });
+    
+    return memberTags.join(', ');
+  }
+  
+  // formater le message d'un cycle
+  formatCycleMessage(paradox: any): string {
+    if (!this.isCycleParadox(paradox)) {
+      return paradox.message || '';
+    }
+    
+    if (this.isIndirectCycle(paradox) && this.hasCycleNodeInfos(paradox)) {
+      const nodeDescriptions = paradox.cycleNodeInfos.map((info: CycleNodeInfo) => {
+        if (info.isGroup) {
+          return `{${this.getGroupDescription(info)}}`;
+        }
+        return info.displayTag;
+      });
+      
+      return `Cycle indirect via groupes de contemporanéité : ${nodeDescriptions.join(' → ')} → ${nodeDescriptions[0]}`;
+    }
+    
+    return paradox.message || '';
+  }
+
+  // ============================================================
+  // MÉTHODES POUR LES PARADOXES TEMPORELS INDIRECTS
+  // ============================================================
+
+  /**
+   * Vérifie si un paradoxe temporal est indirect (via contemporanéité)
+   */
+  isIndirectTemporalParadox(paradox: DetectedParadox): boolean {
+    return paradox.type === 'temporal' && 
+          paradox.temporalParadoxInfo?.isIndirect === true;
+  }
+
+  /**
+   * Vérifie si un paradoxe a des informations de paradoxe temporal
+   */
+  hasTemporalParadoxInfo(paradox: DetectedParadox): boolean {
+    return paradox.temporalParadoxInfo !== undefined && 
+          paradox.temporalParadoxInfo !== null;
+  }
+
+  /**
+   * Retourne les informations du paradoxe temporal
+   */
+  getTemporalParadoxInfo(paradox: DetectedParadox): TemporalParadoxInfo | null {
+    return paradox.temporalParadoxInfo || null;
+  }
+
+  /**
+   * Retourne les UUIDs des membres du groupe de contemporanéité
+   */
+  getTemporalGroupMemberUUIDs(paradox: DetectedParadox): string[] {
+    return paradox.temporalParadoxInfo?.groupMemberUUIDs || [];
+  }
+
+  /**
+   * Retourne les tags des membres du groupe de contemporanéité
+   */
+  getTemporalGroupMemberTags(paradox: DetectedParadox): string[] {
+    return paradox.temporalParadoxInfo?.groupMemberTags || [];
+  }
+
+  /**
+   * Retourne les relations de contemporanéité impliquées
+   */
+  getContemporaneityRelations(paradox: DetectedParadox): ApiStratigraphie[] {
+    return paradox.temporalParadoxInfo?.contemporaneityRelations || [];
+  }
+
+  /**
+   * Retourne la relation temporelle en conflit
+   */
+  getConflictingTemporalRelation(paradox: DetectedParadox): ApiStratigraphie | null {
+    return paradox.temporalParadoxInfo?.conflictingTemporalRelation || null;
+  }
+
+  /**
+   * Retourne la description de la chaîne de contemporanéité
+   */
+  getContemporaneityChain(paradox: DetectedParadox): string {
+    return paradox.temporalParadoxInfo?.contemporaneityChain || '';
+  }
+
+  /**
+   * Compte le nombre de relations de contemporanéité dans un paradoxe temporal
+   */
+  getContemporaneityRelationsCount(paradox: DetectedParadox): number {
+    return paradox.temporalParadoxInfo?.contemporaneityRelations?.length || 0;
+  }
+
+  /**
+   * Vérifie si un paradoxe est indirect (cycle ou temporal)
+   */
+  isIndirectParadox(paradox: DetectedParadox): boolean {
+    if (this.isCycleParadox(paradox)) {
+      return this.isIndirectCycle(paradox);
+    }
+    if (paradox.type === 'temporal') {
+      return this.isIndirectTemporalParadox(paradox);
+    }
+    return false;
+  }
+
+  /**
+   * Formate le nombre de relations impliquées pour un paradoxe temporal indirect
+   */
+  formatTemporalRelationsCount(paradox: DetectedParadox): string {
+    if (!this.hasTemporalParadoxInfo(paradox)) {
+      return `${this.getInvolvedRelationsCount(paradox)} relation(s) impliquée(s)`;
+    }
+    
+    const contempoCount = this.getContemporaneityRelationsCount(paradox);
+    const temporalCount = 1; // La relation temporelle en conflit
+    
+    return `${contempoCount + temporalCount} relation(s) impliquée(s) (${contempoCount} contemporanéité + 1 temporelle)`;
   }
 }

@@ -82,39 +82,150 @@
             <div class="group-content" [hidden]="!expandedGroups[entry.key]">
               <div *ngFor="let paradox of entry.value; let i = index" class="paradox-item">
 
-                <!-- Affichage pour les cycles -->
+                <!-- Affichage pour les cycles (DIRECT et INDIRECT) -->
                 <ng-container *ngIf="isCycleParadox(paradox)">
                   <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
                     <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
                     <ion-label class="ion-text-wrap">
                       <div class="cycle-description">
-                        <span class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</span>
+                        <!-- Badge pour indiquer si c'est un cycle indirect -->
+                        <div class="cycle-type-indicator">
+                          <span class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</span>
+                          <ion-badge *ngIf="isIndirectCycle(paradox)" color="tertiary" class="indirect-badge">
+                            <ion-icon name="git-network-outline"></ion-icon>
+                            Indirect
+                          </ion-badge>
+                        </div>
+                        
+                        <!-- Affichage des entités du cycle -->
                         <div class="cycle-entities">
-                          <ng-container *ngFor="let nodeUUID of paradox.cycleNodesUUIDs; let i = index">
-                            <ng-container *ngIf="getEntityTable(nodeUUID) as table">
+                          
+                          <!-- CAS 1: Cycle avec CycleNodeInfos (peut contenir des groupes) -->
+                          <ng-container *ngIf="hasCycleNodeInfos(paradox)">
+                            <ng-container *ngFor="let nodeInfo of getCycleNodeInfos(paradox); let idx = index">
+                              
+                              <!-- Nœud simple (une seule entité) -->
+                              <ng-container *ngIf="!isGroupNode(nodeInfo)">
+                                <ng-container *ngIf="getEntityTable(nodeInfo.memberUUIDs[0]) as table">
+                                  <app-castor-tag-display
+                                    [description]="{table: table, uuid: nodeInfo.memberUUIDs[0]}"
+                                    [infoBulle]="true">
+                                  </app-castor-tag-display>
+                                </ng-container>
+                              </ng-container>
+                              
+                              <!-- Nœud groupe (plusieurs entités contemporaines) -->
+                              <ng-container *ngIf="isGroupNode(nodeInfo)">
+                                <div class="contemporaneity-group" 
+                                    [title]="'Groupe de contemporanéité : ' + getGroupDescription(nodeInfo)">
+                                  <span class="group-bracket">{{'{'}}</span>
+                                  <ng-container *ngFor="let memberUUID of nodeInfo.memberUUIDs; let memberIdx = index">
+                                    <ng-container *ngIf="getMemberTable(memberUUID) as memberTable">
+                                      <app-castor-tag-display
+                                        [description]="{table: memberTable, uuid: memberUUID}"
+                                        [infoBulle]="true">
+                                      </app-castor-tag-display>
+                                    </ng-container>
+                                    <span *ngIf="memberIdx < nodeInfo.memberUUIDs.length - 1" class="group-separator">,</span>
+                                  </ng-container>
+                                  <span class="group-bracket">{{'}'}}</span>
+                                </div>
+                              </ng-container>
+                              
+                              <span class="arrow">→</span>
+                            </ng-container>
+                            
+                            <!-- Fermer le cycle : répéter le premier élément -->
+                            <ng-container *ngIf="getCycleNodeInfos(paradox).length > 0">
+                              <ng-container *ngIf="!isGroupNode(getCycleNodeInfos(paradox)[0])">
+                                <ng-container *ngIf="getEntityTable(getCycleNodeInfos(paradox)[0].memberUUIDs[0]) as firstTable">
+                                  <app-castor-tag-display
+                                    [description]="{table: firstTable, uuid: getCycleNodeInfos(paradox)[0].memberUUIDs[0]}"
+                                    [infoBulle]="true">
+                                  </app-castor-tag-display>
+                                </ng-container>
+                              </ng-container>
+                              <ng-container *ngIf="isGroupNode(getCycleNodeInfos(paradox)[0])">
+                                <div class="contemporaneity-group">
+                                  <span class="group-bracket">{{'{'}}</span>
+                                  <ng-container *ngFor="let memberUUID of getCycleNodeInfos(paradox)[0].memberUUIDs; let memberIdx = index">
+                                    <ng-container *ngIf="getMemberTable(memberUUID) as memberTable">
+                                      <app-castor-tag-display
+                                        [description]="{table: memberTable, uuid: memberUUID}"
+                                        [infoBulle]="true">
+                                      </app-castor-tag-display>
+                                    </ng-container>
+                                    <span *ngIf="memberIdx < getCycleNodeInfos(paradox)[0].memberUUIDs.length - 1" class="group-separator">,</span>
+                                  </ng-container>
+                                  <span class="group-bracket">{{'}'}}</span>
+                                </div>
+                              </ng-container>
+                            </ng-container>
+                          </ng-container>
+                          
+                          <!-- CAS 2: Fallback - Cycle sans CycleNodeInfos (ancien format, cycles directs) -->
+                          <ng-container *ngIf="!hasCycleNodeInfos(paradox)">
+                            <ng-container *ngFor="let nodeUUID of paradox.cycleNodesUUIDs; let idx = index">
+                              <ng-container *ngIf="getEntityTable(nodeUUID) as table">
+                                <app-castor-tag-display
+                                  [description]="{table: table, uuid: nodeUUID}"
+                                  [infoBulle]="true">
+                                </app-castor-tag-display>
+                              </ng-container>
+                              <span class="arrow">→</span>
+                            </ng-container>
+                            <ng-container *ngIf="paradox.cycleNodesUUIDs?.length > 0 && getEntityTable(paradox.cycleNodesUUIDs[0]) as firstTable">
                               <app-castor-tag-display
-                                [description]="{table: table, uuid: nodeUUID}"
+                                [description]="{table: firstTable, uuid: paradox.cycleNodesUUIDs[0]}"
                                 [infoBulle]="true">
                               </app-castor-tag-display>
                             </ng-container>
-                            <span class="arrow">→</span>
                           </ng-container>
-                          <ng-container *ngIf="paradox.cycleNodesUUIDs?.length > 0 && getEntityTable(paradox.cycleNodesUUIDs[0]) as firstTable">
-                            <app-castor-tag-display
-                              [description]="{table: firstTable, uuid: paradox.cycleNodesUUIDs[0]}"
-                              [infoBulle]="true">
-                            </app-castor-tag-display>
-                          </ng-container>
+                          
                         </div>
                       </div>
                     </ion-label>
                   </ion-item>
 
+                  <!-- Détails du cycle (tableau des relations) -->
                   <div *ngIf="isCycleExpanded(entry.key, i)" class="cycle-details">
+                    <!-- Message explicatif pour les cycles indirects -->
+                    <div *ngIf="isIndirectCycle(paradox)" class="indirect-cycle-info">
+                      <ion-icon name="information-circle-outline"></ion-icon>
+                      <p>
+                        Ce cycle est <strong>indirect</strong> : il n'existe qu'à travers les groupes de contemporanéité.
+                        Les entités entre accolades <code>{{'{'}}...{{'}'}}</code> sont contemporaines entre elles.
+                        <span *ngIf="getGroupCountInCycle(paradox) > 0">
+                          ({{ getGroupCountInCycle(paradox) }} groupe(s) de contemporanéité impliqué(s))
+                        </span>
+                      </p>
+                    </div>
+                    
                     <table class="table strati-relation-table">
                       <tbody>
                         <tr *ngFor="let relation of paradox.allRelations" [attr.data-relation-id]="relation.stratigraphie_uuid">
                           <td class="relation-content">
+                            <!-- Relation de contemporanéité -->
+                            <ng-container *ngIf="relation.is_contemporain">
+                              <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <span class="relation-type contemporain-type">
+                                <ion-icon name="swap-horizontal-outline"></ion-icon>
+                                contemporain
+                              </span>
+                              <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                [infoBulle]="true"></app-castor-tag-display>
+                            </ng-container>
+                            
+                            <!-- Relation temporelle (sous/sur) -->
                             <ng-container *ngIf="!relation.is_contemporain">
                               <app-castor-tag-display *ngIf="relation.us_posterieur"
                                 [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
@@ -143,65 +254,223 @@
                   </div>
                 </ng-container>
 
-                <!-- Affichage pour les autres types -->
+                <!-- Affichage pour les autres types (temporal, consistency, containment) -->
                 <ng-container *ngIf="!isCycleParadox(paradox)">
-                  <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
-                    <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
-                    <ion-label class="ion-text-wrap">
-                      <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
-                      <p class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relations impliquées</p>
-                    </ion-label>
-                  </ion-item>
+                  
+                  <!-- ============================================================ -->
+                  <!-- CAS 1 : Paradoxe TEMPORAL INDIRECT (via contemporanéité) -->
+                  <!-- ============================================================ -->
+                  <ng-container *ngIf="paradox.type === 'temporal' && isIndirectTemporalParadox(paradox)">
+                    <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header indirect-temporal-header">
+                      <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                      <ion-label class="ion-text-wrap">
+                        <div class="paradox-header-content">
+                          <!-- Badge Indirect -->
+                          <div class="paradox-type-indicator">
+                            <ion-badge color="tertiary" class="indirect-badge">
+                              <ion-icon name="git-network-outline"></ion-icon>
+                              Indirect
+                            </ion-badge>
+                          </div>
+                          
+                          <div class="relations-section conflicting-relation-section" *ngIf="getConflictingTemporalRelation(paradox) as conflictRelation">
+                          <!-- Message court -->
+                          <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
+                          <app-castor-tag-display *ngIf="conflictRelation.us_posterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <span class="relation-type temporal-conflict-type">
+                                <app-castor-type-display
+                                [type]="conflictRelation.strati_type_uuid"
+                                [display_prefix]="false"></app-castor-type-display>
+                                 </span>
+                                <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="conflictRelation.fait_anterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+</div>
 
-                  <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details">
-                    <div class="detailed-message">
-                      <p>{{ paradox.message }}</p>
+
+                          <!-- Affichage du groupe de contemporanéité -->
+                          <div class="contemporaneity-group-display" *ngIf="hasTemporalParadoxInfo(paradox)">
+                            <span class="group-label">Groupe de contemporanéité :</span>
+                            <div class="contemporaneity-group inline-group">
+                              <span class="group-bracket">{{ '{' }}</span>
+                              <ng-container *ngFor="let memberUUID of getTemporalGroupMemberUUIDs(paradox); let memberIdx = index">
+                                <ng-container *ngIf="getEntityTable(memberUUID) as memberTable">
+                                  <app-castor-tag-display
+                                    [description]="{table: memberTable, uuid: memberUUID}"
+                                    [infoBulle]="true">
+                                  </app-castor-tag-display>
+                                </ng-container>
+                                <span *ngIf="memberIdx < getTemporalGroupMemberUUIDs(paradox).length - 1" class="group-separator">,</span>
+                              </ng-container>
+                              <span class="group-bracket">{{ '}' }}</span>
+                            </div>
+                          </div>
+                          
+                          <!-- Compteur de relations -->
+                          <p class="relation-count">{{ formatTemporalRelationsCount(paradox) }}</p>
+                        </div>
+                      </ion-label>
+                    </ion-item>
+
+                    <!-- Détails du paradoxe temporal indirect -->
+                    <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details indirect-temporal-details">
+                      <!-- Message d'information -->
+                      <div class="indirect-cycle-info">
+                        <ion-icon name="information-circle-outline"></ion-icon>
+                        <p>
+                          Ce paradoxe est <strong>indirect</strong> : les deux entités sont contemporaines via une chaîne de relations de contemporanéité.
+                          Une relation temporelle ne peut pas exister entre des entités contemporaines.
+                        </p>
+                      </div>
+                      
+                      <!-- Section : Relations de contemporanéité -->
+                      <div class="relations-section" *ngIf="getContemporaneityRelations(paradox).length > 0">
+                        <h4>
+                          <ion-icon name="swap-horizontal-outline"></ion-icon>
+                          Relations de contemporanéité ({{ getContemporaneityRelations(paradox).length }})
+                        </h4>
+                        <table class="table strati-relation-table">
+                          <tbody>
+                            <tr *ngFor="let relation of getContemporaneityRelations(paradox)" 
+                                [attr.data-relation-id]="relation.stratigraphie_uuid"
+                                class="contemporaneity-relation-row">
+                              <td class="relation-content">
+                                <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <span class="relation-type contemporain-type">
+                                  <ion-icon name="swap-horizontal-outline"></ion-icon>
+                                  contemporain
+                                </span>
+                                <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                              </td>
+                              <td class="text-end align-middle action-column">
+                                <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
+                                  (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)"></ion-icon>
+                                <ion-icon *ngIf="canDeleteRelation(relation)" name="trash-outline" class="delete-icon" title="Supprimer"
+                                  (click)="$event.stopPropagation(); deleteRelation(relation, $event)"></ion-icon>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      <!-- Section : Relation temporelle en conflit -->
+                      <div class="relations-section conflicting-relation-section" *ngIf="getConflictingTemporalRelation(paradox) as conflictRelation">
+                        <h4>
+                          <ion-icon name="warning-outline" color="danger"></ion-icon>
+                          Relation temporelle en conflit
+                        </h4>
+                        <table class="table strati-relation-table">
+                          <tbody>
+                            <tr [attr.data-relation-id]="conflictRelation.stratigraphie_uuid" class="conflicting-relation-row">
+                              <td class="relation-content">
+                                <app-castor-tag-display *ngIf="conflictRelation.us_posterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <span class="relation-type temporal-conflict-type"><strong>sous</strong></span>
+                                <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="conflictRelation.fait_anterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                              </td>
+                              <td class="text-end align-middle action-column">
+                                <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
+                                  (click)="$event.stopPropagation(); simulateRelationRemoval(conflictRelation, $event)"></ion-icon>
+                                <ion-icon *ngIf="canDeleteRelation(conflictRelation)" name="trash-outline" class="delete-icon" title="Supprimer"
+                                  (click)="$event.stopPropagation(); deleteRelation(conflictRelation, $event)"></ion-icon>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                    <table class="table strati-relation-table">
-                      <tbody>
-                        <tr *ngFor="let relation of paradox.relations" [attr.data-relation-id]="relation.stratigraphie_uuid">
-                          <td class="relation-content">
-                            <ng-container *ngIf="!relation.is_contemporain">
-                              <app-castor-tag-display *ngIf="relation.us_posterieur"
-                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
-                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <span class="relation-type"><strong>sous</strong></span>
-                              <app-castor-tag-display *ngIf="relation.us_anterieur"
-                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
-                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                            </ng-container>
-                            <ng-container *ngIf="relation.is_contemporain">
-                              <app-castor-tag-display *ngIf="relation.us_posterieur"
-                                [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <app-castor-tag-display *ngIf="relation.fait_posterieur"
-                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <span class="relation-type">contemporain à</span>
-                              <app-castor-tag-display *ngIf="relation.us_anterieur"
-                                [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                              <app-castor-tag-display *ngIf="relation.fait_anterieur"
-                                [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
-                                [infoBulle]="true"></app-castor-tag-display>
-                            </ng-container>
-                          </td>
-                          <td class="text-end align-middle action-column">
-                            <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
-                              (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)"></ion-icon>
-                            <ion-icon *ngIf="canDeleteRelation(relation)" name="trash-outline" class="delete-icon" title="Supprimer"
-                              (click)="$event.stopPropagation(); deleteRelation(relation, $event)"></ion-icon>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                  </ng-container>
+
+                  <!-- ============================================================ -->
+                  <!-- CAS 2 : Paradoxes SIMPLES (temporal direct, consistency, containment) -->
+                  <!-- ============================================================ -->
+                  <ng-container *ngIf="!(paradox.type === 'temporal' && isIndirectTemporalParadox(paradox))">
+                    <ion-item button detail (click)="toggleCycleExpand(entry.key, i, $event)" class="cycle-header">
+                      <ion-icon slot="start" [name]="isCycleExpanded(entry.key, i) ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                      <ion-label class="ion-text-wrap">
+                        <p class="paradox-summary" [innerHTML]="paradox.message || getShortMessage(paradox)"></p>
+                        <p class="relation-count">{{ getInvolvedRelationsCount(paradox) }} relation(s) impliquée(s)</p>
+                      </ion-label>
+                    </ion-item>
+
+                    <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details">
+                      <div class="detailed-message">
+                        <p>{{ paradox.message }}</p>
+                      </div>
+                      <table class="table strati-relation-table">
+                        <tbody>
+                          <tr *ngFor="let relation of paradox.relations" [attr.data-relation-id]="relation.stratigraphie_uuid">
+                            <td class="relation-content">
+                              <ng-container *ngIf="!relation.is_contemporain">
+                                <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <span class="relation-type"><strong>sous</strong></span>
+                                <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                              </ng-container>
+                              <ng-container *ngIf="relation.is_contemporain">
+                                <app-castor-tag-display *ngIf="relation.us_posterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_posterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <span class="relation-type">contemporain à</span>
+                                <app-castor-tag-display *ngIf="relation.us_anterieur"
+                                  [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                                <app-castor-tag-display *ngIf="relation.fait_anterieur"
+                                  [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
+                                  [infoBulle]="true"></app-castor-tag-display>
+                              </ng-container>
+                            </td>
+                            <td class="text-end align-middle action-column">
+                              <ion-icon name="eye-outline" class="preview-icon" title="Voir l'impact"
+                                (click)="$event.stopPropagation(); simulateRelationRemoval(relation, $event)"></ion-icon>
+                              <ion-icon *ngIf="canDeleteRelation(relation)" name="trash-outline" class="delete-icon" title="Supprimer"
+                                (click)="$event.stopPropagation(); deleteRelation(relation, $event)"></ion-icon>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </ng-container>
+                  
                 </ng-container>
               </div>
             </div>
