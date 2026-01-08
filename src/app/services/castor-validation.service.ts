@@ -71,6 +71,8 @@ export interface DetectedParadox {
   relatedRelations?: ApiStratigraphie[]; // Relations liées au paradoxe
   debugInfo?: any;
   shortMessage?: string;
+  /** informations pour les paradoxes temporels indirects */
+  temporalParadoxInfo?: TemporalParadoxInfo;
 }
 
 export interface CycleParadox extends DetectedParadox {
@@ -78,6 +80,38 @@ export interface CycleParadox extends DetectedParadox {
   cycleNodes: string[];
   allRelations: ApiStratigraphie[];
   cycleNodesUUIDs?: string[];
+  /** Structure détaillée pour les cycles avec groupes de contemporanéité */
+  cycleNodeInfos?: CycleNodeInfo[];
+  /** Indique si c'est un cycle indirect (détecté via logique avancée) */
+  isIndirectCycle?: boolean;
+}
+
+export interface CycleNodeInfo {
+  /** UUIDs des membres du nœud (un seul élément si entité simple, plusieurs si groupe) */
+  memberUUIDs: string[];
+  /** Indique si ce nœud est un groupe de contemporanéité */
+  isGroup: boolean;
+  /** Tags formatés pour l'affichage */
+  displayTag?: string;
+}
+
+/**
+ * Information sur un paradoxe temporal indirect
+ * (relation temporelle entre entités contemporaines)
+ */
+export interface TemporalParadoxInfo {
+  /** Indique si c'est un paradoxe indirect (via contemporanéité) */
+  isIndirect: boolean;
+  /** UUIDs des membres du groupe de contemporanéité */
+  groupMemberUUIDs?: string[];
+  /** Tags des membres pour l'affichage */
+  groupMemberTags?: string[];
+  /** Relations de contemporanéité qui forment le groupe */
+  contemporaneityRelations?: ApiStratigraphie[];
+  /** La relation temporelle en conflit */
+  conflictingTemporalRelation?: ApiStratigraphie;
+  /** Description de la chaîne de contemporanéité */
+  contemporaneityChain?: string;
 }
 
 interface ExplorationContext {
@@ -835,6 +869,9 @@ export class CastorValidationService {
     this.workerReady = false;
     this.workerGraphPromise = null;
     this.workerFailureLogged = false;
+    
+    this.groupManagerSynced = false;
+
     if (this.workerSupported) {
       this.scheduleWorkerGraphSync();
     }
@@ -892,7 +929,7 @@ export class CastorValidationService {
         return {
           result: result.result,
           message: result.message,
-          paradoxType: validator.type
+          paradoxType: result.paradoxType || validator.type,
         };
       }
     }
@@ -1108,8 +1145,7 @@ export class CastorValidationService {
       return {
         result: false,
         message,
-        // IMPORTANT : Type 'contemporaneity_conflict' pour différencier
-        paradoxType: 'contemporaneity_conflict',
+        paradoxType: 'temporal',
         shortMessage: `<strong>${tag1}</strong> et <strong>${tag2}</strong> sont contemporains`
       };
     }
@@ -2436,7 +2472,10 @@ export class CastorValidationService {
    * @param newStrati
    * @param existingRelations
    */
-  checkFaitRelationConsistency(newStrati: ApiStratigraphie, existingRelations: ApiStratigraphie[]): ValidationResult {
+  checkFaitRelationConsistency(
+    newStrati: ApiStratigraphie, 
+    existingRelations: ApiStratigraphie[]
+  ): ValidationResult {
     const implicitCheck = this.checkImplicitFaitUsRelations(newStrati, existingRelations);
     if (!implicitCheck.result) {
       return implicitCheck;
@@ -2841,7 +2880,7 @@ export class CastorValidationService {
     // Construire le message d'erreur détaillé
     let errorMessage = ''
     conflictExamples.forEach((example, index) => {
-      errorMessage += `${index + 1}. Relation de type "${example.type}": ${example.description}\n`;
+      errorMessage += `${index + 1}. Relation de type "${example.type}": ${example.description} \n`;
     });
 
     // Générer le message court pour l'en-tête
@@ -2901,23 +2940,23 @@ export class CastorValidationService {
     let description = '';
 
     if (rel.us_anterieur) {
-      description += `US ${this.getUsTag(rel.us_anterieur)}`;
+      description += `<strong>${this.getUsTag(rel.us_anterieur)}</strong>`;
       if (this.getUSFait(rel.us_anterieur)) {
-        description += ` (Fait ${this.getFaitTag(this.getUSFait(rel.us_anterieur))})`;
+        description += `<strong>(${this.getFaitTag(this.getUSFait(rel.us_anterieur))})</strong>`;
       }
     } else if (rel.fait_anterieur) {
-      description += `Fait ${this.getFaitTag(rel.fait_anterieur)}`;
+      description += `<strong>${this.getFaitTag(rel.fait_anterieur)}</strong>`;
     }
 
     description += rel.is_contemporain ? ' est contemporain(e) à ' : ' est antérieur(e) à ';
 
     if (rel.us_posterieur) {
-      description += `US ${this.getUsTag(rel.us_posterieur)}`;
+      description += `<strong>${this.getUsTag(rel.us_posterieur)}</strong>`;
       if (this.getUSFait(rel.us_posterieur)) {
-        description += ` (Fait ${this.getFaitTag(this.getUSFait(rel.us_posterieur))})`;
+        description += `<strong>(${this.getFaitTag(this.getUSFait(rel.us_posterieur))})</strong>`;
       }
     } else if (rel.fait_posterieur) {
-      description += `Fait ${this.getFaitTag(rel.fait_posterieur)}`;
+      description += `<strong>${this.getFaitTag(rel.fait_posterieur)}</strong>`;
     }
 
     return description;
@@ -3040,90 +3079,917 @@ export class CastorValidationService {
   }
 
   public findAllParadoxes(paradoxType?: 'containment' | 'consistency' | 'temporal' | 'cycle'): DetectedParadox[] {
-    this.ensureCacheIsReady();
-    const startTime = performance.now();
+  this.ensureCacheIsReady();
+  const startTime = performance.now();
 
-    const relations = this.liveRelations.filter(rel => rel?.live !== false);
-    const relationLookup = this.buildRelationLookup(relations);
+  const relations = this.liveRelations.filter(rel => rel?.live !== false);
+  const relationLookup = this.buildRelationLookup(relations);
 
-    const paradoxes: DetectedParadox[] = [];
-    const uniqueCycles = new Map<string, CycleParadox>();
-    const relationInCycle = new Map<string, string>();
-    const validators = this.buildValidatorDescriptors(paradoxType, relations);
+  const paradoxes: DetectedParadox[] = [];
+  const uniqueCycles = new Map<string, CycleParadox>();
+  const relationInCycle = new Map<string, string>();
+  const entitiesInDirectCycles = new Set<string>();
+  
+  const validators = this.buildValidatorDescriptors(paradoxType, relations);
 
-    for (const relation of relations) {
-      const relationId = this.getRelationId(relation);
-      if (relationInCycle.has(relationId)) {
-        continue;
-      }
+  // ============================================================
+  // PHASE 1 : Détection des paradoxes SIMPLES (directs)
+  // ============================================================
+  for (const relation of relations) {
+    const relationId = this.getRelationId(relation);
+    if (relationInCycle.has(relationId)) {
+      continue;
+    }
 
-      for (const validator of validators) {
-        const result = validator.fn(relation);
+    for (const validator of validators) {
+      const result = validator.fn(relation);
 
-        if (!result.result) {
-          if (validator.type === 'cycle' && result.cycleInfo) {
-            const cycleId = result.cycleInfo.cycleId;
+      if (!result.result) {
+        if (validator.type === 'cycle' && result.cycleInfo) {
+          const cycleId = result.cycleInfo.cycleId;
 
-            if (!uniqueCycles.has(cycleId)) {
-              const cycleRelations = this.findRelationsInCycle(
-                result.cycleInfo.cycleNodesUUIDs,
-                relationLookup
-              );
+          if (!uniqueCycles.has(cycleId)) {
+            const cycleRelations = this.findRelationsInCycle(
+              result.cycleInfo.cycleNodesUUIDs,
+              relationLookup
+            );
 
-              const cycleParadox: CycleParadox = {
-                type: 'cycle',
-                message: result.message,
-                relations: [relation],
-                cycleId: cycleId,
-                cycleNodes: result.cycleInfo.cycleNodes,
-                allRelations: cycleRelations,
-                cycleNodesUUIDs : result.cycleInfo.cycleNodesUUIDs
-              };
+            const cycleNodeInfos: CycleNodeInfo[] = result.cycleInfo.cycleNodesUUIDs.map(uuid => ({
+              memberUUIDs: [uuid],
+              isGroup: false,
+              displayTag: this.getTagForElement(uuid)
+            }));
 
-              uniqueCycles.set(cycleId, cycleParadox);
+            const cycleParadox: CycleParadox = {
+              type: 'cycle',
+              message: result.message,
+              relations: [relation],
+              cycleId: cycleId,
+              cycleNodes: result.cycleInfo.cycleNodes,
+              allRelations: cycleRelations,
+              cycleNodesUUIDs: result.cycleInfo.cycleNodesUUIDs,
+              cycleNodeInfos: cycleNodeInfos,
+              isIndirectCycle: false
+            };
 
-              cycleRelations.forEach(rel => {
-                relationInCycle.set(this.getRelationId(rel), cycleId);
-              });
-            }
-            break;
-          } else {
-            const relationsToInclude = result.conflictingRelations
-              ? [relation, ...result.conflictingRelations]
-              : [relation];
+            uniqueCycles.set(cycleId, cycleParadox);
 
-            paradoxes.push({
-              type: validator.type,
-              message: result.message || `Paradoxe de type ${validator.type} détecté`,
-              relations: relationsToInclude,
-              shortMessage: result.shortMessage,
-              debugInfo: {
-                conflictingRelationsCount: result.conflictingRelations?.length || 0
-              }
+            result.cycleInfo.cycleNodesUUIDs.forEach(uuid => {
+              entitiesInDirectCycles.add(uuid);
             });
-            break;
+
+            cycleRelations.forEach(rel => {
+              relationInCycle.set(this.getRelationId(rel), cycleId);
+            });
           }
+          break;
+        } else {
+          const relationsToInclude = result.conflictingRelations
+            ? [relation, ...result.conflictingRelations]
+            : [relation];
+
+          paradoxes.push({
+            type: validator.type,
+            message: result.message || `Paradoxe de type ${validator.type} détecté`,
+            relations: relationsToInclude,
+            shortMessage: result.shortMessage,
+            debugInfo: {
+              conflictingRelationsCount: result.conflictingRelations?.length || 0
+            }
+          });
+          break;
         }
       }
     }
+  }
 
-    uniqueCycles.forEach(cycle => paradoxes.push(cycle));
-
-    const totalTime = performance.now() - startTime;
-    LOG.debug.log(
-      {...CONTEXT, action: 'findAllParadoxes'},
-      `Completed in ${totalTime.toFixed(2)}ms`,
-      {count: paradoxes.length, filter: paradoxType ?? 'all'}
+  // ============================================================
+  // PHASE 2 : Détection des paradoxes AVANCÉS (indirects)
+  // CORRECTION : Forcer la resynchronisation du groupManager
+  // ============================================================
+  if (this.useAdvancedDetection) {
+    // FORCER la resynchronisation pour s'assurer que les groupes sont à jour
+    this.forceGroupManagerResync();
+    
+    const advancedParadoxes = this.findAdvancedParadoxes(
+      relations,
+      paradoxType,
+      entitiesInDirectCycles,
+      uniqueCycles
     );
+    
+    advancedParadoxes.forEach(paradox => {
+      if (paradox.type === 'cycle') {
+        const cycleParadox = paradox as CycleParadox;
+        if (!uniqueCycles.has(cycleParadox.cycleId)) {
+          uniqueCycles.set(cycleParadox.cycleId, cycleParadox);
+        }
+      } else {
+        paradoxes.push(paradox);
+      }
+    });
+  }
 
+  uniqueCycles.forEach(cycle => paradoxes.push(cycle));
+
+  const totalTime = performance.now() - startTime;
+  LOG.debug.log(
+    {...CONTEXT, action: 'findAllParadoxes'},
+    `Completed in ${totalTime.toFixed(2)}ms`,
+    {count: paradoxes.length, filter: paradoxType ?? 'all'}
+  );
+
+  return paradoxes;
+}
+
+  /**
+ * Détecte les paradoxes INDIRECTS via les groupes de contemporanéité
+ * 
+ * APPROCHE CORRIGÉE :
+ * Au lieu de vérifier chaque relation individuellement (ce qui peut créer des faux positifs),
+ * on détecte directement les cycles dans le graphe quotient puis on filtre ceux
+ * qui ne sont pas déjà couverts par la détection SIMPLE.
+ */
+private findAdvancedParadoxes(
+  relations: ApiStratigraphie[],
+  paradoxType: 'containment' | 'consistency' | 'temporal' | 'cycle' | null | undefined,
+  entitiesInDirectCycles: Set<string>,
+  existingCycles: Map<string, CycleParadox>
+): DetectedParadox[] {
+  const paradoxes: DetectedParadox[] = [];
+  
+  // S'assurer que le groupManager est synchronisé
+  this.ensureGroupManagerSynced();
+  
+  if (!this.groupManagerSynced) {
     return paradoxes;
   }
+
+  // Collecter les signatures des cycles directs existants
+  const processedCycleSignatures = new Set<string>();
+  existingCycles.forEach((cycle) => {
+    if (cycle.cycleNodesUUIDs) {
+      const signature = this.buildCycleSignature(cycle.cycleNodesUUIDs);
+      processedCycleSignatures.add(signature);
+    }
+  });
+
+  // ============================================================
+  // NOUVELLE APPROCHE : Détection directe des cycles dans le graphe quotient
+  // ============================================================
+  if (!paradoxType || paradoxType === 'cycle') {
+    const indirectCycles = this.detectIndirectCyclesInQuotientGraph(
+      entitiesInDirectCycles,
+      processedCycleSignatures
+    );
+    
+    indirectCycles.forEach(cycleParadox => {
+      if (!existingCycles.has(cycleParadox.cycleId)) {
+        paradoxes.push(cycleParadox);
+      }
+    });
+  }
+
+  // ============================================================
+  // Détection des paradoxes temporels via contemporanéité (SAME_GROUP)
+  // ============================================================
+  if (!paradoxType || paradoxType === 'temporal') {
+    const temporalParadoxes = this.detectTemporalParadoxesViaContemporaneity(
+      relations,
+      entitiesInDirectCycles
+    );
+    
+    temporalParadoxes.forEach(paradox => {
+      paradoxes.push(paradox);
+    });
+  }
+
+  return paradoxes;
+}
+
+/**
+ * Force la resynchronisation complète du groupManager
+ * À appeler avant toute détection avancée pour garantir la cohérence
+ */
+private forceGroupManagerResync(): void {
+  if (!this.useAdvancedDetection) {
+    return;
+  }
+  
+  // Invalider le cache
+  this.groupManagerSynced = false;
+  
+  // Reconstruire le groupManager
+  try {
+    const relations = this.convertTOStratigraphicRelations(this.liveRelations);
+    this.groupManager.rebuild(relations);
+    this.groupManagerSynced = true;
+    
+    LOG.debug.log(
+      {...CONTEXT, action: 'forceGroupManagerResync'},
+      `GroupManager resynchronized with ${relations.length} relations, ` +
+      `${this.groupManager.getAllGroups().size} groups`
+    );
+  } catch (error) {
+    LOG.error.log(
+      {...CONTEXT, action: 'forceGroupManagerResync'},
+      'Failed to resync GroupManager',
+      error
+    );
+    this.groupManagerSynced = false;
+  }
+}
+
+/**
+ * Détecte les cycles indirects directement dans le graphe quotient
+ * 
+ * Un cycle est "indirect" s'il :
+ * 1. Contient au moins un groupe de contemporanéité (pas seulement des entités simples)
+ * 2. N'est pas déjà détecté par la logique SIMPLE (cycle entre entités individuelles)
+ */
+private detectIndirectCyclesInQuotientGraph(
+  entitiesInDirectCycles: Set<string>,
+  processedSignatures: Set<string>
+): CycleParadox[] {
+  const cycles: CycleParadox[] = [];
+  
+  // Récupérer tous les nœuds du graphe quotient
+  const debugState = this.groupManager.getDebugState();
+  const allGroups = debugState.groups;
+  
+  // Détecter les cycles via DFS dans le graphe quotient
+  const detectedCycles = this.findAllCyclesInQuotientGraph();
+  
+  for (const cyclePath of detectedCycles) {
+    // Vérifier que le cycle est complet et valide
+    if (!this.isValidCycle(cyclePath)) {
+      continue;
+    }
+    
+    // Construire la signature pour éviter les doublons
+    const signature = this.buildCycleSignature(cyclePath);
+    if (processedSignatures.has(signature)) {
+      continue;
+    }
+    
+    // Vérifier si c'est vraiment un cycle INDIRECT
+    const isIndirect = this.isTrulyIndirectCycle(
+      cyclePath,
+      entitiesInDirectCycles,
+      processedSignatures
+    );
+    
+    if (!isIndirect) {
+      continue;
+    }
+    
+    // Construire les informations du cycle
+    const cycleNodeInfos = this.buildCycleNodeInfosFromGroups(cyclePath);
+    const cycleRelations = this.findRelationsForIndirectCycle(
+      cyclePath,
+      this.liveRelations
+    );
+    
+    // Vérifier qu'on a trouvé des relations (sinon le cycle n'est pas réel)
+    if (cycleRelations.length === 0) {
+      LOG.warn.log(
+        {...CONTEXT, action: 'detectIndirectCyclesInQuotientGraph'},
+        'Cycle détecté sans relations associées, ignoré',
+        { cyclePath }
+      );
+      continue;
+    }
+    
+    const cycleId = cycleNodeInfos.map(info => info.displayTag).join(' → ');
+    
+    const cycleParadox: CycleParadox = {
+      type: 'cycle',
+      message: this.buildIndirectCycleMessage(cycleNodeInfos),
+      relations: cycleRelations.slice(0, 1), // La première relation comme "déclencheur"
+      cycleId: cycleId,
+      cycleNodes: cycleNodeInfos.map(info => info.displayTag),
+      allRelations: cycleRelations,
+      cycleNodesUUIDs: cyclePath,
+      cycleNodeInfos: cycleNodeInfos,
+      isIndirectCycle: true,
+      shortMessage: this.buildIndirectCycleShortMessage(cycleNodeInfos)
+    };
+    
+    cycles.push(cycleParadox);
+    processedSignatures.add(signature);
+  }
+  
+  return cycles;
+}
+
+/**
+ * Trouve tous les cycles dans le graphe quotient via DFS
+ */
+private findAllCyclesInQuotientGraph(): string[][] {
+  const cycles: string[][] = [];
+  const globalVisited = new Set<string>();
+  
+  // ============================================================
+  // ÉTAPE 1 : Collecter TOUS les nœuds du graphe quotient
+  // ============================================================
+  const nodes = new Set<string>();
+  
+  // Ajouter tous les groupes de contemporanéité
+  this.groupManager.getAllGroups().forEach((_, root) => {
+    nodes.add(root);
+  });
+  
+  // Ajouter toutes les entités impliquées dans des relations temporelles
+  // (même si elles ne sont pas dans un groupe)
+  this.liveRelations.forEach(rel => {
+    if (rel.live === false) return;
+    
+    const entities = [
+      rel.us_anterieur,
+      rel.us_posterieur,
+      rel.fait_anterieur,
+      rel.fait_posterieur
+    ].filter(Boolean);
+    
+    entities.forEach(uuid => {
+      // Trouver le groupe de cette entité, ou l'entité elle-même si pas de groupe
+      let nodeId = this.groupManager.findGroup(uuid);
+      
+      if (!nodeId) {
+        // L'entité n'est pas enregistrée dans le groupManager
+        // On l'ajoute comme son propre "groupe"
+        nodeId = uuid;
+      }
+      
+      nodes.add(nodeId);
+    });
+  });
+  
+  LOG.debug.log(
+    {...CONTEXT, action: 'findAllCyclesInQuotientGraph'},
+    `Analyzing ${nodes.size} nodes in quotient graph`
+  );
+  
+  // ============================================================
+  // ÉTAPE 2 : DFS depuis chaque nœud pour trouver les cycles
+  // ============================================================
+  const nodeArray = Array.from(nodes);
+  
+  for (const startNode of nodeArray) {
+    const visited = new Set<string>();
+    const recursionStack = new Set<string>();
+    const path: string[] = [];
+    
+    this.dfsForCycles(startNode, visited, recursionStack, path, cycles, nodes);
+  }
+  
+  // Dédupliquer les cycles
+  return this.deduplicateCycles(cycles);
+}
+
+/**
+ * DFS récursif pour trouver les cycles
+ */
+private dfsForCycles(
+  node: string,
+  visited: Set<string>,
+  recursionStack: Set<string>,
+  path: string[],
+  cycles: string[][],
+  validNodes: Set<string>
+): void {
+  // Vérifier que le nœud est valide
+  if (!validNodes.has(node)) {
+    return;
+  }
+  
+  if (recursionStack.has(node)) {
+    // Cycle trouvé !
+    const cycleStart = path.indexOf(node);
+    if (cycleStart !== -1) {
+      const cycle = path.slice(cycleStart);
+      if (cycle.length >= 2) {
+        cycles.push([...cycle]);
+        LOG.debug.log(
+          {...CONTEXT, action: 'dfsForCycles'},
+          `Cycle found: ${cycle.join(' → ')} → ${cycle[0]}`
+        );
+      }
+    }
+    return;
+  }
+  
+  if (visited.has(node)) {
+    return;
+  }
+  
+  visited.add(node);
+  recursionStack.add(node);
+  path.push(node);
+  
+  // Trouver les successeurs
+  const successors = this.getQuotientGraphSuccessors(node);
+  
+  for (const successor of successors) {
+    this.dfsForCycles(successor, visited, recursionStack, path, cycles, validNodes);
+  }
+  
+  path.pop();
+  recursionStack.delete(node);
+}
+
+/**
+ * Récupère les successeurs d'un nœud dans le graphe quotient
+ * (les nœuds vers lesquels ce nœud a une arête)
+ */
+private getQuotientGraphSuccessors(nodeId: string): string[] {
+  const successors: string[] = [];
+  
+  // Parcourir les relations temporelles pour trouver les arêtes sortantes
+  this.liveRelations
+    .filter(rel => rel.live !== false && !rel.is_contemporain)
+    .forEach(rel => {
+      const posterieurUuid = rel.us_posterieur || rel.fait_posterieur;
+      const anterieurUuid = rel.us_anterieur || rel.fait_anterieur;
+      
+      if (!posterieurUuid || !anterieurUuid) return;
+      
+      const groupPost = this.groupManager.findGroup(posterieurUuid);
+      const groupAnt = this.groupManager.findGroup(anterieurUuid);
+      
+      // Arête dans le graphe quotient : postérieur → antérieur
+      if (groupPost === nodeId && groupAnt && groupAnt !== nodeId) {
+        if (!successors.includes(groupAnt)) {
+          successors.push(groupAnt);
+        }
+      }
+    });
+  
+  return successors;
+}
+
+/**
+ * Déduplique les cycles (même cycle trouvé depuis différents points de départ)
+ */
+private deduplicateCycles(cycles: string[][]): string[][] {
+  const uniqueSignatures = new Set<string>();
+  const uniqueCycles: string[][] = [];
+  
+  for (const cycle of cycles) {
+    // Normaliser le cycle : commencer par le plus petit UUID (ordre lexicographique)
+    const normalized = this.normalizeCycle(cycle);
+    const signature = normalized.join('|');
+    
+    if (!uniqueSignatures.has(signature)) {
+      uniqueSignatures.add(signature);
+      uniqueCycles.push(normalized);
+    }
+  }
+  
+  return uniqueCycles;
+}
+
+/**
+ * Normalise un cycle pour la comparaison (rotation canonique)
+ */
+private normalizeCycle(cycle: string[]): string[] {
+  if (cycle.length === 0) return cycle;
+  
+  // Trouver l'index du plus petit élément
+  let minIndex = 0;
+  for (let i = 1; i < cycle.length; i++) {
+    if (cycle[i] < cycle[minIndex]) {
+      minIndex = i;
+    }
+  }
+  
+  // Rotation pour commencer par le plus petit élément
+  return [...cycle.slice(minIndex), ...cycle.slice(0, minIndex)];
+}
+
+/**
+ * Vérifie qu'un cycle est valide (toutes les arêtes existent)
+ */
+private isValidCycle(cyclePath: string[]): boolean {
+  if (cyclePath.length < 2) {
+    return false;
+  }
+  
+  // Vérifier que chaque arête du cycle existe
+  for (let i = 0; i < cyclePath.length; i++) {
+    const from = cyclePath[i];
+    const to = cyclePath[(i + 1) % cyclePath.length];
+    
+    if (!this.hasEdgeInQuotientGraph(from, to)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+/**
+ * Vérifie si une arête existe dans le graphe quotient
+ */
+private hasEdgeInQuotientGraph(fromGroup: string, toGroup: string): boolean {
+  // Parcourir les relations temporelles pour trouver l'arête
+  return this.liveRelations.some(rel => {
+    if (rel.live === false || rel.is_contemporain) return false;
+    
+    const posterieurUuid = rel.us_posterieur || rel.fait_posterieur;
+    const anterieurUuid = rel.us_anterieur || rel.fait_anterieur;
+    
+    if (!posterieurUuid || !anterieurUuid) return false;
+    
+    const groupPost = this.groupManager.findGroup(posterieurUuid);
+    const groupAnt = this.groupManager.findGroup(anterieurUuid);
+    
+    return groupPost === fromGroup && groupAnt === toGroup;
+  });
+}
+
+/**
+ * Détecte les paradoxes temporels via les groupes de contemporanéité (SAME_GROUP)
+ */
+private detectTemporalParadoxesViaContemporaneity(
+  relations: ApiStratigraphie[],
+  entitiesInDirectCycles: Set<string>
+): DetectedParadox[] {
+  const paradoxes: DetectedParadox[] = [];
+  const processedPairs = new Set<string>();
+  
+  for (const relation of relations) {
+    if (!relation.live || relation.is_contemporain) continue;
+    
+    const anterieurUuid = relation.us_anterieur || relation.fait_anterieur;
+    const posterieurUuid = relation.us_posterieur || relation.fait_posterieur;
+    
+    if (!anterieurUuid || !posterieurUuid) continue;
+    
+    // Vérifier si les deux entités sont dans le même groupe de contemporanéité
+    const groupAnt = this.groupManager.findGroup(anterieurUuid);
+    const groupPost = this.groupManager.findGroup(posterieurUuid);
+    
+    if (groupAnt && groupPost && groupAnt === groupPost) {
+      // Paradoxe : relation temporelle entre entités contemporaines
+      const pairKey = [anterieurUuid, posterieurUuid].sort().join('|');
+      if (processedPairs.has(pairKey)) continue;
+      processedPairs.add(pairKey);
+      
+      const groupMembers = this.groupManager.getGroupMembers(anterieurUuid);
+      
+      // Vérifier si ce n'est pas déjà couvert par un cycle direct
+      const allInDirectCycle = groupMembers.every(m => entitiesInDirectCycles.has(m));
+      if (allInDirectCycle) continue;
+      
+      const tag1 = this.getTagForElement(anterieurUuid);
+      const tag2 = this.getTagForElement(posterieurUuid);
+      const memberTags = groupMembers.map(m => this.getTagForElement(m));
+
+      // Trouver toutes les relations de contemporanéité qui forment ce groupe
+      const contemporaneityRelations = this.findContemporaneityRelationsForGroup(
+        groupMembers,
+        relations
+      );
+
+      // Construire la chaîne de contemporanéité
+      const contemporaneityChain = this.buildContemporaneityChainDescription(
+        anterieurUuid,
+        posterieurUuid,
+        groupMembers
+      );
+
+      // Toutes les relations impliquées = contemporanéité + la relation temporelle en conflit
+      const allInvolvedRelations = [relation, ...contemporaneityRelations];
+      
+      
+      paradoxes.push({
+        type: 'temporal',
+        message: `Contradiction : ${tag1} et ${tag2} sont contemporains ` +
+          `(via la chaîne : ${contemporaneityChain}), ` +
+          `mais une relation temporelle existe entre eux.`,
+        relations: allInvolvedRelations,
+        shortMessage: `<strong>${tag1}</strong> et <strong>${tag2}</strong> sont contemporains`,
+        temporalParadoxInfo: {
+          isIndirect: true,
+          groupMemberUUIDs: groupMembers,
+          groupMemberTags: memberTags,
+          contemporaneityRelations: contemporaneityRelations,
+          conflictingTemporalRelation: relation,
+          contemporaneityChain: contemporaneityChain
+        },
+        debugInfo: {
+          advancedType: 'SAME_GROUP',
+          isIndirect: true,
+          groupMembers: groupMembers
+        }
+      });
+    }
+  }
+  
+  return paradoxes;
+}
+
+/**
+ * Trouve toutes les relations de contemporanéité qui forment un groupe
+ */
+private findContemporaneityRelationsForGroup(
+  groupMembers: string[],
+  allRelations: ApiStratigraphie[]
+): ApiStratigraphie[] {
+  const contemporaneityRelations: ApiStratigraphie[] = [];
+  const processedUUIDs = new Set<string>();
+  
+  for (const relation of allRelations) {
+    if (!relation.live || !relation.is_contemporain) continue;
+    if (processedUUIDs.has(relation.stratigraphie_uuid)) continue;
+    
+    const entity1 = relation.us_anterieur || relation.fait_anterieur;
+    const entity2 = relation.us_posterieur || relation.fait_posterieur;
+    
+    if (!entity1 || !entity2) continue;
+    
+    // Vérifier si les deux entités sont dans ce groupe
+    if (groupMembers.includes(entity1) && groupMembers.includes(entity2)) {
+      contemporaneityRelations.push(relation);
+      processedUUIDs.add(relation.stratigraphie_uuid);
+    }
+  }
+  
+  return contemporaneityRelations;
+}
+
+
+/**
+ * Construit une description de la chaîne de contemporanéité entre deux entités
+ */
+private buildContemporaneityChainDescription(
+  entity1Uuid: string,
+  entity2Uuid: string,
+  groupMembers: string[]
+): string {
+  const tag1 = this.getTagForElement(entity1Uuid);
+  const tag2 = this.getTagForElement(entity2Uuid);
+  
+  if (groupMembers.length <= 2) {
+    return `${tag1} ↔ ${tag2}`;
+  }
+  
+  // Essayer de construire un chemin entre entity1 et entity2 via le groupe
+  // Pour simplifier, on liste tous les membres du groupe
+  const allTags = groupMembers.map(m => this.getTagForElement(m));
+  
+  // Réorganiser pour commencer par entity1 et finir par entity2
+  const idx1 = groupMembers.indexOf(entity1Uuid);
+  const idx2 = groupMembers.indexOf(entity2Uuid);
+  
+  if (idx1 !== -1 && idx2 !== -1) {
+    // Créer une représentation ordonnée
+    const orderedTags = [tag1];
+    for (let i = 0; i < groupMembers.length; i++) {
+      const member = groupMembers[i];
+      if (member !== entity1Uuid && member !== entity2Uuid) {
+        orderedTags.push(this.getTagForElement(member));
+      }
+    }
+    orderedTags.push(tag2);
+    return orderedTags.join(' ↔ ');
+  }
+  
+  return allTags.join(' ↔ ');
+}
+
+
+/**
+ * Construit le message détaillé pour un cycle indirect
+ */
+private buildIndirectCycleMessage(cycleNodeInfos: CycleNodeInfo[]): string {
+  const pathDescription = cycleNodeInfos.map(info => {
+    if (info.isGroup) {
+      return `{${info.memberUUIDs.map(m => this.getTagForElement(m)).join(', ')}}`;
+    }
+    return info.displayTag;
+  }).join(' → ');
+  
+  const firstNode = cycleNodeInfos[0];
+  const firstTag = firstNode.isGroup 
+    ? `{${firstNode.memberUUIDs.map(m => this.getTagForElement(m)).join(', ')}}`
+    : firstNode.displayTag;
+  
+  return `Contradiction détectée : cycle stratigraphique indirect.\n` +
+    `Chaîne : ${pathDescription} → ${firstTag}\n` +
+    `Ce cycle n'existe qu'à travers les groupes de contemporanéité.\n` +
+    `Les entités entre accolades {...} sont contemporaines entre elles.`;
+}
+  
+  /**
+   * Mappe les types de paradoxes avancés vers les types SIMPLE
+   */
+  private mapAdvancedTypeToSimple(advancedType: string | undefined): 'containment' | 'consistency' | 'temporal' | 'cycle' {
+    switch (advancedType) {
+      case 'cycle':
+      case 'CYCLE':
+      case 'WOULD_CREATE_CYCLE':
+        return 'cycle';
+      case 'SAME_GROUP':
+      case 'EXISTING_TEMPORAL_PATH':
+      case 'contemporaneity_conflict':
+        return 'temporal';
+      case 'CONTAINMENT':
+        return 'containment';
+      default:
+        return 'temporal';
+    }
+  }
+  
+  /**
+ * Vérifie si un cycle est vraiment indirect (non détectable par la logique SIMPLE)
+ * 
+ * Un cycle est INDIRECT si :
+ * 1. Il contient au moins un groupe de contemporanéité (nœud avec plusieurs membres)
+ * 2. Le cycle ne peut pas être exprimé uniquement avec des entités individuelles
+ *    (c'est-à-dire que les mêmes entités ne forment pas un cycle direct)
+ */
+private isTrulyIndirectCycle(
+  cycleNodesUUIDs: string[],
+  entitiesInDirectCycles: Set<string>,
+  processedSignatures: Set<string>
+): boolean {
+  // Vérifier si la signature du cycle a déjà été traitée
+  const signature = this.buildCycleSignature(cycleNodesUUIDs);
+  if (processedSignatures.has(signature)) {
+    return false;
+  }
+
+  // Vérifier si le cycle contient au moins un groupe (nœud avec plusieurs membres)
+  let hasGroup = false;
+  const allIndividualMembers: string[] = [];
+  
+  for (const nodeUUID of cycleNodesUUIDs) {
+    const groupMembers = this.groupManager.getGroupMembers(nodeUUID);
+    
+    if (groupMembers.length > 1) {
+      hasGroup = true;
+    }
+    
+    allIndividualMembers.push(...groupMembers);
+  }
+  
+  // Si aucun groupe, ce n'est pas un cycle indirect
+  if (!hasGroup) {
+    return false;
+  }
+  
+  // Vérifier si TOUTES les entités individuelles du cycle sont déjà dans des cycles directs
+  // Si oui, ce cycle est probablement une variante du cycle direct déjà détecté
+  const allMembersInDirectCycle = allIndividualMembers.every(
+    member => entitiesInDirectCycles.has(member)
+  );
+  
+  if (allMembersInDirectCycle) {
+    // Toutes les entités sont déjà couvertes par des cycles directs
+    // Ce cycle indirect est probablement redondant
+    return false;
+  }
+  
+  return true;
+}
+
+  
+  /**
+   * Construit une signature unique pour un cycle (pour détecter les doublons)
+   */
+  private buildCycleSignature(nodeUUIDs: string[]): string {
+    // Normaliser en triant et en créant une signature
+    const expandedUUIDs: string[] = [];
+    
+    nodeUUIDs.forEach(uuid => {
+      const members = this.groupManager.getGroupMembers(uuid);
+      if (members.length > 1) {
+        expandedUUIDs.push(...members.sort());
+      } else {
+        expandedUUIDs.push(uuid);
+      }
+    });
+    
+    return [...new Set(expandedUUIDs)].sort().join('|');
+  }
+  
+  /**
+   * Construit les CycleNodeInfos en identifiant les groupes de contemporanéité
+   */
+  private buildCycleNodeInfosFromGroups(cycleNodesUUIDs: string[]): CycleNodeInfo[] {
+    return cycleNodesUUIDs.map(nodeUUID => {
+      const groupMembers = this.groupManager.getGroupMembers(nodeUUID);
+      
+      if (groupMembers.length > 1) {
+        // C'est un groupe de contemporanéité
+        const memberTags = groupMembers.map(uuid => this.getTagForElement(uuid));
+        return {
+          memberUUIDs: groupMembers,
+          isGroup: true,
+          displayTag: `{${memberTags.join(', ')}}`
+        };
+      } else {
+        // Entité simple
+        return {
+          memberUUIDs: [nodeUUID],
+          isGroup: false,
+          displayTag: this.getTagForElement(nodeUUID)
+        };
+      }
+    });
+  }
+  
+  /**
+ * Trouve les relations impliquées dans un cycle indirect
+ * VERSION CORRIGÉE : vérifie que les relations connectent vraiment les nœuds du cycle
+ */
+private findRelationsForIndirectCycle(
+  cycleNodesUUIDs: string[],
+  allRelations: ApiStratigraphie[]
+): ApiStratigraphie[] {
+  const involvedRelations: ApiStratigraphie[] = [];
+  const processedUUIDs = new Set<string>();
+
+  // 1. Trouver les relations TEMPORELLES qui forment les arêtes du cycle
+  for (let i = 0; i < cycleNodesUUIDs.length; i++) {
+    const currentNode = cycleNodesUUIDs[i];
+    const nextNode = cycleNodesUUIDs[(i + 1) % cycleNodesUUIDs.length];
+    
+    const currentMembers = this.groupManager.getGroupMembers(currentNode);
+    const nextMembers = this.groupManager.getGroupMembers(nextNode);
+    
+    // Chercher une relation temporelle qui connecte currentNode → nextNode
+    for (const relation of allRelations) {
+      if (!relation.live || relation.is_contemporain) continue;
+      if (processedUUIDs.has(relation.stratigraphie_uuid)) continue;
+      
+      const posterieurUuid = relation.us_posterieur || relation.fait_posterieur;
+      const anterieurUuid = relation.us_anterieur || relation.fait_anterieur;
+      
+      if (!posterieurUuid || !anterieurUuid) continue;
+      
+      // Vérifier si cette relation connecte currentNode → nextNode
+      // (arête postérieur → antérieur dans le graphe quotient)
+      const postInCurrent = currentMembers.includes(posterieurUuid);
+      const antInNext = nextMembers.includes(anterieurUuid);
+      
+      if (postInCurrent && antInNext) {
+        involvedRelations.push(relation);
+        processedUUIDs.add(relation.stratigraphie_uuid);
+      }
+    }
+  }
+
+  // 2. Trouver les relations de CONTEMPORANÉITÉ qui forment les groupes
+  for (const nodeUUID of cycleNodesUUIDs) {
+    const members = this.groupManager.getGroupMembers(nodeUUID);
+    
+    if (members.length <= 1) continue; // Pas un groupe
+    
+    // Trouver les relations de contemporanéité entre les membres de ce groupe
+    for (const relation of allRelations) {
+      if (!relation.live || !relation.is_contemporain) continue;
+      if (processedUUIDs.has(relation.stratigraphie_uuid)) continue;
+      
+      const entity1 = relation.us_anterieur || relation.fait_anterieur;
+      const entity2 = relation.us_posterieur || relation.fait_posterieur;
+      
+      if (!entity1 || !entity2) continue;
+      
+      // Vérifier si les deux entités sont dans ce groupe
+      if (members.includes(entity1) && members.includes(entity2)) {
+        involvedRelations.push(relation);
+        processedUUIDs.add(relation.stratigraphie_uuid);
+      }
+    }
+  }
+
+  return involvedRelations;
+}
+  
+  /**
+   * Construit un message court pour un cycle indirect
+   */
+  private buildIndirectCycleShortMessage(cycleNodeInfos: CycleNodeInfo[]): string {
+    const tags = cycleNodeInfos.map(info => {
+      if (info.isGroup) {
+        return `<strong>${info.displayTag}</strong>`;
+      }
+      return `<strong>${info.displayTag}</strong>`;
+    });
+    
+    return `Cycle indirect : ${tags.join(' → ')} → ${tags[0]}`;
+  }
+
+
 
   private buildValidatorDescriptors(
     paradoxType: 'containment' | 'consistency' | 'temporal' | 'cycle' | null | undefined,
     relations: ApiStratigraphie[]
-  ): Array<{type: 'containment' | 'consistency' | 'temporal' | 'cycle'; fn: (relation: ApiStratigraphie) => ValidationResult}> {
-    const descriptors: Array<{type: 'containment' | 'consistency' | 'temporal' | 'cycle'; fn: (relation: ApiStratigraphie) => ValidationResult}> = [];
+  ): Array<{type: 'containment' | 'consistency' | 'temporal' | 'cycle'; fn: (relation: ApiStratigraphie) => ValidationResult; isAdvanced?: boolean}> {
+    const descriptors: Array<{type: 'containment' | 'consistency' | 'temporal' | 'cycle'; fn: (relation: ApiStratigraphie) => ValidationResult; isAdvanced?: boolean}> = [];
 
     if (!paradoxType || paradoxType === 'containment') {
       descriptors.push({
