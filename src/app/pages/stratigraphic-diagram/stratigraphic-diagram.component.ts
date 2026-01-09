@@ -11,8 +11,7 @@ import {CastorAuthorizationService} from "../../services/castor-authorization-se
 import { DiagramEditModeService, EdgeClickEvent } from 'src/app/services/diagram-edit-mode.service';
 import { DiagramParadoxVisualizationService } from 'src/app/services/diagram-paradox-visualization.service';
 import { style } from '@angular/animations';
-import { DiagramNodeInteractionService, NodeInteractionEvent } from 'src/app/services/diagram-node-interaction.service';
-import { DiagramNodePopoverData } from 'src/app/Components/Display/diagram-node-popover/diagram-node-popover.component';
+
 
 export type MermaidLayoutMode = 'default' | 'elk' | 'dagre-d3';
 
@@ -109,11 +108,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
   showLegend: boolean = false;
   styleConfig: DiagramStyleConfig = { ...DEFAULT_DIAGRAM_STYLES };
 
-  // === Popover pour les nœuds cliquables ===
-  nodePopoverData: DiagramNodePopoverData | null = null;
-  isNodePopoverVisible: boolean = false;
-  private nodeInteractionSubscriptions: Subscription[] = [];
-
   constructor(
     public w: WorkerService,
     private diagramService: StratigraphicDiagramService,
@@ -121,9 +115,7 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     private authService: CastorAuthorizationService,
     private confirmationService: ConfirmationService,
     private diagramEditModeService: DiagramEditModeService,
-    private diagramParadoxVisualizationService: DiagramParadoxVisualizationService,
-    private diagramNodeInteractionService: DiagramNodeInteractionService
-  ) {}
+    private diagramParadoxVisualizationService: DiagramParadoxVisualizationService,  ) {}
 
   ngOnInit(): void {
     this.w.data().objects.stratigraphie.all.onValueChange()
@@ -156,18 +148,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     
     // upload style config from service
     this.styleConfig = this.diagramService.getStyleConfig();
-
-     this.nodeInteractionSubscriptions.push(
-      this.diagramNodeInteractionService.nodeClicked$
-        .pipe(takeUntil(this.destroyer$))
-        .subscribe(event => this.onNodeClicked(event))
-    );
-    
-    this.nodeInteractionSubscriptions.push(
-      this.diagramNodeInteractionService.nodeLongPressed$
-        .pipe(takeUntil(this.destroyer$))
-        .subscribe(event => this.onNodeLongPressed(event))
-    );
   }
 
   ngAfterViewInit(): void {
@@ -180,16 +160,9 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     if (this.diagramContainer?.nativeElement) {
       this.diagramParadoxVisualizationService.initialize(this.diagramContainer.nativeElement);
     }
-
-    if (this.diagramContainer?.nativeElement) {
-      this.diagramNodeInteractionService.initialize(this.diagramContainer.nativeElement);
-    }
   }
 
   ngOnDestroy(): void {
-    this.diagramNodeInteractionService.destroy();
-    this.nodeInteractionSubscriptions.forEach(sub => sub.unsubscribe());
-
     this.destroyer$.next();
     this.destroyer$.complete();
 
@@ -203,9 +176,6 @@ export class StratigraphicDiagramComponent implements OnInit, OnDestroy, AfterVi
     this.diagramEditModeService.destroy();
 
     this.diagramParadoxVisualizationService.destroy();
-
-    this.diagramNodeInteractionService.destroy();
-    this.nodeInteractionSubscriptions.forEach(sub => sub.unsubscribe());
   }
 
   private onFullscreenChange(): void {
@@ -650,11 +620,6 @@ async generateDiagram(): Promise<void> {
     await this.renderDiagram();
 
     console.log('[Component] Diagram rendered successfully');
-
-    // Rafraîchir les listeners d'interaction sur les nœuds
-    setTimeout(() => {
-      this.diagramNodeInteractionService.refresh();
-    }, 200);
     
     setTimeout(() => {
       this.applyStylesWithoutRegeneration();
@@ -1233,62 +1198,6 @@ private debugSVGStructure(): void {
    */
   onDataPanelClosed(): void {
     this.isDataPanelOpen = false;
-  }
-
-  /**
-   * Appelé quand un nœud est cliqué
-   */
-  private onNodeClicked(event: NodeInteractionEvent): void {
-    console.log('[Component] Node clicked:', event);
-    
-    // Si le mode édition est actif, ne pas afficher le popover
-    if (this.isEditMode) {
-      return;
-    }
-    
-    this.showNodePopover(event);
-  }
-  
-  /**
-   * Appelé quand un nœud est "long pressed" (mobile)
-   */
-  private onNodeLongPressed(event: NodeInteractionEvent): void {
-    console.log('[Component] Node long pressed:', event);
-    
-    // Le long press affiche toujours le popover, même en mode édition
-    this.showNodePopover(event);
-  }
-  
-  /**
-   * Affiche le popover pour un nœud
-   */
-  private showNodePopover(event: NodeInteractionEvent): void {
-    console.log('Show popover at position:', event.position); // Debug
-    
-    this.nodePopoverData = {
-      uuid: event.uuid,
-      type: event.type,
-      label: event.label,
-      object: event.object,
-      position: event.position  // Doit contenir { x: number, y: number }
-    };
-    this.isNodePopoverVisible = true;
-  }
-  
-  /**
-   * Ferme le popover des nœuds
-   */
-  closeNodePopover(): void {
-    this.isNodePopoverVisible = false;
-    this.nodePopoverData = null;
-  }
-  
-  /**
-   * Appelé quand la navigation est déclenchée depuis le popover
-   */
-  onNodeNavigated(event: { object: any; newTab: boolean }): void {
-    console.log('[Component] Node navigated:', event);
-    this.closeNodePopover();
   }
 
   protected readonly ApiDbTable = ApiDbTable;

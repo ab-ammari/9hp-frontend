@@ -849,7 +849,7 @@
 
       // Label du Fait dans le subgraph
       .nodeLabel {
-        font-weight: 500;
+        font-weight: 600;
         fill: #E65100;
       }
     }
@@ -893,7 +893,7 @@
 
       .nodeLabel {
         fill: #E65100;
-        font-weight: 500;
+        font-weight: 600;
       }
     }
 
@@ -1865,7 +1865,7 @@
       
       .target-node {
         color: #2196f3;
-        font-weight: 500;
+        font-weight: 600;
       }
     }
   }
@@ -2231,221 +2231,6 @@
 
     ion-icon[slot="end"] {
       font-size: 20px;
-    }
-  }
-}
-
-// ============================================
-// STYLES POUR LES NŒUDS CLIQUABLES 
-// ============================================
-
-.diagram-container {
-  
-  ::ng-deep {
-    
-    // =====================================================
-    // STYLE DE BASE - NŒUDS CLIQUABLES
-    // =====================================================
-    g.node.clickable-node {
-      cursor: pointer;
-      
-      // Transitions fluides sur les formes
-      rect, polygon, circle, ellipse {
-        transition: 
-          stroke 0.2s ease,
-          stroke-width 0.2s ease,
-          filter 0.2s ease,
-          fill 0.15s ease;
-      }
-      
-      // Transition sur le texte
-      .nodeLabel {
-        transition: font-weight 0.15s ease;
-      }
-    }
-    
-    // =====================================================
-    // HOVER SUR LES US (style bleu)
-    // =====================================================
-    g.node.clickable-node.usStyle {
-      
-      &:hover {
-        rect, polygon, circle, ellipse {
-          // Augmentation visible du stroke
-          stroke: #1565C0 !important;
-          stroke-width: 4.5px !important;
-          
-          // Ombre portée subtile mais visible
-          filter: 
-            drop-shadow(0 2px 6px rgba(25, 118, 210, 0.35))
-            drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
-          
-          // Légère saturation du fond
-          fill: #D6EAFF !important;
-        }
-        
-        .nodeLabel {
-          font-weight: 700;
-        }
-      }
-      
-      &:active {
-        rect, polygon, circle, ellipse {
-          stroke-width: 5px !important;
-          filter: 
-            drop-shadow(0 1px 4px rgba(25, 118, 210, 0.5))
-            brightness(0.95);
-        }
-      }
-    }
-    
-    // =====================================================
-    // HOVER SUR LES FAITS (style orange)
-    // =====================================================
-    g.node.clickable-node.faitStyle {
-      
-      &:hover {
-        rect, polygon, circle, ellipse {
-          // Augmentation visible du stroke
-          stroke: #E65100 !important;
-          stroke-width: 4.5px !important;
-          
-          // Ombre portée colorée
-          filter: 
-            drop-shadow(0 2px 6px rgba(245, 124, 0, 0.35))
-            drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
-          
-          // Légère saturation du fond
-          fill: #FFE8D6 !important;
-        }
-        
-        .nodeLabel {
-          font-weight: 700;
-        }
-      }
-      
-      &:active {
-        rect, polygon, circle, ellipse {
-          stroke-width: 5px !important;
-          filter: 
-            drop-shadow(0 1px 4px rgba(245, 124, 0, 0.5))
-            brightness(0.95);
-        }
-      }
-    }
-    
-    // =====================================================
-    // ANIMATION DE PULSE AU CLIC (feedback visuel)
-    // =====================================================
-    g.node.clickable-node.node-clicked {
-      rect, polygon, circle, ellipse {
-        animation: nodeClickPulse 0.3s ease-out;
-      }
-    }
-    
-  }
-}
-
-// Animation de pulse au clic
-@keyframes nodeClickPulse {
-  0% {
-    filter: brightness(1);
-    stroke-width: 3.5px;
-  }
-  50% {
-    filter: brightness(1.1) drop-shadow(0 0 12px rgba(var(--ion-color-primary-rgb), 0.6));
-    stroke-width: 5px;
-  }
-  100% {
-    filter: brightness(1);
-    stroke-width: 3.5px;
-  }
-}
-
-// ============================================
-// MODE ÉDITION ACTIF - DÉSACTIVER LES EFFETS DE NAVIGATION
-// ============================================
-.diagram-edit-mode {
-  .diagram-container {
-    ::ng-deep {
-      g.node.clickable-node {
-        // En mode édition, désactiver les effets visuels de "navigation"
-        cursor: default;
-        
-        &:hover {
-          rect, polygon, circle, ellipse {
-            // Garder un léger feedback mais différent
-            filter: none;
-            stroke-width: inherit;
-            fill: inherit !important;
-          }
-          
-          .nodeLabel {
-            font-weight: inherit;
-          }
-        }
-      }
-    }
-  }
-}
-
-// ============================================
-// INDICATEUR VISUEL SUR MOBILE
-// ============================================
-@media (max-width: 768px) {
-  .diagram-container {
-    ::ng-deep {
-      g.node.clickable-node {
-        // Bordure légèrement plus épaisse par défaut sur mobile
-        rect, polygon {
-          stroke-width: 2.5px;
-        }
-        
-        // Effet de hover plus prononcé (touch feedback)
-        &:hover, &:active {
-          rect, polygon, circle, ellipse {
-            stroke-width: 4px !important;
-          }
-        }
-      }
-    }
-  }
-}
-
-
-
-// ============================================
-// ACCESSIBILITÉ - FOCUS VISIBLE
-// ============================================
-.diagram-container {
-  ::ng-deep {
-    g.node.clickable-node:focus-visible {
-      rect, polygon, circle, ellipse {
-        outline: 3px solid var(--ion-color-primary);
-        outline-offset: 3px;
-      }
-    }
-  }
-}
-
-// ============================================
-// REDUCED MOTION - ANIMATIONS DÉSACTIVÉES
-// ============================================
-@media (prefers-reduced-motion: reduce) {
-  .diagram-container {
-    ::ng-deep {
-      g.node.clickable-node {
-        rect, polygon, circle, ellipse, .nodeLabel {
-          transition: none !important;
-          animation: none !important;
-        }
-        
-        &.node-clicked {
-          rect, polygon, circle, ellipse {
-            animation: none !important;
-          }
-        }
-      }
     }
   }
 }

@@ -213,10 +213,13 @@
                               <app-castor-tag-display *ngIf="relation.fait_anterieur"
                                 [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
                                 [infoBulle]="true"></app-castor-tag-display>
+                              
                               <span class="relation-type contemporain-type">
-                                <ion-icon name="swap-horizontal-outline"></ion-icon>
-                                contemporain
+                                <app-castor-type-display
+                                  [type]="relation.strati_type_uuid"
+                                  [display_prefix]="false"></app-castor-type-display>
                               </span>
+
                               <app-castor-tag-display *ngIf="relation.us_posterieur"
                                 [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
                                 [infoBulle]="true"></app-castor-tag-display>
@@ -233,7 +236,13 @@
                               <app-castor-tag-display *ngIf="relation.fait_posterieur"
                                 [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
                                 [infoBulle]="true"></app-castor-tag-display>
-                              <span class="relation-type"><strong>sous</strong></span>
+                              
+                              <span class="relation-type contemporain-type">
+                                <app-castor-type-display
+                                  [type]="relation.strati_type_uuid"
+                                  [display_prefix]="false"></app-castor-type-display> 
+                              </span>
+
                               <app-castor-tag-display *ngIf="relation.us_anterieur"
                                 [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
                                 [infoBulle]="true"></app-castor-tag-display>
@@ -273,32 +282,9 @@
                             </ion-badge>
                           </div>
                           
-                          <div class="relations-section conflicting-relation-section" *ngIf="getConflictingTemporalRelation(paradox) as conflictRelation">
                           <!-- Message court -->
                           <p class="paradox-summary" [innerHTML]="paradox.shortMessage || getShortMessage(paradox)"></p>
-                          <app-castor-tag-display *ngIf="conflictRelation.us_posterieur"
-                                  [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_posterieur}"
-                                  [infoBulle]="true">
-                          </app-castor-tag-display>
-                          <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
-                            [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
-                            [infoBulle]="true">
-                          </app-castor-tag-display>
-                          <span class="relation-type temporal-conflict-type">
-                          <app-castor-type-display
-                            [type]="conflictRelation.strati_type_uuid"
-                            [display_prefix]="false">
-                          </app-castor-type-display>
-                            </span>
-                          <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
-                            [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
-                            [infoBulle]="true"></app-castor-tag-display>
-                          <app-castor-tag-display *ngIf="conflictRelation.fait_anterieur"
-                            [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_anterieur}"
-                            [infoBulle]="true"></app-castor-tag-display>
-</div>
-
-
+                          
                           <!-- Affichage du groupe de contemporanéité -->
                           <div class="contemporaneity-group-display" *ngIf="hasTemporalParadoxInfo(paradox)">
                             <span class="group-label">Groupe de contemporanéité :</span>
@@ -337,7 +323,6 @@
                       <!-- Section : Relations de contemporanéité -->
                       <div class="relations-section" *ngIf="getContemporaneityRelations(paradox).length > 0">
                         <h4>
-                          <ion-icon name="swap-horizontal-outline"></ion-icon>
                           Relations de contemporanéité ({{ getContemporaneityRelations(paradox).length }})
                         </h4>
                         <table class="table strati-relation-table">
@@ -352,10 +337,13 @@
                                 <app-castor-tag-display *ngIf="relation.fait_anterieur"
                                   [description]="{table: ApiDbTable.fait, uuid: relation.fait_anterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
+                                
                                 <span class="relation-type contemporain-type">
-                                  <ion-icon name="swap-horizontal-outline"></ion-icon>
-                                  contemporain
+                                  <app-castor-type-display
+                                    [type]="relation.strati_type_uuid"
+                                    [display_prefix]="false"></app-castor-type-display>
                                 </span>
+
                                 <app-castor-tag-display *ngIf="relation.us_posterieur"
                                   [description]="{table: ApiDbTable.us, uuid: relation.us_posterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
@@ -390,7 +378,15 @@
                                 <app-castor-tag-display *ngIf="conflictRelation.fait_posterieur"
                                   [description]="{table: ApiDbTable.fait, uuid: conflictRelation.fait_posterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
-                                <span class="relation-type temporal-conflict-type"><strong>sous</strong></span>
+
+                                <span class="relation-type temporal-conflict-type">
+                                  <strong>
+                                    <app-castor-type-display
+                                      [type]="conflictRelation.strati_type_uuid"
+                                      [display_prefix]="false"></app-castor-type-display>
+                                  </strong>
+                                </span>
+                                
                                 <app-castor-tag-display *ngIf="conflictRelation.us_anterieur"
                                   [description]="{table: ApiDbTable.us, uuid: conflictRelation.us_anterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
@@ -424,9 +420,6 @@
                     </ion-item>
 
                     <div *ngIf="isCycleExpanded(entry.key, i)" class="standard-details">
-                      <div class="detailed-message">
-                        <p>{{ paradox.message }}</p>
-                      </div>
                       <table class="table strati-relation-table">
                         <tbody>
                           <tr *ngFor="let relation of paradox.relations" [attr.data-relation-id]="relation.stratigraphie_uuid">
@@ -438,7 +431,13 @@
                                 <app-castor-tag-display *ngIf="relation.fait_posterieur"
                                   [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
-                                <span class="relation-type"><strong>sous</strong></span>
+                                
+                                <span class="relation-type contemporain-type">
+                                  <app-castor-type-display
+                                    [type]="relation.strati_type_uuid"
+                                    [display_prefix]="false"></app-castor-type-display>
+                                </span>
+                                  
                                 <app-castor-tag-display *ngIf="relation.us_anterieur"
                                   [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
@@ -453,7 +452,13 @@
                                 <app-castor-tag-display *ngIf="relation.fait_posterieur"
                                   [description]="{table: ApiDbTable.fait, uuid: relation.fait_posterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
-                                <span class="relation-type">contemporain à</span>
+
+                                <span class="relation-type contemporain-type">
+                                  <app-castor-type-display
+                                    [type]="relation.strati_type_uuid"
+                                    [display_prefix]="false"></app-castor-type-display>
+                                </span>
+
                                 <app-castor-tag-display *ngIf="relation.us_anterieur"
                                   [description]="{table: ApiDbTable.us, uuid: relation.us_anterieur}"
                                   [infoBulle]="true"></app-castor-tag-display>
