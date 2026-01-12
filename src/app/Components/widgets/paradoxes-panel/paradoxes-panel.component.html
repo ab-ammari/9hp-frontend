@@ -121,7 +121,9 @@
               </h3>
               
               <!-- Description courte -->
-              <p class="paradox-description">{{ getShortMessage(paradoxItem) }}</p>
+              <p class="paradox-description-full"
+                [innerHTML]="getShortMessage(paradoxItem)">
+              </p>
               
               <!-- Chips pour les cycles -->
               <div class="cycle-nodes-preview" *ngIf="paradoxItem.type === 'cycle'">
