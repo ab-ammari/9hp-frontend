@@ -2880,19 +2880,19 @@ export class CastorValidationService {
     // Construire le message d'erreur détaillé
     let errorMessage = ''
     conflictExamples.forEach((example, index) => {
-      errorMessage += `${index + 1}. Relation de type "${example.type}": ${example.description} \n`;
+      errorMessage += `<p>${index + 1}. Relation de type "${example.type}": ${example.description} </p>`;
     });
 
     // Générer le message court pour l'en-tête
-    const firstConflict = conflictingRelations[0];
-    const shortMessage = this.formatShortConsistencyMessage(relation, firstConflict);
+    //const firstConflict = conflictingRelations[0];
+    //const shortMessage = this.formatShortConsistencyMessage(relation, firstConflict);
 
     return {
       result: false,
       message: errorMessage,
       paradoxType: 'consistency',
       conflictingRelations: conflictingRelations,
-      shortMessage: shortMessage
+      shortMessage: errorMessage
     };
   }
 
@@ -3123,6 +3123,7 @@ export class CastorValidationService {
             const cycleParadox: CycleParadox = {
               type: 'cycle',
               message: result.message,
+              shortMessage: result.message,
               relations: [relation],
               cycleId: cycleId,
               cycleNodes: result.cycleInfo.cycleNodes,
@@ -3165,7 +3166,7 @@ export class CastorValidationService {
 
   // ============================================================
   // PHASE 2 : Détection des paradoxes AVANCÉS (indirects)
-  // CORRECTION : Forcer la resynchronisation du groupManager
+  // Forcer la resynchronisation du groupManager
   // ============================================================
   if (this.useAdvancedDetection) {
     // FORCER la resynchronisation pour s'assurer que les groupes sont à jour
@@ -3205,7 +3206,7 @@ export class CastorValidationService {
   /**
  * Détecte les paradoxes INDIRECTS via les groupes de contemporanéité
  * 
- * APPROCHE CORRIGÉE :
+ * APPROCHE :
  * Au lieu de vérifier chaque relation individuellement (ce qui peut créer des faux positifs),
  * on détecte directement les cycles dans le graphe quotient puis on filtre ceux
  * qui ne sont pas déjà couverts par la détection SIMPLE.
@@ -3669,7 +3670,9 @@ private detectTemporalParadoxesViaContemporaneity(
           `(via la chaîne : ${contemporaneityChain}), ` +
           `mais une relation temporelle existe entre eux.`,
         relations: allInvolvedRelations,
-        shortMessage: `<strong>${tag1}</strong> et <strong>${tag2}</strong> sont contemporains`,
+        shortMessage: `Contradiction : ${tag1} et ${tag2} sont contemporains ` +
+          `(via la chaîne : ${contemporaneityChain}), ` +
+          `mais une relation temporelle existe entre eux.`,
         temporalParadoxInfo: {
           isIndirect: true,
           groupMemberUUIDs: groupMembers,

@@ -369,7 +369,7 @@ export class DiagramParadoxVisualizationService {
       
       const edge = this.findEdgeByUUIDs(svg, sourceUUID, targetUUID);
       if (edge) {
-        this.styleEdge(edge, color, 'cycle');
+        this.styleElement(edge, color, 'cycle');
       }
     }
     
@@ -377,7 +377,7 @@ export class DiagramParadoxVisualizationService {
     cycleUUIDs.forEach(uuid => {
       const node = this.findNodeByUUID(svg, uuid);
       if (node) {
-        this.styleNode(node, color, 'cycle');
+        this.styleElement(node, color, 'cycle');
       }
     });
   }
@@ -393,25 +393,25 @@ export class DiagramParadoxVisualizationService {
       // Relation US -> US
       if (relation.us_anterieur && relation.us_posterieur) {
         const edge = this.findEdgeByUUIDs(svg, relation.us_posterieur, relation.us_anterieur);
-        if (edge) this.styleEdge(edge, color, 'temporal');
+        if (edge) this.styleElement(edge, color, 'temporal');
       }
       
       // Relation Fait -> Fait
       if (relation.fait_anterieur && relation.fait_posterieur) {
         const edge = this.findEdgeByUUIDs(svg, relation.fait_posterieur, relation.fait_anterieur);
-        if (edge) this.styleEdge(edge, color, 'temporal');
+        if (edge) this.styleElement(edge, color, 'temporal');
       }
       
       // Relation US -> Fait
       if (relation.us_anterieur && relation.fait_posterieur) {
         const edge = this.findEdgeByUUIDs(svg, relation.fait_posterieur, relation.us_anterieur);
-        if (edge) this.styleEdge(edge, color, 'temporal');
+        if (edge) this.styleElement(edge, color, 'temporal');
       }
       
       // Relation Fait -> US
       if (relation.fait_anterieur && relation.us_posterieur) {
         const edge = this.findEdgeByUUIDs(svg, relation.us_posterieur, relation.fait_anterieur);
-        if (edge) this.styleEdge(edge, color, 'temporal');
+        if (edge) this.styleElement(edge, color, 'temporal');
       }
     });
     
@@ -420,7 +420,7 @@ export class DiagramParadoxVisualizationService {
       const uuid = this.extractUUIDFromNodeId(nodeId);
       if (uuid) {
         const node = this.findNodeByUUID(svg, uuid);
-        if (node) this.styleNode(node, color, 'temporal');
+        if (node) this.styleElement(node, color, 'temporal');
       }
     });
   }
@@ -444,7 +444,7 @@ export class DiagramParadoxVisualizationService {
       combinations.forEach(({ source, target }) => {
         if (source && target) {
           const edge = this.findEdgeByUUIDs(svg, source, target);
-          if (edge) this.styleEdge(edge, color, 'consistency');
+          if (edge) this.styleElement(edge, color, 'cycle');
         }
       });
     });
@@ -454,7 +454,7 @@ export class DiagramParadoxVisualizationService {
       const uuid = this.extractUUIDFromNodeId(nodeId);
       if (uuid) {
         const node = this.findNodeByUUID(svg, uuid);
-        if (node) this.styleNode(node, color, 'consistency');
+        if (node) this.styleElement(node, color, 'cycle');
       }
     });
   }
@@ -514,7 +514,7 @@ export class DiagramParadoxVisualizationService {
     relationPairs.forEach(pair => {
       const edge = this.findEdgeByUUIDs(svg, pair.source, pair.target);
       if (edge) {
-        this.styleEdgeForContainment(edge, color);
+        this.styleElement(edge, color, 'containment');
         highlightedEdges++;
       }
     });
@@ -526,7 +526,7 @@ export class DiagramParadoxVisualizationService {
     allUUIDs.forEach(uuid => {
       const node = this.findNodeByUUID(svg, uuid);
       if (node) {
-        this.styleNodeForContainment(node, color);
+        this.styleElement(node, color, 'containment');
         highlightedNodes++;
       }
     });
@@ -644,11 +644,30 @@ export class DiagramParadoxVisualizationService {
     console.warn(`[Node] Not found: ${nodeId}`);
     return null;
   }
+
+  /**
+   * Applique le style à un ellement
+   */
+  private styleElement(element: Element, color: string, type: string): void {
+    const svgPath = element as SVGPathElement;
+    
+    // Appliquer le style principal
+    svgPath.style.stroke = color;
+    svgPath.style.strokeWidth = '4px';
+    svgPath.style.opacity = '1';
+    svgPath.style.filter = `drop-shadow(0 0 6px ${color})`;
+
+    svgPath.style.strokeDasharray = '15, 8';
+    svgPath.style.animation = 'paradox-edge-flow 0.8s linear infinite';
+
+    // Ajouter les classes CSS
+    element.classList.add('paradox-edge-highlighted', `paradox-edge-${type}`);
+  }
   
   /**
    * Applique le style à une arête
    */
-  private styleEdge(edge: Element, color: string, type: string): void {
+  private styleEdge(edge: Element, color: string, type: string = 'cycle'): void {
     const svgPath = edge as SVGPathElement;
     
     // Appliquer le style principal
