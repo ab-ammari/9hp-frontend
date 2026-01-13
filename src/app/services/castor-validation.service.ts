@@ -12,7 +12,7 @@ import {
   ValidationResult as WorkerValidationResult
 } from "../../../shared";
 import {dbBoundObject} from "../DataClasses/models/db-bound-object";
-import { ContemporaneityGroupManager, ContemporaneityValidationResult, EntityInfo, StratigraphicRelation, TemporalValidationResult } from "./validation/contemporaneity-group-manager";
+import { ContemporaneityGroupManager, ContemporaneityValidationResult, EntityInfo, StratigraphicRelation, TemporalValidationResult } from "./stratigraphic-diagram/cycle-detection/contemporaneity-group-manager";
 
 /**
  * Un couple (US, Fait) + direction pour identifier un point du graphe.
@@ -2868,7 +2868,13 @@ export class CastorValidationService {
     const conflictExamples = [];
 
     existingTypes.forEach(type => {
-      const example = this.findRelationExample(relation.fait1, relation.fait2, type, allRelations);
+      const example = this.findRelationExample(
+        relation.fait1, 
+        relation.fait2, 
+        type, 
+        allRelations
+      );
+      
       if (example) {
         conflictExamples.push({
           type,
