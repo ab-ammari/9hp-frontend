@@ -8,6 +8,7 @@ import {FloatingComponentsModule} from "../../Components/widgets/floating-compon
 import {DisplayModule} from "../../Components/Display/display.module";
 import { ScrollingModule } from "@angular/cdk/scrolling";
 import { DataPanelModule } from "src/app/Components/widgets/data-panel/data-panel.module";
+import { DiagramNodePopoverModule } from "../../Components/Display/diagram-node-popover/diagram-node-popover.module";
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { DataPanelModule } from "src/app/Components/widgets/data-panel/data-pane
     FloatingComponentsModule,
     DisplayModule,
     ScrollingModule,
-    DataPanelModule
+    DataPanelModule,
+    DiagramNodePopoverModule
 ]
 })
 export class StratigraphicDiagramModule { }

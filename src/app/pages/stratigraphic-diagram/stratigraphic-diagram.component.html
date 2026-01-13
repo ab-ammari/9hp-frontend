@@ -565,4 +565,13 @@
     (isOpenChange)="isParadoxesPanelOpen = $event"
     (closed)="onParadoxesPanelClosed()">
   </app-paradoxes-panel>
+
+  <!-- Popover pour les nœuds cliquables du diagramme -->
+  <app-diagram-node-popover
+    [data]="nodePopoverData"
+    [isVisible]="isNodePopoverVisible"
+    (closed)="closeNodePopover()"
+    (navigated)="onNodeNavigated($event)">
+  </app-diagram-node-popover>
+
 </div>
