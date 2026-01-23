@@ -20,9 +20,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   dashboardTabs: TabItem[] = [
     { id: 'statistics', label: 'Statistiques', path: 'statistics' },
-    { id: 'stratigraphic-test', label: 'Test stratigraphique', path: 'stratigraphic-test' },
-    { id: 'stratigraphic-diagram', label: 'Diagramme stratigraphique', path: 'stratigraphic-diagram' }
+    {
+      id: 'stratigraphie',
+      label: 'Stratigraphie',
+      path: 'stratigraphie',
+      children: [
+        { id: 'stratigraphic-test', label: 'Contrôle', path: 'stratigraphic-test' },
+        { id: 'stratigraphic-diagram', label: 'Diagramme', path: 'stratigraphic-diagram' }
+      ]
+    }
   ];
+
+
 
   isOnDashboardPage: boolean = false;
 
@@ -33,15 +42,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private activatedRoute: ActivatedRoute
   ) {
-    // Surveiller les événements de navigation pour mettre à jour isOnDashboardPage
     this.router.events.pipe(
       takeUntil(this.destroy$),
       filter((event: Event): event is NavigationEnd => event instanceof NavigationEnd),
       map((event: NavigationEnd) => {
-        // Vérifier si l'URL contient l'un des chemins du tableau de bord
         const url = event.urlAfterRedirects || event.url;
-        const isDashboardPage = this.dashboardTabs.some(tab => url.includes('/' + tab.path));
-        return isDashboardPage;
+        return this.isDashboardRoute(url);
       })
     ).subscribe((isDashboardPage: boolean) => {
       this.isOnDashboardPage = isDashboardPage;
@@ -53,7 +59,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
     LOG.debug.log({...CONTEXT, action: 'ngOnInit'}, this.w.db());
 
     const currentUrl = this.router.url;
-    this.isOnDashboardPage = this.dashboardTabs.some(tab => currentUrl.includes('/' + tab.path));
+    this.isOnDashboardPage = this.isDashboardRoute(currentUrl);
+  }
+
+  private isDashboardRoute(url: string): boolean {
+    // Vérifier si l'URL contient l'un des chemins du tableau de bord
+    return this.dashboardTabs.some(tab => {
+      // Vérifier le tab principal
+      if (url.includes('/' + tab.path)) {
+        return true;
+      }
+      // Vérifier les enfants si présents
+      if (tab.children) {
+        return tab.children.some(child => url.includes('/' + child.path));
+      }
+      return false;
+    });
   }
 
   ngOnDestroy(): void {
