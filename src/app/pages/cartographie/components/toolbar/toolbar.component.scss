@@ -1,0 +1,55 @@
+.toolbar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: #f0f0f0;
+  }
+
+  &:active {
+    background: #e0e0e0;
+  }
+
+  &.primary {
+    background: var(--ion-color-primary, #3880ff);
+    color: white;
+
+    &:hover {
+      background: var(--ion-color-primary-shade, #3171e0);
+    }
+  }
+
+  &.active {
+    background: var(--ion-color-primary-tint, #4c8dff);
+    color: white;
+  }
+}
+
+.toolbar-separator {
+  height: 1px;
+  background: #e0e0e0;
+  margin: 4px 0;
+}

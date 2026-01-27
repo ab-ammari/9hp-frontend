@@ -1,0 +1,416 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.map-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.map-element {
+  width: 100%;
+  height: 100%;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// Barre d'outils
+// ═══════════════════════════════════════════════════════════════
+
+.toolbar {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 100;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Panneau des couches
+// ═══════════════════════════════════════════════════════════════
+
+.layer-panel {
+  position: absolute;
+  top: 16px;
+  right: 80px;
+  width: 280px;
+  max-height: calc(100% - 80px);
+  z-index: 90;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.layer-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  background: #fafafa;
+
+  h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 18px;
+      color: #666;
+    }
+
+    &:hover {
+      background: #eee;
+    }
+  }
+}
+
+.layer-panel-content {
+  padding: 12px 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.layer-group {
+  margin-bottom: 16px;
+
+  h4 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.base-map-options {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    input[type="radio"] {
+      margin: 0;
+    }
+  }
+}
+
+.layer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.layer-item {
+  .layer-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    input[type="checkbox"] {
+      margin: 0;
+    }
+
+    .layer-name {
+      flex: 1;
+      color: #333;
+    }
+
+    .layer-count {
+      font-size: 11px;
+      color: #999;
+    }
+  }
+}
+
+.no-layers {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+
+  p {
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .hint {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #bbb;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Barre d'état
+// ═══════════════════════════════════════════════════════════════
+
+.status-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid #e0e0e0;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Zone de drop
+// ═══════════════════════════════════════════════════════════════
+
+.drop-zone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  max-width: calc(100% - 32px);
+  padding: 48px 32px;
+  background: rgba(255, 255, 255, 0.98);
+  border: 2px dashed #ccc;
+  border-radius: 16px;
+  text-align: center;
+  z-index: 50;
+  transition: all 0.2s ease;
+
+  &.drag-over {
+    border-color: var(--ion-color-primary, #3880ff);
+    background: rgba(56, 128, 255, 0.05);
+    transform: translate(-50%, -50%) scale(1.02);
+  }
+}
+
+.drop-content {
+  ion-icon {
+    font-size: 64px;
+    color: #bbb;
+  }
+
+  .drop-title {
+    margin: 16px 0 8px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  .drop-hint {
+    margin: 8px 0 16px;
+    font-size: 12px;
+    color: #999;
+  }
+}
+
+.file-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--ion-color-primary, #3880ff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  ion-icon {
+    font-size: 18px;
+    color: white;
+  }
+
+  &:hover {
+    background: var(--ion-color-primary-shade, #3171e0);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Indicateur de chargement
+// ═══════════════════════════════════════════════════════════════
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 200;
+
+  ion-spinner {
+    width: 48px;
+    height: 48px;
+    color: var(--ion-color-primary, #3880ff);
+  }
+
+  p {
+    margin-top: 16px;
+    font-size: 14px;
+    color: #666;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Message d'erreur
+// ═══════════════════════════════════════════════════════════════
+
+.error-toast {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #f44336;
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 150;
+  animation: slideUp 0.3s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  span {
+    font-size: 14px;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+
+    ion-icon {
+      font-size: 16px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateX(-50%) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Styles OpenLayers globaux
+// ═══════════════════════════════════════════════════════════════
+
+::ng-deep {
+  .ol-control {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 4px;
+    padding: 2px;
+
+    button {
+      background: white;
+      color: #333;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+    }
+  }
+
+  .ol-scale-line {
+    background: rgba(255, 255, 255, 0.8);
+    bottom: 44px;
+    left: 16px;
+    border-radius: 4px;
+    padding: 4px 8px;
+  }
+
+  .ol-scale-line-inner {
+    border: 1px solid #333;
+    border-top: none;
+    color: #333;
+    font-size: 11px;
+  }
+
+  .ol-attribution {
+    bottom: 44px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+
+    &.ol-uncollapsible {
+      font-size: 10px;
+    }
+  }
+
+  .ol-zoom {
+    display: none; // On utilise notre propre toolbar
+  }
+}

@@ -1,0 +1,130 @@
+<div class="map-wrapper"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave($event)"
+     (drop)="onDrop($event)">
+
+  <!-- Carte principale -->
+  <div #mapElement class="map-element"></div>
+
+  <!-- Input fichier caché -->
+  <input
+    #fileInput
+    type="file"
+    accept=".gml,.xml"
+    style="display: none"
+    (change)="onFileSelected($event)">
+
+  <!-- Barre d'outils latérale -->
+  <app-carto-toolbar
+    class="toolbar"
+    (zoomIn)="onZoomIn()"
+    (zoomOut)="onZoomOut()"
+    (zoomToExtent)="onZoomToExtent()"
+    (toggleLayers)="toggleLayerPanel()"
+    (loadFile)="openFileSelector()">
+  </app-carto-toolbar>
+
+  <!-- Panneau des couches -->
+  <div class="layer-panel" *ngIf="isLayerPanelOpen()">
+    <div class="layer-panel-header">
+      <h3>Couches</h3>
+      <button class="close-btn" (click)="toggleLayerPanel()">
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="layer-panel-content">
+      <!-- Fonds de carte -->
+      <div class="layer-group">
+        <h4>Fond de carte</h4>
+        <div class="base-map-options">
+          <label>
+            <input type="radio" name="baseMap" value="osm"
+                   [checked]="mapService.currentBaseMap() === 'osm'"
+                   (change)="onBaseMapChange('osm')">
+            OpenStreetMap
+          </label>
+          <label>
+            <input type="radio" name="baseMap" value="satellite"
+                   [checked]="mapService.currentBaseMap() === 'satellite'"
+                   (change)="onBaseMapChange('satellite')">
+            Satellite
+          </label>
+          <label>
+            <input type="radio" name="baseMap" value="terrain"
+                   [checked]="mapService.currentBaseMap() === 'terrain'"
+                   (change)="onBaseMapChange('terrain')">
+            Terrain
+          </label>
+          <label>
+            <input type="radio" name="baseMap" value="none"
+                   [checked]="mapService.currentBaseMap() === 'none'"
+                   (change)="onBaseMapChange('none')">
+            Aucun
+          </label>
+        </div>
+      </div>
+
+      <!-- Couches de données -->
+      <div class="layer-group" *ngIf="mapService.layers().length > 0">
+        <h4>Données archéologiques</h4>
+        <div class="layer-list">
+          <div class="layer-item" *ngFor="let layer of mapService.layers()">
+            <label class="layer-checkbox">
+              <input type="checkbox"
+                     [checked]="layer.visible"
+                     (change)="onLayerVisibilityChange(layer)">
+              <span class="layer-name">{{ layer.name }}</span>
+              <span class="layer-count">({{ layer.featureCount }})</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="no-layers" *ngIf="mapService.layers().length === 0">
+        <p>Aucune couche chargée</p>
+        <p class="hint">Chargez un fichier GML pour afficher les données</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barre d'état -->
+  <app-carto-status-bar
+    class="status-bar"
+    [coordinates]="mapService.cursorPosition()"
+    [zoom]="mapService.currentZoom()"
+    [crs]="projectionService.getCurrentCRS()"
+    [featureCount]="totalFeatureCount()">
+  </app-carto-status-bar>
+
+  <!-- Zone de drop (affichée quand aucune donnée) -->
+  <div class="drop-zone"
+       *ngIf="features().length === 0 && !isLoading()"
+       [class.drag-over]="isDragging()">
+    <div class="drop-content">
+      <ion-icon name="cloud-upload-outline"></ion-icon>
+      <p class="drop-title">Déposez un fichier GML ici</p>
+      <p class="drop-hint">ou</p>
+      <button class="file-btn" (click)="openFileSelector()">
+        <ion-icon name="folder-open-outline"></ion-icon>
+        Parcourir...
+      </button>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  <div class="loading-overlay" *ngIf="isLoading()">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Chargement du fichier GML...</p>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div class="error-toast" *ngIf="errorMessage()">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <span>{{ errorMessage() }}</span>
+    <button (click)="errorMessage.set(null)">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+</div>

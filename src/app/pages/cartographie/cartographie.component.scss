@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: calc(108vh - 200px);  // Ajustez selon la hauteur header/tabs
+  min-height: 500px;
+}
+
+.cartographie-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

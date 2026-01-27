@@ -1,0 +1,45 @@
+<div class="toolbar-container">
+  
+  <!-- Chargement fichier GML -->
+  <button 
+    class="toolbar-btn primary"
+    title="Charger un fichier GML"
+    (click)="onLoadFile()">
+    <ion-icon name="folder-open-outline"></ion-icon>
+  </button>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- Zoom -->
+  <button 
+    class="toolbar-btn"
+    title="Zoom avant"
+    (click)="onZoomIn()">
+    <ion-icon name="add-outline"></ion-icon>
+  </button>
+  
+  <button 
+    class="toolbar-btn"
+    title="Zoom arrière"
+    (click)="onZoomOut()">
+    <ion-icon name="remove-outline"></ion-icon>
+  </button>
+  
+  <button 
+    class="toolbar-btn"
+    title="Vue d'ensemble"
+    (click)="onZoomToExtent()">
+    <ion-icon name="scan-outline"></ion-icon>
+  </button>
+
+  <div class="toolbar-separator"></div>
+
+  <!-- Couches -->
+  <button 
+    class="toolbar-btn"
+    title="Couches"
+    (click)="onToggleLayers()">
+    <ion-icon name="layers-outline"></ion-icon>
+  </button>
+
+</div>

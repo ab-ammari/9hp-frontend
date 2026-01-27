@@ -1,0 +1,45 @@
+<div class="status-bar-container">
+  
+  <!-- Coordonnées du curseur -->
+  <div class="status-section coordinates">
+    <span class="label">X:</span>
+    <span class="value">{{ formatCoordinate(coordinates?.x) }}</span>
+    <span class="label">Y:</span>
+    <span class="value">{{ formatCoordinate(coordinates?.y) }}</span>
+    <span class="label" *ngIf="coordinates?.z !== undefined">Z:</span>
+    <span class="value" *ngIf="coordinates?.z !== undefined">{{ formatCoordinate(coordinates?.z) }}</span>
+  </div>
+
+  <!-- Séparateur -->
+  <div class="status-separator"></div>
+
+  <!-- Système de coordonnées -->
+  <div class="status-section crs">
+    <select 
+      class="crs-select" 
+      [value]="crs"
+      (change)="onCrsChange($event)"
+      title="Système de coordonnées">
+      <option *ngFor="let item of availableCRS" [value]="item.code">
+        {{ item.name }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Séparateur -->
+  <div class="status-separator"></div>
+
+  <!-- Niveau de zoom -->
+  <div class="status-section zoom">
+    <ion-icon name="search-outline"></ion-icon>
+    <span class="value">{{ zoom | number:'1.0-0' }}</span>
+  </div>
+
+  <!-- Compteur de features -->
+  <div class="status-section features" *ngIf="featureCount > 0">
+    <div class="status-separator"></div>
+    <ion-icon name="shapes-outline"></ion-icon>
+    <span class="value">{{ featureCount }} entités</span>
+  </div>
+
+</div>
