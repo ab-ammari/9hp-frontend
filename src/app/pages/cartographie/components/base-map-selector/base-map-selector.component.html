@@ -1,0 +1,38 @@
+<div class="basemap-selector" [class.expanded]="isExpanded">
+  
+  <!-- Bouton principal -->
+  <button class="selector-btn" (click)="toggle()" title="Changer le fond de carte">
+    <ion-icon name="globe-outline"></ion-icon>
+    <span class="current-name">{{ getCurrentBaseMapName() }}</span>
+    <ion-icon name="chevron-up-outline" class="chevron" [class.rotated]="!isExpanded"></ion-icon>
+  </button>
+
+  <!-- Liste des fonds de carte -->
+  <div class="basemap-list" *ngIf="isExpanded">
+    <button 
+      class="basemap-option"
+      *ngFor="let basemap of getBaseMaps()"
+      [class.active]="layerService.currentBaseMap() === basemap.type"
+      (click)="selectBaseMap(basemap.type)">
+      <img [src]="basemap.thumbnail" [alt]="basemap.name"
+           onerror="this.src='assets/img/basemaps/default.png'">
+      <span>{{ basemap.name }}</span>
+      <ion-icon name="checkmark" *ngIf="layerService.currentBaseMap() === basemap.type"></ion-icon>
+    </button>
+    
+    <button 
+      class="basemap-option"
+      [class.active]="layerService.currentBaseMap() === 'none'"
+      (click)="selectBaseMap('none')">
+      <div class="no-basemap-icon">
+        <ion-icon name="close-outline"></ion-icon>
+      </div>
+      <span>Aucun</span>
+      <ion-icon name="checkmark" *ngIf="layerService.currentBaseMap() === 'none'"></ion-icon>
+    </button>
+  </div>
+
+</div>
+
+<!-- Overlay pour fermer -->
+<div class="overlay" *ngIf="isExpanded" (click)="isExpanded = false"></div>

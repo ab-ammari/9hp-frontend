@@ -24,69 +24,17 @@
     (loadFile)="openFileSelector()">
   </app-carto-toolbar>
 
-  <!-- Panneau des couches -->
-  <div class="layer-panel" *ngIf="isLayerPanelOpen()">
-    <div class="layer-panel-header">
-      <h3>Couches</h3>
-      <button class="close-btn" (click)="toggleLayerPanel()">
-        <ion-icon name="close-outline"></ion-icon>
-      </button>
-    </div>
+  <!-- Panneau des couches (Phase 2) -->
+  <app-layer-panel
+    [isOpen]="isLayerPanelOpen()"
+    (close)="toggleLayerPanel()">
+  </app-layer-panel>
 
-    <div class="layer-panel-content">
-      <!-- Fonds de carte -->
-      <div class="layer-group">
-        <h4>Fond de carte</h4>
-        <div class="base-map-options">
-          <label>
-            <input type="radio" name="baseMap" value="osm"
-                   [checked]="mapService.currentBaseMap() === 'osm'"
-                   (change)="onBaseMapChange('osm')">
-            OpenStreetMap
-          </label>
-          <label>
-            <input type="radio" name="baseMap" value="satellite"
-                   [checked]="mapService.currentBaseMap() === 'satellite'"
-                   (change)="onBaseMapChange('satellite')">
-            Satellite
-          </label>
-          <label>
-            <input type="radio" name="baseMap" value="terrain"
-                   [checked]="mapService.currentBaseMap() === 'terrain'"
-                   (change)="onBaseMapChange('terrain')">
-            Terrain
-          </label>
-          <label>
-            <input type="radio" name="baseMap" value="none"
-                   [checked]="mapService.currentBaseMap() === 'none'"
-                   (change)="onBaseMapChange('none')">
-            Aucun
-          </label>
-        </div>
-      </div>
+  <!-- Légende dynamique (Phase 2) -->
+  <app-legend></app-legend>
 
-      <!-- Couches de données -->
-      <div class="layer-group" *ngIf="mapService.layers().length > 0">
-        <h4>Données archéologiques</h4>
-        <div class="layer-list">
-          <div class="layer-item" *ngFor="let layer of mapService.layers()">
-            <label class="layer-checkbox">
-              <input type="checkbox"
-                     [checked]="layer.visible"
-                     (change)="onLayerVisibilityChange(layer)">
-              <span class="layer-name">{{ layer.name }}</span>
-              <span class="layer-count">({{ layer.featureCount }})</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="no-layers" *ngIf="mapService.layers().length === 0">
-        <p>Aucune couche chargée</p>
-        <p class="hint">Chargez un fichier GML pour afficher les données</p>
-      </div>
-    </div>
-  </div>
+  <!-- Sélecteur de fond de carte (Phase 2) -->
+  <app-base-map-selector></app-base-map-selector>
 
   <!-- Barre d'état -->
   <app-carto-status-bar

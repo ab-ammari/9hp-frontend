@@ -1,0 +1,184 @@
+<div class="layer-panel" [class.open]="isOpen">
+  
+  <!-- Header -->
+  <div class="panel-header">
+    <h3>Gestionnaire de couches</h3>
+    <button class="close-btn" (click)="onClose()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="panel-tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'layers'"
+      (click)="setActiveTab('layers')">
+      <ion-icon name="layers-outline"></ion-icon>
+      Couches
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'basemaps'"
+      (click)="setActiveTab('basemaps')">
+      <ion-icon name="map-outline"></ion-icon>
+      Fonds
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'style'"
+      (click)="setActiveTab('style')"
+      *ngIf="selectedLayerForStyle">
+      <ion-icon name="color-palette-outline"></ion-icon>
+      Style
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="panel-content">
+
+    <!-- Tab: Couches -->
+    <div class="tab-content" *ngIf="activeTab === 'layers'">
+      
+      <!-- Groupes de couches -->
+      <div class="layer-groups" *ngIf="layerService.layerGroups().length > 0">
+        <div class="layer-group" *ngFor="let group of layerService.layerGroups(); trackBy: trackByGroupId">
+          <div class="group-header" (click)="toggleGroupExpanded(group)">
+            <ion-icon [name]="group.expanded ? 'chevron-down-outline' : 'chevron-forward-outline'"></ion-icon>
+            <input type="checkbox" 
+                   [checked]="group.visible" 
+                   (click)="$event.stopPropagation()"
+                   (change)="onGroupVisibilityChange(group)">
+            <span class="group-name">{{ group.name }}</span>
+            <span class="group-count">({{ getLayersInGroup(group).length }})</span>
+          </div>
+          
+          <div class="group-layers" *ngIf="group.expanded">
+            <div class="layer-item" *ngFor="let layer of getLayersInGroup(group); trackBy: trackByLayerId">
+              <ng-container *ngTemplateOutlet="layerItemTemplate; context: { $implicit: layer }"></ng-container>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Couches sans groupe -->
+      <div class="ungrouped-layers">
+        <h4 *ngIf="layerService.layerGroups().length > 0 && getUngroupedLayers().length > 0">
+          Autres couches
+        </h4>
+        <div class="layer-item" *ngFor="let layer of getUngroupedLayers(); trackBy: trackByLayerId">
+          <ng-container *ngTemplateOutlet="layerItemTemplate; context: { $implicit: layer }"></ng-container>
+        </div>
+      </div>
+
+      <!-- Message si aucune couche -->
+      <div class="no-layers" *ngIf="layerService.layers().length === 0">
+        <ion-icon name="layers-outline"></ion-icon>
+        <p>Aucune couche chargée</p>
+        <p class="hint">Chargez un fichier GML pour afficher les données</p>
+      </div>
+
+    </div>
+
+    <!-- Tab: Fonds de carte -->
+    <div class="tab-content" *ngIf="activeTab === 'basemaps'">
+      <div class="basemap-grid">
+        <div class="basemap-item" 
+             *ngFor="let basemap of getBaseMaps()"
+             [class.active]="layerService.currentBaseMap() === basemap.type"
+             (click)="onBaseMapChange(basemap.type)">
+          <div class="basemap-preview">
+            <img [src]="basemap.thumbnail" [alt]="basemap.name" 
+                 onerror="this.src='assets/img/basemaps/default.png'">
+            <ion-icon name="checkmark-circle" class="check-icon" 
+                      *ngIf="layerService.currentBaseMap() === basemap.type"></ion-icon>
+          </div>
+          <span class="basemap-name">{{ basemap.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Style -->
+    <div class="tab-content" *ngIf="activeTab === 'style' && selectedLayerForStyle">
+      <div class="style-editor">
+        <div class="style-header">
+          <button class="back-btn" (click)="closeStyleEditor()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+          </button>
+          <h4>{{ selectedLayerForStyle.name }}</h4>
+        </div>
+
+        <div class="style-section">
+          <label>Couleur de remplissage</label>
+          <input type="color" 
+                 [value]="selectedLayerForStyle.color || '#424242'"
+                 (change)="onStyleColorChange('fill', $any($event.target).value)">
+        </div>
+
+        <div class="style-section">
+          <label>Couleur de contour</label>
+          <input type="color" 
+                 [value]="selectedLayerForStyle.color || '#424242'"
+                 (change)="onStyleColorChange('stroke', $any($event.target).value)">
+        </div>
+
+        <div class="style-section">
+          <label>Épaisseur du contour</label>
+          <input type="range" min="1" max="10" step="1" value="2"
+                 (change)="onStyleStrokeWidthChange($any($event.target).valueAsNumber)">
+        </div>
+
+        <button class="reset-style-btn" (click)="onResetStyle()">
+          <ion-icon name="refresh-outline"></ion-icon>
+          Réinitialiser le style
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Template pour un item de couche -->
+<ng-template #layerItemTemplate let-layer>
+  <div class="layer-content">
+    <div class="layer-visibility">
+      <input type="checkbox" 
+             [checked]="layer.visible" 
+             (change)="onVisibilityChange(layer)">
+    </div>
+    
+    <div class="layer-color" [style.background-color]="layer.color || '#424242'"></div>
+    
+    <div class="layer-info">
+      <span class="layer-name">{{ layer.name }}</span>
+      <span class="layer-count">{{ layer.featureCount }} entités</span>
+    </div>
+
+    <div class="layer-actions">
+      <button class="action-btn" title="Style" (click)="openStyleEditor(layer)">
+        <ion-icon name="color-palette-outline"></ion-icon>
+      </button>
+      <button class="action-btn" title="Zoom" (click)="onZoomToLayer(layer)">
+        <ion-icon name="locate-outline"></ion-icon>
+      </button>
+      <button class="action-btn" title="Monter" (click)="onMoveUp(layer)">
+        <ion-icon name="arrow-up-outline"></ion-icon>
+      </button>
+      <button class="action-btn" title="Descendre" (click)="onMoveDown(layer)">
+        <ion-icon name="arrow-down-outline"></ion-icon>
+      </button>
+      <button class="action-btn delete" title="Supprimer" (click)="onRemoveLayer(layer)">
+        <ion-icon name="trash-outline"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="layer-opacity">
+    <ion-icon name="contrast-outline"></ion-icon>
+    <input type="range" min="0" max="1" step="0.1" 
+           [value]="layer.opacity"
+           (input)="onOpacityChange(layer, $event)">
+    <span>{{ (layer.opacity * 100) | number:'1.0-0' }}%</span>
+  </div>
+</ng-template>

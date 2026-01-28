@@ -1,6 +1,5 @@
 /**
  * Module Cartographie - Modèles de données
- * Phase 1 : Fondations
  */
 
 /**
@@ -72,6 +71,21 @@ export interface MapLayer {
   zIndex: number;
   entityType?: ArcheoEntityType;
   featureCount?: number;
+
+  gmlType?: string;
+  color?: string;
+  groupId?: string;
+}
+
+/**
+ * Groupe de couches
+ */
+export interface LayerGroup {
+  id: string;
+  name: string;
+  expanded: boolean;
+  visible: boolean;
+  layerIds: string[];
 }
 
 /**
@@ -97,4 +111,62 @@ export interface CursorPosition {
 /**
  * Types de fonds de carte
  */
-export type BaseMapType = 'osm' | 'satellite' | 'terrain' | 'ign' | 'none';
+export type BaseMapType = 'osm' | 'satellite' | 'terrain' | 'ign' | 'ign-scan25' | 'cadastre' | 'none';
+
+/**
+ * Configuration d'un fond de carte
+ */
+export interface BaseMapConfig {
+  id: string;
+  name: string;
+  type: BaseMapType;
+  thumbnail: string;
+  description?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Interfaces de style
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Configuration de remplissage
+ */
+export interface FillStyle {
+  color: string;
+}
+
+/**
+ * Configuration de contour
+ */
+export interface StrokeStyle {
+  color: string;
+  width?: number;
+  lineDash?: number[];
+}
+
+/**
+ * Configuration de point
+ */
+export interface PointStyle {
+  radius: number;
+  color: string;
+  shape?: 'circle' | 'square' | 'triangle' | 'diamond' | 'star';
+}
+
+/**
+ * Style complet d'une couche
+ */
+export interface LayerStyle {
+  fill?: FillStyle;
+  stroke?: StrokeStyle;
+  point?: PointStyle;
+}
+
+/**
+ * Configuration de style complète
+ */
+export interface StyleConfig {
+  default: LayerStyle;
+  selected: LayerStyle;
+  highlighted: LayerStyle;
+}

@@ -1,0 +1,32 @@
+<div class="legend" [class.collapsed]="collapsed">
+  
+  <!-- Header -->
+  <div class="legend-header" (click)="toggleCollapsed()">
+    <ion-icon name="list-outline"></ion-icon>
+    <span *ngIf="!collapsed">Légende</span>
+    <ion-icon 
+      [name]="collapsed ? 'chevron-forward-outline' : 'chevron-down-outline'"
+      class="toggle-icon">
+    </ion-icon>
+  </div>
+
+  <!-- Content -->
+  <div class="legend-content" *ngIf="!collapsed">
+    
+    <div class="legend-empty" *ngIf="getVisibleLayers().length === 0">
+      <p>Aucune couche visible</p>
+    </div>
+
+    <div class="legend-items">
+      <div class="legend-item" *ngFor="let layer of getVisibleLayers(); trackBy: trackByLayerId">
+        <div class="legend-symbol" [ngStyle]="getLayerStyle(layer)"></div>
+        <div class="legend-label">
+          <span class="layer-name">{{ layer.name }}</span>
+          <span class="layer-count">{{ layer.featureCount }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

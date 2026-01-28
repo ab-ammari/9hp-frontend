@@ -10,6 +10,8 @@ import {
 import { MapService } from '../../services/map.service';
 import { GmlParserService } from '../../services/gml-parser.service';
 import { ProjectionService } from '../../services/projection.service';
+import { LayerService } from '../../services/layer.service';
+import { StyleService } from '../../services/style.service';
 import { GeoFeature, MapLayer } from '../../models/geo-feature.model';
 import { Coordinate3D } from '../../models/geo-feature.model';
 
@@ -32,13 +34,13 @@ export class MapContainerComponent implements OnInit, OnDestroy {
   // Données
   features = signal<GeoFeature[]>([]);
 
-  // Compteur de features
-  totalFeatureCount = computed(() => {
-    return this.mapService.layers().reduce((sum, l) => sum + (l.featureCount || 0), 0);
-  });
+  // Compteur de features (délégué au LayerService)
+  totalFeatureCount = computed(() => this.layerService.totalFeatureCount());
 
   constructor(
     public mapService: MapService,
+    public layerService: LayerService,
+    public styleService: StyleService,
     private gmlParser: GmlParserService,
     public projectionService: ProjectionService
   ) { }
@@ -66,81 +68,65 @@ export class MapContainerComponent implements OnInit, OnDestroy {
   // Gestion du fichier GML
   // ═══════════════════════════════════════════════════════════════
 
-  /**
-   * Ouvre le sélecteur de fichier
-   */
   openFileSelector(): void {
     this.fileInput.nativeElement.click();
   }
 
-  /**
-   * Gère la sélection d'un fichier
-   */
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       this.loadGmlFile(input.files[0]);
     }
-    // Reset pour permettre de recharger le même fichier
     input.value = '';
   }
 
-  /**
-   * Charge un fichier GML
-   */
   async loadGmlFile(file: File): Promise<void> {
-  this.isLoading.set(true);
-  this.errorMessage.set(null);
+    this.isLoading.set(true);
+    this.errorMessage.set(null);
 
-  try {
-    const content = await file.text();
-    const parsedFeatures = this.gmlParser.parseGML(content);
+    try {
+      const content = await file.text();
+      const parsedFeatures = this.gmlParser.parseGML(content);
 
-    if (parsedFeatures.length === 0) {
-      this.errorMessage.set('Aucune entité trouvée dans le fichier GML');
-      return;
-    }
-
-    // Détecter le CRS source
-    const firstCoord = this.getFirstCoordinate(parsedFeatures);
-    if (firstCoord) {
-      const sourceCRS = this.projectionService.detectCRS(firstCoord.x, firstCoord.y);
-      const targetCRS = this.projectionService.getCurrentCRS();
-      
-      console.log(`[MapContainer] CRS détecté: ${sourceCRS}, CRS carte: ${targetCRS}`);
-
-      // Reprojeter si nécessaire
-      if (sourceCRS !== targetCRS) {
-        this.reprojectFeatures(parsedFeatures, sourceCRS, targetCRS);
+      if (parsedFeatures.length === 0) {
+        this.errorMessage.set('Aucune entité trouvée dans le fichier GML');
+        return;
       }
+
+      // Détecter le CRS source
+      const firstCoord = this.getFirstCoordinate(parsedFeatures);
+      if (firstCoord) {
+        const sourceCRS = this.projectionService.detectCRS(firstCoord.x, firstCoord.y);
+        const targetCRS = this.projectionService.getCurrentCRS();
+        
+        console.log(`[MapContainer] CRS détecté: ${sourceCRS}, CRS carte: ${targetCRS}`);
+
+        if (sourceCRS !== targetCRS) {
+          this.reprojectFeatures(parsedFeatures, sourceCRS, targetCRS);
+        }
+      }
+
+      this.features.set(parsedFeatures);
+      this.layerService.clearAllLayers();
+      this.createLayersFromFeatures(parsedFeatures, file.name);
+
+      setTimeout(() => this.layerService.zoomToAllLayers(), 100);
+
+    } catch (error) {
+      console.error('[MapContainer] Erreur:', error);
+      this.errorMessage.set('Erreur lors du chargement du fichier GML');
+    } finally {
+      this.isLoading.set(false);
     }
-
-    this.features.set(parsedFeatures);
-    this.mapService.clearAllLayers();
-    this.createLayersFromFeatures(parsedFeatures);
-
-    setTimeout(() => this.mapService.zoomToAllFeatures(), 100);
-
-  } catch (error) {
-    console.error('[MapContainer] Erreur:', error);
-    this.errorMessage.set('Erreur lors du chargement du fichier GML');
-  } finally {
-    this.isLoading.set(false);
-  }
   }
 
-  /**
-   * Reprojette les coordonnées des features
-   */
   private reprojectFeatures(features: GeoFeature[], from: string, to: string): void {
     features.forEach(f => {
       if (Array.isArray(f.coordinates[0]) && Array.isArray((f.coordinates[0] as any)[0])) {
-        // Polygon (tableau de rings)
         f.coordinates = (f.coordinates as Coordinate3D[][]).map(ring =>
           ring.map(c => this.reprojectCoord(c, from, to))
         );
       } else {
-        // Point ou LineString
         f.coordinates = (f.coordinates as Coordinate3D[]).map(c => 
           this.reprojectCoord(c, from, to)
         );
@@ -156,23 +142,35 @@ export class MapContainerComponent implements OnInit, OnDestroy {
   /**
    * Crée les couches à partir des features groupées par type
    */
-  private createLayersFromFeatures(features: GeoFeature[]): void {
+  private createLayersFromFeatures(features: GeoFeature[], fileName?: string): void {
     const grouped = this.gmlParser.groupByType(features);
+    const layerIds: string[] = [];
 
     let zIndex = 10;
     Object.entries(grouped).forEach(([type, typeFeatures]) => {
-      this.mapService.addArcheoLayer(
+      const layerId = `layer_${type.replace(/\s+/g, '_').toLowerCase()}`;
+      
+      this.layerService.addArcheoLayer(
         typeFeatures,
-        `layer_${type.replace(/\s+/g, '_').toLowerCase()}`,
+        layerId,
         type,
         { visible: true, opacity: 0.8, zIndex: zIndex++ }
       );
+      
+      layerIds.push(layerId);
     });
+
+    // Créer un groupe si plusieurs couches
+    if (layerIds.length > 1 && fileName) {
+      const groupName = fileName.replace(/\.(gml|xml)$/i, '');
+      this.layerService.createLayerGroup(
+        `group_${Date.now()}`,
+        groupName,
+        layerIds
+      );
+    }
   }
 
-  /**
-   * Récupère la première coordonnée pour la détection du CRS
-   */
   private getFirstCoordinate(features: GeoFeature[]): { x: number; y: number } | null {
     for (const f of features) {
       if (f.coordinates && f.coordinates.length > 0) {
@@ -222,7 +220,7 @@ export class MapContainerComponent implements OnInit, OnDestroy {
 
   // ═══════════════════════════════════════════════════════════════
   // Actions toolbar
-  // ═══════════════════════════════════════════════════════════════
+  // ═══════════════════════════════════���═══════════════════════════
 
   onZoomIn(): void {
     this.mapService.zoomIn();
@@ -233,7 +231,7 @@ export class MapContainerComponent implements OnInit, OnDestroy {
   }
 
   onZoomToExtent(): void {
-    this.mapService.zoomToAllFeatures();
+    this.layerService.zoomToAllLayers();
   }
 
   toggleLayerPanel(): void {
@@ -241,22 +239,18 @@ export class MapContainerComponent implements OnInit, OnDestroy {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // Gestion des couches
+  // Gestion des couches (délégation)
   // ═══════════════════════════════════════════════════════════════
 
   onLayerVisibilityChange(layer: MapLayer): void {
-    this.mapService.setLayerVisibility(layer.id, !layer.visible);
+    this.layerService.setLayerVisibility(layer.id, !layer.visible);
   }
 
   onLayerOpacityChange(event: { layerId: string; opacity: number }): void {
-    this.mapService.setLayerOpacity(event.layerId, event.opacity);
+    this.layerService.setLayerOpacity(event.layerId, event.opacity);
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Changement de fond de carte
-  // ═══════════════════════════════════════════════════════════════
-
   onBaseMapChange(type: string): void {
-    this.mapService.setBaseMap(type as any);
+    this.layerService.setBaseMap(type as any);
   }
 }

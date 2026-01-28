@@ -1,28 +1,20 @@
 import { Injectable, signal, computed } from '@angular/core';
 import OlMap from 'ol/Map';
 import View from 'ol/View';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import VectorSource from 'ol/source/Vector';
-import OSM from 'ol/source/OSM';
-import XYZ from 'ol/source/XYZ';
 import { defaults as defaultControls, ScaleLine, Attribution } from 'ol/control';
 import { defaults as defaultInteractions } from 'ol/interaction';
 import Select from 'ol/interaction/Select';
 import { click, pointerMove } from 'ol/events/condition';
-import { Style, Fill, Stroke, Circle, Text } from 'ol/style';
-import { Feature } from 'ol';
-import { Geometry } from 'ol/geom';
+import { Style, Fill, Stroke, Circle } from 'ol/style';
 
 import { ProjectionService } from './projection.service';
-import { GmlParserService } from './gml-parser.service';
+import { LayerService } from './layer.service';
 import {
   GeoFeature,
   MapConfig,
   CursorPosition,
   BaseMapType,
-  MapLayer,
-  ArcheoEntityType
+  MapLayer
 } from '../models/geo-feature.model';
 
 @Injectable({
@@ -38,8 +30,6 @@ export class MapService {
   private _currentCenter = signal<[number, number]>([700000, 6600000]);
   private _cursorPosition = signal<CursorPosition | null>(null);
   private _selectedFeatures = signal<GeoFeature[]>([]);
-  private _layers = signal<MapLayer[]>([]);
-  private _currentBaseMap = signal<BaseMapType>('osm');
 
   // Signaux en lecture seule
   readonly map = this._map.asReadonly();
@@ -47,49 +37,20 @@ export class MapService {
   readonly currentCenter = this._currentCenter.asReadonly();
   readonly cursorPosition = this._cursorPosition.asReadonly();
   readonly selectedFeatures = this._selectedFeatures.asReadonly();
-  readonly layers = this._layers.asReadonly();
-  readonly currentBaseMap = this._currentBaseMap.asReadonly();
 
-  // Computed
-  readonly visibleLayers = computed(() =>
-    this._layers().filter(l => l.visible)
-  );
+  // Délégation vers LayerService
+  readonly layers = computed(() => this.layerService.layers());
+  readonly currentBaseMap = computed(() => this.layerService.currentBaseMap());
+  readonly visibleLayers = computed(() => this.layerService.visibleLayers());
 
   // Interactions
   private selectInteraction: Select | null = null;
   private hoverInteraction: Select | null = null;
 
-  // Couches vectorielles (pour gestion)
-  private vectorLayers: Map<string, VectorLayer<VectorSource>> = new Map();
-
-  // ═══════════════════════════════════════════════════════════════
-  // Palettes de couleurs par type d'entité
-  // ═══════════════════════════════════════════════════════════════
-  private readonly colorPalettes: Record<string, string> = {
-    'Fosses': '#e74c3c',           
-    'Fosses circulaires': '#8e44ad',
-    'Trous de poteau': '#f39c12',  
-    'Murs': '#95a5a6',             
-    'Fossés': '#3498db',          
-    'US': '#e91e63',               
-    'Secteurs': '#2ecc71',        
-    'Points Topo': '#1abc9c',     
-    'Prélèvements': '#ff5722',     
-    'Mobilier': '#795548',        
-    'Photos': '#00bcd4',          
-    'Fait': '#ffbc02',            
-    'Polygone': '#9c27b0',         
-    'Points': '#4caf50',          
-    'Cercles Diamètre': '#ff6f00', 
-    'Tranchée': '#3f51b5',        
-    'Canalisation': '#607d8b',    
-    'default': '#424242'           
-  };
-
   constructor(
     private projectionService: ProjectionService,
-    private gmlParser: GmlParserService
-  ) { }
+    private layerService: LayerService
+  ) {}
 
   // ═══════════════════════════════════════════════════════════════
   // Initialisation de la carte
@@ -132,8 +93,11 @@ export class MapService {
       })
     });
 
+    // Initialiser le LayerService avec la carte
+    this.layerService.setMap(map);
+
     // Ajouter le fond de carte par défaut
-    this.addBaseLayer(map, 'osm');
+    this.layerService.setBaseMap('osm');
 
     // Configurer les événements
     this.setupMapEvents(map);
@@ -150,244 +114,40 @@ export class MapService {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // Gestion des fonds de carte
+  // Délégation vers LayerService
   // ═══════════════════════════════════════════════════════════════
 
-  /**
-   * Ajoute ou change le fond de carte
-   */
-  addBaseLayer(map: OlMap, type: BaseMapType): void {
-    // Supprimer l'ancien fond de carte
-    map.getLayers().getArray()
-      .filter(l => l.get('type') === 'base')
-      .forEach(l => map.removeLayer(l));
-
-    if (type === 'none') {
-      this._currentBaseMap.set('none');
-      return;
-    }
-
-    let source;
-
-    switch (type) {
-      case 'osm':
-        source = new OSM();
-        break;
-      case 'satellite':
-        source = new XYZ({
-          url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
-          maxZoom: 20
-        });
-        break;
-      case 'terrain':
-        source = new XYZ({
-          url: 'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
-          maxZoom: 20
-        });
-        break;
-      case 'ign':
-        // IGN Géoportail (nécessite une clé API pour la production)
-        source = new XYZ({
-          url: 'https://wxs.ign.fr/decouverte/geoportail/wmts?' +
-            'SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0' +
-            '&LAYER=ORTHOIMAGERY.ORTHOPHOTOS&STYLE=normal' +
-            '&TILEMATRIXSET=PM&FORMAT=image/jpeg' +
-            '&TILECOL={x}&TILEROW={y}&TILEMATRIX={z}',
-          maxZoom: 19
-        });
-        break;
-      default:
-        source = new OSM();
-    }
-
-    const baseLayer = new TileLayer({
-      source,
-      properties: { name: type, type: 'base' }
-    });
-
-    map.getLayers().insertAt(0, baseLayer);
-    this._currentBaseMap.set(type);
-
-    console.log('[MapService] Fond de carte changé:', type);
-  }
-
-  /**
-   * Change le fond de carte actuel
-   */
   setBaseMap(type: BaseMapType): void {
-    const map = this._map();
-    if (map) {
-      this.addBaseLayer(map, type);
-    }
+    this.layerService.setBaseMap(type);
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // Gestion des couches de données
-  // ═══════════════════════════════════════════════════════════════
-
-  /**
-   * Ajoute une couche de données archéologiques
-   */
   addArcheoLayer(
     features: GeoFeature[],
     layerId: string,
     layerName: string,
     options?: { visible?: boolean; opacity?: number; zIndex?: number }
-  ): VectorLayer<VectorSource> | null {
-
-    const map = this._map();
-    if (!map) {
-      console.error('[MapService] Carte non initialisée');
-      return null;
-    }
-
-    // Convertir les features en format OpenLayers
-    const olFeatures = this.gmlParser.toOpenLayersFeatures(features);
-
-    if (olFeatures.length === 0) {
-      console.warn(`[MapService] Aucune feature valide pour la couche ${layerName}`);
-      return null;
-    }
-
-    // Créer la source vectorielle
-    const source = new VectorSource({ features: olFeatures });
-
-    // Déterminer le type principal pour le style
-    const mainType = features[0]?.gmlType || 'default';
-    const color = this.colorPalettes[mainType] || this.colorPalettes['default'];
-
-    // Créer la couche avec style
-    const layer = new VectorLayer({
-      source,
-      style: this.createStyleFunction(color),
-      properties: {
-        id: layerId,
-        name: layerName,
-        type: 'archeo',
-        gmlType: mainType
-      },
-      visible: options?.visible ?? true,
-      opacity: options?.opacity ?? 1,
-      zIndex: options?.zIndex ?? 10
-    });
-
-    map.addLayer(layer);
-    this.vectorLayers.set(layerId, layer);
-
-    // Mettre à jour la liste des couches
-    const currentLayers = this._layers();
-    this._layers.set([
-      ...currentLayers,
-      {
-        id: layerId,
-        name: layerName,
-        type: 'archeo',
-        visible: options?.visible ?? true,
-        opacity: options?.opacity ?? 1,
-        zIndex: options?.zIndex ?? 10,
-        featureCount: features.length
-      }
-    ]);
-
-    console.log(`[MapService] Couche "${layerName}" ajoutée avec ${features.length} features`);
-
-    return layer;
+  ) {
+    return this.layerService.addArcheoLayer(features, layerId, layerName, options);
   }
 
-  /**
-   * Crée une fonction de style pour une couleur donnée
-   */
-  private createStyleFunction(baseColor: string): (feature: Feature<Geometry>) => Style {
-    return (feature: Feature<Geometry>) => {
-      const geometryType = feature.getGeometry()?.getType();
-
-      if (geometryType === 'Point') {
-        return new Style({
-          image: new Circle({
-            radius: 6,
-            fill: new Fill({ color: baseColor }),
-            stroke: new Stroke({
-              color: this.darkenColor(baseColor, 20),
-              width: 2
-            })
-          })
-        });
-      } else {
-        return new Style({
-          fill: new Fill({
-            color: this.hexToRgba(baseColor, 0.4)
-          }),
-          stroke: new Stroke({
-            color: baseColor,
-            width: 2
-          })
-        });
-      }
-    };
-  }
-
-  /**
-   * Définit la visibilité d'une couche
-   */
   setLayerVisibility(layerId: string, visible: boolean): void {
-    const layer = this.vectorLayers.get(layerId);
-    if (layer) {
-      layer.setVisible(visible);
-
-      // Mettre à jour l'état
-      const layers = this._layers().map(l =>
-        l.id === layerId ? { ...l, visible } : l
-      );
-      this._layers.set(layers);
-    }
+    this.layerService.setLayerVisibility(layerId, visible);
   }
 
-  /**
-   * Définit l'opacité d'une couche
-   */
   setLayerOpacity(layerId: string, opacity: number): void {
-    const layer = this.vectorLayers.get(layerId);
-    if (layer) {
-      layer.setOpacity(opacity);
-
-      const layers = this._layers().map(l =>
-        l.id === layerId ? { ...l, opacity } : l
-      );
-      this._layers.set(layers);
-    }
+    this.layerService.setLayerOpacity(layerId, opacity);
   }
 
-  /**
-   * Supprime une couche
-   */
   removeLayer(layerId: string): void {
-    const map = this._map();
-    const layer = this.vectorLayers.get(layerId);
-
-    if (map && layer) {
-      map.removeLayer(layer);
-      this.vectorLayers.delete(layerId);
-
-      const layers = this._layers().filter(l => l.id !== layerId);
-      this._layers.set(layers);
-    }
+    this.layerService.removeLayer(layerId);
   }
 
-  /**
-   * Supprime toutes les couches de données
-   */
   clearAllLayers(): void {
-    const map = this._map();
-    if (!map) return;
+    this.layerService.clearAllLayers();
+  }
 
-    this.vectorLayers.forEach((layer, id) => {
-      map.removeLayer(layer);
-    });
-
-    this.vectorLayers.clear();
-    this._layers.set([]);
-
-    console.log('[MapService] Toutes les couches supprimées');
+  zoomToAllFeatures(): void {
+    this.layerService.zoomToAllLayers();
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -473,9 +233,6 @@ export class MapService {
   // Navigation et zoom
   // ═══════════════════════════════════════════════════════════════
 
-  /**
-   * Zoome sur une étendue
-   */
   zoomToExtent(extent: [number, number, number, number], padding = 50): void {
     const map = this._map();
     if (!map) return;
@@ -486,41 +243,6 @@ export class MapService {
     });
   }
 
-  /**
-   * Zoome sur toutes les features chargées
-   */
-  zoomToAllFeatures(): void {
-    const map = this._map();
-    if (!map) return;
-
-    // Calculer l'étendue combinée de toutes les couches
-    let combinedExtent: number[] | null = null;
-
-    this.vectorLayers.forEach(layer => {
-      const source = layer.getSource();
-      if (source) {
-        const extent = source.getExtent();
-        if (extent && extent[0] !== Infinity) {
-          if (!combinedExtent) {
-            combinedExtent = [...extent];
-          } else {
-            combinedExtent[0] = Math.min(combinedExtent[0], extent[0]);
-            combinedExtent[1] = Math.min(combinedExtent[1], extent[1]);
-            combinedExtent[2] = Math.max(combinedExtent[2], extent[2]);
-            combinedExtent[3] = Math.max(combinedExtent[3], extent[3]);
-          }
-        }
-      }
-    });
-
-    if (combinedExtent) {
-      this.zoomToExtent(combinedExtent as [number, number, number, number]);
-    }
-  }
-
-  /**
-   * Zoom avant
-   */
   zoomIn(): void {
     const map = this._map();
     if (map) {
@@ -532,9 +254,6 @@ export class MapService {
     }
   }
 
-  /**
-   * Zoom arrière
-   */
   zoomOut(): void {
     const map = this._map();
     if (map) {
@@ -546,34 +265,11 @@ export class MapService {
     }
   }
 
-  /**
-   * Définit le niveau de zoom
-   */
   setZoom(zoom: number): void {
     const map = this._map();
     if (map) {
       map.getView().animate({ zoom, duration: 250 });
     }
-  }
-
-  // ═══════════════════════════════════════════════════════════════
-  // Utilitaires
-  // ═══════════════════════════════════════════════════════════════
-
-  private hexToRgba(hex: string, alpha: number): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-
-  private darkenColor(hex: string, percent: number): string {
-    const num = parseInt(hex.slice(1), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = Math.max((num >> 16) - amt, 0);
-    const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
-    const B = Math.max((num & 0x0000FF) - amt, 0);
-    return `#${(1 << 24 | R << 16 | G << 8 | B).toString(16).slice(1)}`;
   }
 
   /**
@@ -584,8 +280,7 @@ export class MapService {
     if (map) {
       map.setTarget(undefined);
       this._map.set(null);
-      this.vectorLayers.clear();
-      this._layers.set([]);
+      this.layerService.clearAllLayers();
       this._selectedFeatures.set([]);
       console.log('[MapService] Carte détruite');
     }

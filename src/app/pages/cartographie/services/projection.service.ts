@@ -27,6 +27,42 @@ export const PROJECTIONS: Record<string, { name: string; def: string }> = {
     name: 'RGF93 / CC46 (France zone 46)',
     def: '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
   },
+  'EPSG:3942': {
+    name: 'RGF93 / CC42 (Corse)',
+    def: '+proj=lcc +lat_1=41.25 +lat_2=42.75 +lat_0=42 +lon_0=3 +x_0=1700000 +y_0=1200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3943': {
+    name: 'RGF93 / CC43 (Sud-Est)',
+    def: '+proj=lcc +lat_1=42.25 +lat_2=43.75 +lat_0=43 +lon_0=3 +x_0=1700000 +y_0=2200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3944': {
+    name: 'RGF93 / CC44 (Sud)',
+    def: '+proj=lcc +lat_1=43.25 +lat_2=44.75 +lat_0=44 +lon_0=3 +x_0=1700000 +y_0=3200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3945': {
+    name: 'RGF93 / CC45 (Centre-Sud)',
+    def: '+proj=lcc +lat_1=44.25 +lat_2=45.75 +lat_0=45 +lon_0=3 +x_0=1700000 +y_0=4200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3947': {
+    name: 'RGF93 / CC47 (Centre-Nord)',
+    def: '+proj=lcc +lat_1=46.25 +lat_2=47.75 +lat_0=47 +lon_0=3 +x_0=1700000 +y_0=6200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3948': {
+    name: 'RGF93 / CC48 (Nord)',
+    def: '+proj=lcc +lat_1=47.25 +lat_2=48.75 +lat_0=48 +lon_0=3 +x_0=1700000 +y_0=7200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3949': {
+    name: 'RGF93 / CC49 (Nord-Est)',
+    def: '+proj=lcc +lat_1=48.25 +lat_2=49.75 +lat_0=49 +lon_0=3 +x_0=1700000 +y_0=8200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:3950': {
+    name: 'RGF93 / CC50 (Est)',
+    def: '+proj=lcc +lat_1=49.25 +lat_2=50.75 +lat_0=50 +lon_0=3 +x_0=1700000 +y_0=9200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'
+  },
+  'EPSG:32632': {
+    name: 'UTM Zone 32N',
+    def: '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs'
+  }
 };
 
 @Injectable({
