@@ -11,6 +11,8 @@ import { MapService } from '../../services/map.service';
 import { GmlParserService } from '../../services/gml-parser.service';
 import { ProjectionService } from '../../services/projection.service';
 import { GeoFeature, MapLayer } from '../../models/geo-feature.model';
+import { Coordinate3D } from '../../models/geo-feature.model';
+
 
 @Component({
   selector: 'app-map-container',
@@ -54,9 +56,9 @@ export class MapContainerComponent implements OnInit, OnDestroy {
    */
   private initMap(): void {
     this.mapService.initializeMap(this.mapElement.nativeElement, {
-      crs: 'EPSG:2154',
-      center: [700000, 6600000],
-      zoom: 15
+      crs: 'EPSG:3946',  
+      center: [1700000, 5200000],  
+      zoom: 5
     });
   }
 
@@ -87,46 +89,68 @@ export class MapContainerComponent implements OnInit, OnDestroy {
    * Charge un fichier GML
    */
   async loadGmlFile(file: File): Promise<void> {
-    this.isLoading.set(true);
-    this.errorMessage.set(null);
+  this.isLoading.set(true);
+  this.errorMessage.set(null);
 
-    try {
-      const content = await file.text();
-      const parsedFeatures = this.gmlParser.parseGML(content);
+  try {
+    const content = await file.text();
+    const parsedFeatures = this.gmlParser.parseGML(content);
 
-      if (parsedFeatures.length === 0) {
-        this.errorMessage.set('Aucune entité trouvée dans le fichier GML');
-        return;
-      }
-
-      // Détecter le CRS à partir des premières coordonnées
-      const firstCoord = this.getFirstCoordinate(parsedFeatures);
-      if (firstCoord) {
-        const detectedCRS = this.projectionService.detectCRS(firstCoord.x, firstCoord.y);
-        console.log('[MapContainer] CRS détecté:', detectedCRS);
-      }
-
-      this.features.set(parsedFeatures);
-
-      // Supprimer les anciennes couches
-      this.mapService.clearAllLayers();
-
-      // Créer les couches par type
-      this.createLayersFromFeatures(parsedFeatures);
-
-      // Zoomer sur les données
-      setTimeout(() => {
-        this.mapService.zoomToAllFeatures();
-      }, 100);
-
-      console.log(`[MapContainer] Fichier "${file.name}" chargé: ${parsedFeatures.length} features`);
-
-    } catch (error) {
-      console.error('[MapContainer] Erreur de chargement:', error);
-      this.errorMessage.set('Erreur lors du chargement du fichier GML');
-    } finally {
-      this.isLoading.set(false);
+    if (parsedFeatures.length === 0) {
+      this.errorMessage.set('Aucune entité trouvée dans le fichier GML');
+      return;
     }
+
+    // Détecter le CRS source
+    const firstCoord = this.getFirstCoordinate(parsedFeatures);
+    if (firstCoord) {
+      const sourceCRS = this.projectionService.detectCRS(firstCoord.x, firstCoord.y);
+      const targetCRS = this.projectionService.getCurrentCRS();
+      
+      console.log(`[MapContainer] CRS détecté: ${sourceCRS}, CRS carte: ${targetCRS}`);
+
+      // Reprojeter si nécessaire
+      if (sourceCRS !== targetCRS) {
+        this.reprojectFeatures(parsedFeatures, sourceCRS, targetCRS);
+      }
+    }
+
+    this.features.set(parsedFeatures);
+    this.mapService.clearAllLayers();
+    this.createLayersFromFeatures(parsedFeatures);
+
+    setTimeout(() => this.mapService.zoomToAllFeatures(), 100);
+
+  } catch (error) {
+    console.error('[MapContainer] Erreur:', error);
+    this.errorMessage.set('Erreur lors du chargement du fichier GML');
+  } finally {
+    this.isLoading.set(false);
+  }
+  }
+
+  /**
+   * Reprojette les coordonnées des features
+   */
+  private reprojectFeatures(features: GeoFeature[], from: string, to: string): void {
+    features.forEach(f => {
+      if (Array.isArray(f.coordinates[0]) && Array.isArray((f.coordinates[0] as any)[0])) {
+        // Polygon (tableau de rings)
+        f.coordinates = (f.coordinates as Coordinate3D[][]).map(ring =>
+          ring.map(c => this.reprojectCoord(c, from, to))
+        );
+      } else {
+        // Point ou LineString
+        f.coordinates = (f.coordinates as Coordinate3D[]).map(c => 
+          this.reprojectCoord(c, from, to)
+        );
+      }
+    });
+  }
+
+  private reprojectCoord(c: Coordinate3D, from: string, to: string): Coordinate3D {
+    const [x, y] = this.projectionService.transform([c.x, c.y], from, to);
+    return { x, y, z: c.z };
   }
 
   /**

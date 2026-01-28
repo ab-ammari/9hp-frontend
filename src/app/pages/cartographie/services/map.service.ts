@@ -66,18 +66,24 @@ export class MapService {
   // Palettes de couleurs par type d'entité
   // ═══════════════════════════════════════════════════════════════
   private readonly colorPalettes: Record<string, string> = {
-    'Fosses': '#e74c3c',
-    'Fosses circulaires': '#c0392b',
-    'Trous de poteau': '#f39c12',
-    'Murs': '#95a5a6',
-    'Fossés': '#3498db',
-    'US': '#9b59b6',
-    'Secteurs': '#2ecc71',
-    'Points Topo': '#1abc9c',
-    'Prélèvements': '#e91e63',
-    'Mobilier': '#ff9800',
-    'Photos': '#00bcd4',
-    'default': '#607d8b'
+    'Fosses': '#e74c3c',           
+    'Fosses circulaires': '#8e44ad',
+    'Trous de poteau': '#f39c12',  
+    'Murs': '#95a5a6',             
+    'Fossés': '#3498db',          
+    'US': '#e91e63',               
+    'Secteurs': '#2ecc71',        
+    'Points Topo': '#1abc9c',     
+    'Prélèvements': '#ff5722',     
+    'Mobilier': '#795548',        
+    'Photos': '#00bcd4',          
+    'Fait': '#ffbc02',            
+    'Polygone': '#9c27b0',         
+    'Points': '#4caf50',          
+    'Cercles Diamètre': '#ff6f00', 
+    'Tranchée': '#3f51b5',        
+    'Canalisation': '#607d8b',    
+    'default': '#424242'           
   };
 
   constructor(
